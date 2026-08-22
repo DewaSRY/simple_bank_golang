@@ -1,12 +1,20 @@
-services: 
-
+services:
   postgres:
     image: postgres:16
+    restart: always
     environment:
-      POSTGRES_USER: user
+      POSTGRES_USER: simple_bank
       POSTGRES_PASSWORD: password
       POSTGRES_DB: simple_bank
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    volumes:
+      - simple_bank_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U simple_bank -d simple_bank"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-
+volumes:
+  simple_bank_postgres_data:
