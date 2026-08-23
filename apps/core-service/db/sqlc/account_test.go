@@ -10,13 +10,45 @@ import (
 func TestCreateAccount(t *testing.T) {
 	q := createTestQueries(t)
 
-	arg := CreateAccountParams{
-		Owner:    "John Doe new",
-		Balance:  1000,
-		Currency: "USD",
-	}
+	arg := accountParams()
 
 	account, err := q.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotNil(t, account)
+}
+
+func TestGetAccountById(t *testing.T) {
+	q := createTestQueries(t)
+
+	arg := accountParams()
+
+	// create account first
+	account, err := q.CreateAccount(context.Background(), arg)
+	require.NoError(t, err)
+	require.NotNil(t, account)
+
+	accountById, err := q.GetAccountById(context.Background(), account.ID)
+	require.NoError(t, err)
+	require.NotNil(t, accountById)
+}
+
+func TestUpdateAccountBalance(t *testing.T) {
+	q := createTestQueries(t)
+
+	arg := accountParams()
+
+	// create account first
+	account, err := q.CreateAccount(context.Background(), arg)
+	require.NoError(t, err)
+	require.NotNil(t, account)
+
+	// update balance
+	newBalance := int64(2000)
+	updateAccount, err := q.UpdateAccountBalance(context.Background(), UpdateAccountBalanceParams{
+		ID:      account.ID,
+		Balance: newBalance,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, updateAccount)
+	require.Equal(t, newBalance, updateAccount.Balance)
 }

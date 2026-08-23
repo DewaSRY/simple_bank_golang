@@ -8,10 +8,11 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
+
+	constant "github.com/DewaSRY/core-service/domain/constant"
 )
 
 var testDB *sql.DB
-
 var dbDriver = "postgres"
 var dbSource = "postgresql://simple_bank:password@localhost:5433/simple_bank?sslmode=disable"
 
@@ -39,4 +40,28 @@ func createTestQueries(t *testing.T) *Queries {
 	})
 
 	return New(tx)
+}
+
+func accountParams() CreateAccountParams {
+	return CreateAccountParams{
+		Owner:    "John Doe new",
+		Balance:  1000,
+		Currency: "USD",
+	}
+}
+
+func entriesParamsTypeSend() CreateEntriesParams {
+	return CreateEntriesParams{
+		AccountID: 1,
+		Type:      constant.ENTRY_TYPE_SEND,
+		Amount:    100,
+	}
+}
+
+func transferParams() CreateTransferParams {
+	return CreateTransferParams{
+		FromAccountID: 1,
+		ToAccountID:   2,
+		Amount:        100,
+	}
 }
