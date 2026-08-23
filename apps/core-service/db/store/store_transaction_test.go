@@ -6,24 +6,13 @@ import (
 	"testing"
 	"time"
 
+	mockdb "github.com/DewaSRY/core-service/db/mock"
 	sqlc "github.com/DewaSRY/core-service/db/sqlc"
 	constant "github.com/DewaSRY/core-service/domain/constant"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
-
-func newTestStore(t *testing.T) (*Store, sqlmock.Sqlmock) {
-	db, mock, err := sqlmock.New()
-	require.NoError(t, err)
-	t.Cleanup(func() { db.Close() })
-
-	return NewStore(db), mock
-}
-
-var transferColumns = []string{"id", "from_account_id", "to_account_id", "amount", "created_at"}
-var entryColumns = []string{"id", "account_id", "type", "amount", "created_at"}
-var accountColumns = []string{"id", "owner", "balance", "currency", "created_at"}
 
 func TestTransferTx(t *testing.T) {
 	arg := sqlc.CreateTransferParams{
@@ -31,221 +20,149 @@ func TestTransferTx(t *testing.T) {
 		ToAccountID:   2,
 		Amount:        100,
 	}
+
 	now := time.Now()
 
-	t.Run("Success", func(t *testing.T) {
-		store, mock := newTestStore(t)
+	transfer := sqlc.Transfer{
+		ID:            10,
+		FromAccountID: arg.FromAccountID,
+		ToAccountID:   arg.ToAccountID,
+		Amount:        arg.Amount,
+		CreatedAt:     now,
+	}
+	fromEntry := sqlc.Entry{ID: 1, AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: -arg.Amount, CreatedAt: now}
+	toEntry := sqlc.Entry{ID: 2, AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: arg.Amount, CreatedAt: now}
+	fromAccount := sqlc.UpdateAccountBalanceRow{ID: arg.FromAccountID, Owner: "owner1", Balance: 900, Currency: "USD", CreatedAt: now}
+	toAccount := sqlc.UpdateAccountBalanceRow{ID: arg.ToAccountID, Owner: "owner2", Balance: 1100, Currency: "USD", CreatedAt: now}
 
-		mock.ExpectBegin()
+	testCases := []struct {
+		name          string
+		buildStubs    func(q *mockdb.MockQuerier)
+		checkResponse func(t *testing.T, result TransferTxResult, err error)
+	}{
+		{
+			name: "Success",
+			buildStubs: func(q *mockdb.MockQuerier) {
+				gomock.InOrder(
+					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: -arg.Amount,
+					}).Return(fromEntry, nil),
+					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
+						ID: arg.FromAccountID, Balance: -arg.Amount,
+					}).Return(fromAccount, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: arg.Amount,
+					}).Return(toEntry, nil),
+					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
+						ID: arg.ToAccountID, Balance: arg.Amount,
+					}).Return(toAccount, nil),
+				)
+			},
+			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
+				require.NoError(t, err)
+				require.Equal(t, transfer, result.Transfer)
+				require.Equal(t, int64(900), result.FromAccount.Balance)
+				require.Equal(t, int64(1100), result.ToAccount.Balance)
+			},
+		},
+		{
+			name: "CreateTransferError",
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(sqlc.Transfer{}, errors.New("create transfer error"))
+				q.EXPECT().CreateEntries(gomock.Any(), gomock.Any()).Times(0)
+				q.EXPECT().UpdateAccountBalance(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
+				require.ErrorContains(t, err, "create transfer error")
+			},
+		},
+		{
+			name: "CreateFromEntryError",
+			buildStubs: func(q *mockdb.MockQuerier) {
+				gomock.InOrder(
+					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: -arg.Amount,
+					}).Return(sqlc.Entry{}, errors.New("create from entry error")),
+				)
+				q.EXPECT().UpdateAccountBalance(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
+				require.ErrorContains(t, err, "create from entry error")
+			},
+		},
+		{
+			name: "UpdateFromAccountBalanceError",
+			buildStubs: func(q *mockdb.MockQuerier) {
+				gomock.InOrder(
+					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: -arg.Amount,
+					}).Return(fromEntry, nil),
+					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
+						ID: arg.FromAccountID, Balance: -arg.Amount,
+					}).Return(sqlc.UpdateAccountBalanceRow{}, errors.New("update from balance error")),
+				)
+			},
+			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
+				require.ErrorContains(t, err, "update from balance error")
+			},
+		},
+		{
+			name: "CreateToEntryError",
+			buildStubs: func(q *mockdb.MockQuerier) {
+				gomock.InOrder(
+					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: -arg.Amount,
+					}).Return(fromEntry, nil),
+					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
+						ID: arg.FromAccountID, Balance: -arg.Amount,
+					}).Return(fromAccount, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: arg.Amount,
+					}).Return(sqlc.Entry{}, errors.New("create to entry error")),
+				)
+			},
+			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
+				require.ErrorContains(t, err, "create to entry error")
+			},
+		},
+		{
+			name: "UpdateToAccountBalanceError",
+			buildStubs: func(q *mockdb.MockQuerier) {
+				gomock.InOrder(
+					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: -arg.Amount,
+					}).Return(fromEntry, nil),
+					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
+						ID: arg.FromAccountID, Balance: -arg.Amount,
+					}).Return(fromAccount, nil),
+					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
+						AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: arg.Amount,
+					}).Return(toEntry, nil),
+					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
+						ID: arg.ToAccountID, Balance: arg.Amount,
+					}).Return(sqlc.UpdateAccountBalanceRow{}, errors.New("update to balance error")),
+				)
+			},
+			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
+				require.ErrorContains(t, err, "update to balance error")
+			},
+		},
+	}
 
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(transferColumns).
-				AddRow(1, arg.FromAccountID, arg.ToAccountID, arg.Amount, now))
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
 
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(1, arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount, now))
+			q := mockdb.NewMockQuerier(ctrl)
+			tc.buildStubs(q)
 
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.FromAccountID, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(accountColumns).
-				AddRow(arg.FromAccountID, "owner1", 900, "USD", now))
-
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.ToAccountID, constant.ENTRY_TYPE_RECEIVED, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(2, arg.ToAccountID, constant.ENTRY_TYPE_RECEIVED, arg.Amount, now))
-
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(accountColumns).
-				AddRow(arg.ToAccountID, "owner2", 1100, "USD", now))
-
-		mock.ExpectCommit()
-
-		result, err := store.TransferTx(context.Background(), arg)
-
-		require.NoError(t, err)
-		require.Equal(t, arg.FromAccountID, result.Transfer.FromAccountID)
-		require.Equal(t, arg.ToAccountID, result.Transfer.ToAccountID)
-		require.Equal(t, int64(900), result.FromAccount.Balance)
-		require.Equal(t, int64(1100), result.ToAccount.Balance)
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("BeginTxError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin().WillReturnError(errors.New("begin error"))
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "begin error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("CreateTransferError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin()
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnError(errors.New("create transfer error"))
-		mock.ExpectRollback()
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "create transfer error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("CreateFromEntryError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin()
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(transferColumns).
-				AddRow(1, arg.FromAccountID, arg.ToAccountID, arg.Amount, now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount).
-			WillReturnError(errors.New("create from entry error"))
-		mock.ExpectRollback()
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "create from entry error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("UpdateFromAccountBalanceError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin()
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(transferColumns).
-				AddRow(1, arg.FromAccountID, arg.ToAccountID, arg.Amount, now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(1, arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount, now))
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.FromAccountID, -arg.Amount).
-			WillReturnError(errors.New("update from balance error"))
-		mock.ExpectRollback()
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "update from balance error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("CreateToEntryError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin()
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(transferColumns).
-				AddRow(1, arg.FromAccountID, arg.ToAccountID, arg.Amount, now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(1, arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount, now))
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.FromAccountID, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(accountColumns).
-				AddRow(arg.FromAccountID, "owner1", 900, "USD", now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.ToAccountID, constant.ENTRY_TYPE_RECEIVED, arg.Amount).
-			WillReturnError(errors.New("create to entry error"))
-		mock.ExpectRollback()
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "create to entry error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("UpdateToAccountBalanceError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin()
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(transferColumns).
-				AddRow(1, arg.FromAccountID, arg.ToAccountID, arg.Amount, now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(1, arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount, now))
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.FromAccountID, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(accountColumns).
-				AddRow(arg.FromAccountID, "owner1", 900, "USD", now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.ToAccountID, constant.ENTRY_TYPE_RECEIVED, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(2, arg.ToAccountID, constant.ENTRY_TYPE_RECEIVED, arg.Amount, now))
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.ToAccountID, arg.Amount).
-			WillReturnError(errors.New("update to balance error"))
-		mock.ExpectRollback()
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "update to balance error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("RollbackError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin()
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnError(errors.New("create transfer error"))
-		mock.ExpectRollback().WillReturnError(errors.New("rollback error"))
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "create transfer error")
-		require.ErrorContains(t, err, "rollback error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
-
-	t.Run("CommitError", func(t *testing.T) {
-		store, mock := newTestStore(t)
-
-		mock.ExpectBegin()
-		mock.ExpectQuery("INSERT INTO transfers").
-			WithArgs(arg.FromAccountID, arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(transferColumns).
-				AddRow(1, arg.FromAccountID, arg.ToAccountID, arg.Amount, now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(1, arg.FromAccountID, constant.ENTRY_TYPE_SEND, -arg.Amount, now))
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.FromAccountID, -arg.Amount).
-			WillReturnRows(sqlmock.NewRows(accountColumns).
-				AddRow(arg.FromAccountID, "owner1", 900, "USD", now))
-		mock.ExpectQuery("INSERT INTO entries").
-			WithArgs(arg.ToAccountID, constant.ENTRY_TYPE_RECEIVED, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(entryColumns).
-				AddRow(2, arg.ToAccountID, constant.ENTRY_TYPE_RECEIVED, arg.Amount, now))
-		mock.ExpectQuery("UPDATE accounts").
-			WithArgs(arg.ToAccountID, arg.Amount).
-			WillReturnRows(sqlmock.NewRows(accountColumns).
-				AddRow(arg.ToAccountID, "owner2", 1100, "USD", now))
-		mock.ExpectCommit().WillReturnError(errors.New("commit error"))
-
-		_, err := store.TransferTx(context.Background(), arg)
-
-		require.ErrorContains(t, err, "commit error")
-		require.NoError(t, mock.ExpectationsWereMet())
-	})
+			result, err := transferTx(context.Background(), q, arg)
+			tc.checkResponse(t, result, err)
+		})
+	}
 }
