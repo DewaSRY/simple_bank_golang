@@ -7,4 +7,7 @@ migrate-create:
 migrate-up:
 	go run ./cmd/migration/main.go up
 
-.PHONY: migrate-create migrate-up
+sqlc: 
+	sqlc generate
+
+.PHONY: migrate-create migrate-up sqlc

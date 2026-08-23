@@ -1,0 +1,7 @@
+package constant
+
+const (
+	ENTRY_TYPE_SEND     = "SEND"
+	ENTRY_TYPE_RECEIVED = "RECEIVED"
+	ENTRY_TYPE_DEPOSIT  = "DEPOSIT"
+)
