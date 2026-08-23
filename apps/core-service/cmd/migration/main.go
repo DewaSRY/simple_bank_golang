@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
 
 	"os"
-)
 
-var DB_URI = "postgres://simple_bank:password@localhost:5433/simple_bank?sslmode=disable"
+	config "github.com/DewaSRY/core-service/internal/config"
+)
 
 func createMigrationFile(migrationName string) {
 	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate create -ext sql -dir db/migrations -seq %s", migrationName))
@@ -21,9 +22,9 @@ func createMigrationFile(migrationName string) {
 	fmt.Println(string(output))
 }
 
-func upMigration() {
+func upMigration(dbURI string) {
 
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path db/migrations -database %s up", DB_URI))
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path db/migrations -database %s up", dbURI))
 	output, err := cmd.CombinedOutput()
 	fmt.Println("Running migration up...")
 	if err != nil {
@@ -38,8 +39,8 @@ func upMigration() {
 	fmt.Println(string(output))
 }
 
-func downMigration() {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path db/migrations -database %s down", DB_URI))
+func downMigration(dbURI string) {
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path db/migrations -database %s down", dbURI))
 	output, err := cmd.CombinedOutput()
 	fmt.Println("Running migration down...")
 	if err != nil {
@@ -72,9 +73,17 @@ func main() {
 
 		createMigrationFile(args[1])
 	case "up":
-		upMigration()
+		cfg, err := config.LoadConfig(".")
+		if err != nil {
+			log.Fatal("cannot load config:", err)
+		}
+		upMigration(cfg.DBSource)
 	case "down":
-		downMigration()
+		cfg, err := config.LoadConfig(".")
+		if err != nil {
+			log.Fatal("cannot load config:", err)
+		}
+		downMigration(cfg.DBSource)
 	default:
 		fmt.Println("Unknown command:", args[0])
 	}
