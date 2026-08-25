@@ -37,11 +37,12 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 		return result, err
 	}
 
+	negativeAmount := "-" + arg.Amount
 	// Create entries for sending
 	_, err = q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 		AccountID: arg.FromAccountID,
 		Type:      constant.ENTRY_TYPE_SEND,
-		Amount:    -arg.Amount,
+		Amount:    negativeAmount,
 	})
 
 	if err != nil {
@@ -51,7 +52,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	//record for sending transaction
 	fromAccount, err := q.UpdateAccountBalance(ctx, sqlc.UpdateAccountBalanceParams{
 		ID:      arg.FromAccountID,
-		Balance: -arg.Amount,
+		Balance: negativeAmount,
 	})
 
 	if err != nil {

@@ -23,14 +23,14 @@ RETURNING id, owner, balance, currency, created_at
 
 type CreateAccountParams struct {
 	Owner    string `json:"owner"`
-	Balance  int64  `json:"balance"`
+	Balance  string `json:"balance"`
 	Currency string `json:"currency"`
 }
 
 type CreateAccountRow struct {
 	ID        int64     `json:"id"`
 	Owner     string    `json:"owner"`
-	Balance   int64     `json:"balance"`
+	Balance   string    `json:"balance"`
 	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -57,7 +57,7 @@ WHERE id = $1
 type GetAccountByIdRow struct {
 	ID        int64     `json:"id"`
 	Owner     string    `json:"owner"`
-	Balance   int64     `json:"balance"`
+	Balance   string    `json:"balance"`
 	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -83,14 +83,14 @@ RETURNING id, owner, balance, currency, created_at
 `
 
 type UpdateAccountBalanceParams struct {
-	ID      int64 `json:"id"`
-	Balance int64 `json:"balance"`
+	ID      int64  `json:"id"`
+	Balance string `json:"balance"`
 }
 
 type UpdateAccountBalanceRow struct {
 	ID        int64     `json:"id"`
 	Owner     string    `json:"owner"`
-	Balance   int64     `json:"balance"`
+	Balance   string    `json:"balance"`
 	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"created_at"`
 }

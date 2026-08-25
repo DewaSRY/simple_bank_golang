@@ -1,0 +1,59 @@
+### Core Service REST tests
+### Requires: VS Code REST Client extension (humao.rest-client)
+
+@baseUrl = http://localhost:8080
+
+### Health
+GET {{baseUrl}}/health
+
+### Create Account A
+# @name createAccountA
+POST {{baseUrl}}/accounts
+Content-Type: application/json
+
+{
+  "owner": "alice",
+  "currency": "USD"
+}
+
+### Create Account B
+# @name createAccountB
+POST {{baseUrl}}/accounts
+Content-Type: application/json
+
+{
+  "owner": "bob",
+  "currency": "USD"
+}
+
+### Get Account A
+GET {{baseUrl}}/accounts/{{createAccountA.response.body.$.id}}
+
+### Transfer A -> B
+POST {{baseUrl}}/transactions/transfer
+Content-Type: application/json
+
+{
+  "from_account_id": {{createAccountA.response.body.$.id}},
+  "to_account_id": {{createAccountB.response.body.$.id}},
+  "amount": 50.000
+}
+
+### Negative test: invalid currency
+POST {{baseUrl}}/accounts
+Content-Type: application/json
+
+{
+  "owner": "charlie",
+  "currency": "JPY"
+}
+
+### Negative test: invalid transfer amount
+POST {{baseUrl}}/transactions/transfer
+Content-Type: application/json
+
+{
+  "from_account_id": 1,
+  "to_account_id": 2,
+  "amount": 0
+}

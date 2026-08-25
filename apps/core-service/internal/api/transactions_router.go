@@ -1,14 +1,16 @@
 package api
 
 import (
+	"fmt"
+
 	db "github.com/DewaSRY/core-service/db/sqlc"
 	"github.com/gin-gonic/gin"
 )
 
 type createTransactionTransferRequest struct {
-	FromAccountID int64 `json:"from_account_id" binding:"required,min=1"`
-	ToAccountID   int64 `json:"to_account_id" binding:"required,min=1"`
-	Amount        int64 `json:"amount" binding:"required,gt=0"`
+	FromAccountID int64   `json:"from_account_id" binding:"required,min=1"`
+	ToAccountID   int64   `json:"to_account_id" binding:"required,min=1"`
+	Amount        float64 `json:"amount" binding:"required,gt=0"`
 }
 
 func (server *Server) transactionTransfer(ctx *gin.Context) {
@@ -21,7 +23,7 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 	arg := db.CreateTransferParams{
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,
-		Amount:        req.Amount,
+		Amount:        fmt.Sprintf("%.2f", req.Amount),
 	}
 
 	transaction, err := server.store.CreateTransfer(ctx, arg)

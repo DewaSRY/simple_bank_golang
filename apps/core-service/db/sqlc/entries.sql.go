@@ -23,7 +23,7 @@ RETURNING id, account_id, type, amount, created_at
 type CreateEntriesParams struct {
 	AccountID int64  `json:"account_id"`
 	Type      string `json:"type"`
-	Amount    int64  `json:"amount"`
+	Amount    string `json:"amount"`
 }
 
 func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error) {

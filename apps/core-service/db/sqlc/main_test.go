@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	_ "github.com/lib/pq"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 
 	constant "github.com/DewaSRY/core-service/domain/constant"
@@ -30,6 +31,12 @@ func TestMain(m *testing.M) {
 
 }
 
+func convertToStringDecimal(t *testing.T, value string) string {
+	result, err := decimal.NewFromString(value)
+	require.NoError(t, err)
+	return result.String()
+}
+
 func createTestQueries(t *testing.T) *Queries {
 	tx, err := testDB.Begin()
 
@@ -45,7 +52,7 @@ func createTestQueries(t *testing.T) *Queries {
 func accountParams() CreateAccountParams {
 	return CreateAccountParams{
 		Owner:    "John Doe new",
-		Balance:  1000,
+		Balance:  "1000",
 		Currency: "USD",
 	}
 }
@@ -54,7 +61,7 @@ func entriesParamsTypeSend() CreateEntriesParams {
 	return CreateEntriesParams{
 		AccountID: 1,
 		Type:      constant.ENTRY_TYPE_SEND,
-		Amount:    100,
+		Amount:    "100",
 	}
 }
 
@@ -62,6 +69,6 @@ func transferParams() CreateTransferParams {
 	return CreateTransferParams{
 		FromAccountID: 1,
 		ToAccountID:   2,
-		Amount:        100,
+		Amount:        "100",
 	}
 }

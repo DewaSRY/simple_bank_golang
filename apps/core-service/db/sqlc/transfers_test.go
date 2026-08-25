@@ -12,6 +12,17 @@ func TestCreateTransfer(t *testing.T) {
 
 	arg := transferParams()
 
+	// create account first
+	accountFrom, err := q.CreateAccount(context.Background(), accountParams())
+	require.NoError(t, err)
+
+	accountTo, err := q.CreateAccount(context.Background(), accountParams())
+	require.NoError(t, err)
+
+	// set account ids to transfer params
+	arg.FromAccountID = accountFrom.ID
+	arg.ToAccountID = accountTo.ID
+
 	transfer, err := q.CreateTransfer(context.Background(), arg)
 
 	require.NoError(t, err)

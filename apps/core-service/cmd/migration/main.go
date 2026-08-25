@@ -40,7 +40,7 @@ func upMigration(dbURI string) {
 }
 
 func downMigration(dbURI string) {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path db/migrations -database %s down", dbURI))
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path db/migrations -database %s down 1", dbURI))
 	output, err := cmd.CombinedOutput()
 	fmt.Println("Running migration down...")
 	if err != nil {

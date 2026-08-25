@@ -43,12 +43,16 @@ func TestUpdateAccountBalance(t *testing.T) {
 	require.NotNil(t, account)
 
 	// update balance
-	newBalance := int64(2000)
+	newBalance := "2000"
 	updateAccount, err := q.UpdateAccountBalance(context.Background(), UpdateAccountBalanceParams{
 		ID:      account.ID,
 		Balance: newBalance,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, updateAccount)
-	require.Equal(t, newBalance, updateAccount.Balance)
+	convertedNewBalance := convertToStringDecimal(t, newBalance)
+	resultConvertedNewBalance := convertToStringDecimal(t, updateAccount.Balance)
+
+	require.Equal(t, convertedNewBalance, resultConvertedNewBalance)
+
 }
