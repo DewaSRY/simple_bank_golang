@@ -34,8 +34,8 @@ POST {{baseUrl}}/transactions/transfer
 Content-Type: application/json
 
 {
-  "from_account_id": {{createAccountA.response.body.$.id}},
-  "to_account_id": {{createAccountB.response.body.$.id}},
+  "from_account_id": 21,
+  "to_account_id": 22,
   "amount": 50.000
 }
 

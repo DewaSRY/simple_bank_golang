@@ -46,16 +46,22 @@ func TestTransferTx(t *testing.T) {
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: "-100",
+						AccountID: arg.FromAccountID,
+						Type:      constant.ENTRY_TYPE_SEND,
+						Amount:    "-100",
 					}).Return(fromEntry, nil),
 					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
-						ID: arg.FromAccountID, Balance: "-100",
+						ID:      arg.FromAccountID,
+						Balance: "-100",
 					}).Return(fromAccount, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: arg.Amount,
+						AccountID: arg.ToAccountID,
+						Type:      constant.ENTRY_TYPE_RECEIVED,
+						Amount:    arg.Amount,
 					}).Return(toEntry, nil),
 					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
-						ID: arg.ToAccountID, Balance: "100",
+						ID:      arg.ToAccountID,
+						Balance: "100",
 					}).Return(toAccount, nil),
 				)
 			},
@@ -83,7 +89,9 @@ func TestTransferTx(t *testing.T) {
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: "-100",
+						AccountID: arg.FromAccountID,
+						Type:      constant.ENTRY_TYPE_SEND,
+						Amount:    "-100",
 					}).Return(sqlc.Entry{}, errors.New("create from entry error")),
 				)
 				q.EXPECT().UpdateAccountBalance(gomock.Any(), gomock.Any()).Times(0)
@@ -98,10 +106,13 @@ func TestTransferTx(t *testing.T) {
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: "-100",
+						AccountID: arg.FromAccountID,
+						Type:      constant.ENTRY_TYPE_SEND,
+						Amount:    "-100",
 					}).Return(fromEntry, nil),
 					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
-						ID: arg.FromAccountID, Balance: "-100",
+						ID:      arg.FromAccountID,
+						Balance: "-100",
 					}).Return(sqlc.UpdateAccountBalanceRow{}, errors.New("update from balance error")),
 				)
 			},
@@ -115,13 +126,18 @@ func TestTransferTx(t *testing.T) {
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: "-100",
+						AccountID: arg.FromAccountID,
+						Type:      constant.ENTRY_TYPE_SEND,
+						Amount:    "-100",
 					}).Return(fromEntry, nil),
 					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
-						ID: arg.FromAccountID, Balance: "-100",
+						ID:      arg.FromAccountID,
+						Balance: "-100",
 					}).Return(fromAccount, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: arg.Amount,
+						AccountID: arg.ToAccountID,
+						Type:      constant.ENTRY_TYPE_RECEIVED,
+						Amount:    arg.Amount,
 					}).Return(sqlc.Entry{}, errors.New("create to entry error")),
 				)
 			},
@@ -135,16 +151,22 @@ func TestTransferTx(t *testing.T) {
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: "-100",
+						AccountID: arg.FromAccountID,
+						Type:      constant.ENTRY_TYPE_SEND,
+						Amount:    "-100",
 					}).Return(fromEntry, nil),
 					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
-						ID: arg.FromAccountID, Balance: "-100",
+						ID:      arg.FromAccountID,
+						Balance: "-100",
 					}).Return(fromAccount, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
-						AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: arg.Amount,
+						AccountID: arg.ToAccountID,
+						Type:      constant.ENTRY_TYPE_RECEIVED,
+						Amount:    arg.Amount,
 					}).Return(toEntry, nil),
 					q.EXPECT().UpdateAccountBalance(gomock.Any(), sqlc.UpdateAccountBalanceParams{
-						ID: arg.ToAccountID, Balance: arg.Amount,
+						ID:      arg.ToAccountID,
+						Balance: arg.Amount,
 					}).Return(sqlc.UpdateAccountBalanceRow{}, errors.New("update to balance error")),
 				)
 			},
