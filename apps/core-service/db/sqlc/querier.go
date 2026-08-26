@@ -13,7 +13,7 @@ type Querier interface {
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error)
-	UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (UpdateAccountBalanceRow, error)
+	IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

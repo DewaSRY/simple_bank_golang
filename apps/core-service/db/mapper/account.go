@@ -4,7 +4,7 @@ import (
 	sqlc "github.com/DewaSRY/core-service/db/sqlc"
 )
 
-func UpdateBalanceAccountToAccount(updateAccount sqlc.UpdateAccountBalanceRow) sqlc.Account {
+func UpdateBalanceAccountToAccount(updateAccount sqlc.IncrementAccountBalanceRow) sqlc.Account {
 	return sqlc.Account{
 		ID:        updateAccount.ID,
 		Owner:     updateAccount.Owner,

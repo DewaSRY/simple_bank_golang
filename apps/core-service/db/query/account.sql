@@ -15,9 +15,9 @@ SELECT id, owner, balance, currency, created_at
 FROM accounts
 WHERE id = $1;
 
--- name: UpdateAccountBalance :one
+-- name: IncrementAccountBalance :one
 UPDATE accounts
-SET balance = $2, updated_at = now()
+SET balance =  balance + $2, updated_at = now()
 WHERE id = $1
 RETURNING id, owner, balance, currency, created_at;
 

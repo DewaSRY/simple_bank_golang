@@ -101,17 +101,17 @@ func (mr *MockQuerierMockRecorder) GetAccountById(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountById", reflect.TypeOf((*MockQuerier)(nil).GetAccountById), ctx, id)
 }
 
-// UpdateAccountBalance mocks base method.
-func (m *MockQuerier) UpdateAccountBalance(ctx context.Context, arg db.UpdateAccountBalanceParams) (db.UpdateAccountBalanceRow, error) {
+// IncrementAccountBalance mocks base method.
+func (m *MockQuerier) IncrementAccountBalance(ctx context.Context, arg db.IncrementAccountBalanceParams) (db.IncrementAccountBalanceRow, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAccountBalance", ctx, arg)
-	ret0, _ := ret[0].(db.UpdateAccountBalanceRow)
+	ret := m.ctrl.Call(m, "IncrementAccountBalance", ctx, arg)
+	ret0, _ := ret[0].(db.IncrementAccountBalanceRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateAccountBalance indicates an expected call of UpdateAccountBalance.
-func (mr *MockQuerierMockRecorder) UpdateAccountBalance(ctx, arg any) *gomock.Call {
+// IncrementAccountBalance indicates an expected call of IncrementAccountBalance.
+func (mr *MockQuerierMockRecorder) IncrementAccountBalance(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountBalance", reflect.TypeOf((*MockQuerier)(nil).UpdateAccountBalance), ctx, arg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementAccountBalance", reflect.TypeOf((*MockQuerier)(nil).IncrementAccountBalance), ctx, arg)
 }

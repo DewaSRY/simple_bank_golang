@@ -11,7 +11,7 @@ Findings from a full-codebase pass, ordered by priority. File:line references po
 UPDATE accounts SET balance = $2, updated_at = now() WHERE id = $1
 ```
 
-`UpdateAccountBalance` does an absolute `SET`, not `balance = balance + $2`. In `transferTx`, the "from" account is updated with `-amount` and the "to" account with `+amount` — meaning **every transfer replaces the account's balance with the transfer amount itself**, rather than debiting/crediting it.
+`IncrementAccountBalance` does an absolute `SET`, not `balance = balance + $2`. In `transferTx`, the "from" account is updated with `-amount` and the "to" account with `+amount` — meaning **every transfer replaces the account's balance with the transfer amount itself**, rather than debiting/crediting it.
 
 Example: an account with $1000 that sends two $50 transfers ends up at **-$50**, not $900.
 

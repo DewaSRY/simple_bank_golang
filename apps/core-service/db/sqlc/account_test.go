@@ -32,7 +32,7 @@ func TestGetAccountById(t *testing.T) {
 	require.NotNil(t, accountById)
 }
 
-func TestUpdateAccountBalance(t *testing.T) {
+func TestIncrementAccountBalance(t *testing.T) {
 	q := createTestQueries(t)
 
 	arg := accountParams()
@@ -44,7 +44,7 @@ func TestUpdateAccountBalance(t *testing.T) {
 
 	// update balance
 	newBalance := "2000"
-	updateAccount, err := q.UpdateAccountBalance(context.Background(), UpdateAccountBalanceParams{
+	updateAccount, err := q.IncrementAccountBalance(context.Background(), IncrementAccountBalanceParams{
 		ID:      account.ID,
 		Balance: newBalance,
 	})

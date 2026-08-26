@@ -75,19 +75,19 @@ func (q *Queries) GetAccountById(ctx context.Context, id int64) (GetAccountByIdR
 	return i, err
 }
 
-const updateAccountBalance = `-- name: UpdateAccountBalance :one
+const incrementAccountBalance = `-- name: IncrementAccountBalance :one
 UPDATE accounts
-SET balance = $2, updated_at = now()
+SET balance =  balance + $2, updated_at = now()
 WHERE id = $1
 RETURNING id, owner, balance, currency, created_at
 `
 
-type UpdateAccountBalanceParams struct {
+type IncrementAccountBalanceParams struct {
 	ID      int64  `json:"id"`
 	Balance string `json:"balance"`
 }
 
-type UpdateAccountBalanceRow struct {
+type IncrementAccountBalanceRow struct {
 	ID        int64     `json:"id"`
 	Owner     string    `json:"owner"`
 	Balance   string    `json:"balance"`
@@ -95,9 +95,9 @@ type UpdateAccountBalanceRow struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (q *Queries) UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (UpdateAccountBalanceRow, error) {
-	row := q.queryRow(ctx, q.updateAccountBalanceStmt, updateAccountBalance, arg.ID, arg.Balance)
-	var i UpdateAccountBalanceRow
+func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error) {
+	row := q.queryRow(ctx, q.incrementAccountBalanceStmt, incrementAccountBalance, arg.ID, arg.Balance)
+	var i IncrementAccountBalanceRow
 	err := row.Scan(
 		&i.ID,
 		&i.Owner,

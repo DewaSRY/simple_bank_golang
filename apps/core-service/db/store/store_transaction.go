@@ -50,7 +50,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	}
 
 	//record for sending transaction
-	fromAccount, err := q.UpdateAccountBalance(ctx, sqlc.UpdateAccountBalanceParams{
+	fromAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
 		ID:      arg.FromAccountID,
 		Balance: negativeAmount,
 	})
@@ -71,7 +71,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	}
 
 	//record for receiving transaction
-	toAccount, err := q.UpdateAccountBalance(ctx, sqlc.UpdateAccountBalanceParams{
+	toAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
 		ID:      arg.ToAccountID,
 		Balance: arg.Amount,
 	})

@@ -4,7 +4,7 @@ Sequenced action plan derived from [NEED_TO_IMPOROVE.md](NEED_TO_IMPOROVE.md). E
 
 ## Step 1 — Fix the balance-overwrite bug
 
-- [ ] Change `UpdateAccountBalance` in `db/query/account.sql` from `SET balance = $2` to `SET balance = balance + $2` (an additive/signed amount, not an absolute value).
+- [ ] Change `IncrementAccountBalance` in `db/query/account.sql` from `SET balance = $2` to `SET balance = balance + $2` (an additive/signed amount, not an absolute value).
 - [ ] Re-run `sqlc generate` to regenerate `db/sqlc/account.sql.go`.
 - [ ] Update `transferTx` in `db/store/store_transaction.go` to pass `-amount` for the debit leg and `+amount` for the credit leg into the new additive query (remove the `"-" + arg.Amount` string-concat approach).
 - [ ] Add an integration test in `db/store/` that opens a real DB transaction, seeds two accounts with known balances, runs `TransferTx` N times concurrently, and asserts the final balances equal `start ± (N × amount)`. This is the test that would have caught the original bug — the existing gomock-based test only checks call sequencing.
