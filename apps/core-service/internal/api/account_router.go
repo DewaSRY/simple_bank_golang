@@ -18,7 +18,7 @@ type createAccountRequest struct {
 func (server *Server) createAccount(ctx *gin.Context) {
 	var req createAccountRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
 		return
 	}
 
@@ -30,12 +30,11 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	account, err := server.store.CreateAccount(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		fail(ctx, InternalErr())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, account)
-
+	succeed(ctx, http.StatusOK, account, "Account created successfully")
 }
 
 type getAccountParams struct {
@@ -45,19 +44,19 @@ type getAccountParams struct {
 func (server *Server) getAccount(ctx *gin.Context) {
 	var params getAccountParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	account, err := server.store.GetAccountById(ctx, params.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "account not found"})
+			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		fail(ctx, InternalErr())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, account)
+	succeed(ctx, http.StatusOK, account, "Account retrieved successfully")
 }

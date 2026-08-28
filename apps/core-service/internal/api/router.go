@@ -1,6 +1,10 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func (server *Server) bindRouters(router *gin.Engine) {
 	router.GET("/health", server.health)
@@ -18,5 +22,5 @@ func (server *Server) bindRouters(router *gin.Engine) {
 }
 
 func (server *Server) health(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"status": "ok"})
+	succeed(ctx, http.StatusOK, gin.H{"status": "ok"}, "Service is healthy")
 }

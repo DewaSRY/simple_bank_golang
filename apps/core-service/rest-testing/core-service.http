@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 
 ### Get Account A
-GET {{baseUrl}}/accounts/{{createAccountA.response.body.$.id}}
+GET {{baseUrl}}/accounts/{{createAccountA.response.body.$.data.id}}
 
 ### Transfer A -> B
 POST {{baseUrl}}/transactions/transfer

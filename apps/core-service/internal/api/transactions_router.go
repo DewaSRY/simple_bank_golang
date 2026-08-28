@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/DewaSRY/core-service/db/store"
 	db "github.com/DewaSRY/core-service/db/sqlc"
+	"github.com/DewaSRY/core-service/db/store"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
@@ -21,12 +21,12 @@ type createTransactionTransferRequest struct {
 func (server *Server) transactionTransfer(ctx *gin.Context) {
 	var req createTransactionTransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	if !req.Amount.IsPositive() {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "amount must be greater than zero"})
+		fail(ctx, ValidationErr(FieldError{Field: "amount", Message: "amount must be greater than zero"}))
 		return
 	}
 
@@ -38,32 +38,35 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 
 	result, err := server.store.TransferTx(ctx, arg)
 	if err != nil {
-		respondTransferError(ctx, err)
+		fail(ctx, transferAppError(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, result)
+	succeed(ctx, http.StatusOK, result, "Transfer completed successfully")
 }
 
-// respondTransferError maps a transferTx failure to the appropriate HTTP
-// status instead of collapsing every error into a 500 with raw driver text.
-func respondTransferError(ctx *gin.Context, err error) {
+// transferAppError maps a transferTx failure to an AppError. This is the
+// only piece of this endpoint that's specific to transfers — the actual
+// response rendering is shared with every other endpoint via fail/AppError.
+func transferAppError(err error) *AppError {
 	var pqErr *pq.Error
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "account not found"})
-	case errors.Is(err, store.ErrSameAccount),
-		errors.Is(err, store.ErrCurrencyMismatch),
-		errors.Is(err, store.ErrInvalidAmount):
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return NotFoundErr("account not found")
+	case errors.Is(err, store.ErrSameAccount):
+		return BadRequestErr(errCodeValidation, err.Error())
+	case errors.Is(err, store.ErrInvalidAmount):
+		return ValidationErr(FieldError{Field: "amount", Message: err.Error()})
+	case errors.Is(err, store.ErrCurrencyMismatch):
+		return BadRequestErr(errCodeCurrencyMismatch, err.Error())
 	case errors.Is(err, store.ErrInsufficientFunds):
-		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return ConflictErr(errCodeInsufficientFunds, err.Error())
 	case errors.As(err, &pqErr) && pqErr.Code.Name() == "check_violation":
-		ctx.JSON(http.StatusConflict, gin.H{"error": "insufficient funds"})
+		return ConflictErr(errCodeInsufficientFunds, "insufficient funds")
 	case errors.As(err, &pqErr) && pqErr.Code.Name() == "foreign_key_violation":
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "account not found"})
+		return BadRequestErr(errCodeNotFound, "account not found")
 	default:
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return InternalErr()
 	}
 }
