@@ -39,6 +39,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getAccountByIdStmt, err = db.PrepareContext(ctx, getAccountById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccountById: %w", err)
 	}
+	if q.getAccountByIdForUpdateStmt, err = db.PrepareContext(ctx, getAccountByIdForUpdate); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAccountByIdForUpdate: %w", err)
+	}
 	if q.incrementAccountBalanceStmt, err = db.PrepareContext(ctx, incrementAccountBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementAccountBalance: %w", err)
 	}
@@ -70,6 +73,11 @@ func (q *Queries) Close() error {
 	if q.getAccountByIdStmt != nil {
 		if cerr := q.getAccountByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAccountByIdStmt: %w", cerr)
+		}
+	}
+	if q.getAccountByIdForUpdateStmt != nil {
+		if cerr := q.getAccountByIdForUpdateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAccountByIdForUpdateStmt: %w", cerr)
 		}
 	}
 	if q.incrementAccountBalanceStmt != nil {
@@ -121,6 +129,7 @@ type Queries struct {
 	createEntriesStmt             *sql.Stmt
 	createTransferStmt            *sql.Stmt
 	getAccountByIdStmt            *sql.Stmt
+	getAccountByIdForUpdateStmt   *sql.Stmt
 	incrementAccountBalanceStmt   *sql.Stmt
 }
 
@@ -133,6 +142,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createEntriesStmt:             q.createEntriesStmt,
 		createTransferStmt:            q.createTransferStmt,
 		getAccountByIdStmt:            q.getAccountByIdStmt,
+		getAccountByIdForUpdateStmt:   q.getAccountByIdForUpdateStmt,
 		incrementAccountBalanceStmt:   q.incrementAccountBalanceStmt,
 	}
 }

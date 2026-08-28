@@ -2,10 +2,12 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	mapper "github.com/DewaSRY/core-service/db/mapper"
 	sqlc "github.com/DewaSRY/core-service/db/sqlc"
 	constant "github.com/DewaSRY/core-service/domain/constant"
+	"github.com/shopspring/decimal"
 )
 
 func (store *Store) TransferTx(ctx context.Context, arg sqlc.CreateTransferParams) (TransferTxResult, error) {
@@ -24,7 +26,53 @@ func (store *Store) TransferTx(ctx context.Context, arg sqlc.CreateTransferParam
 // so it can be unit tested with a gomock-generated mock without a real database.
 func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferParams) (TransferTxResult, error) {
 	var result TransferTxResult
-	var err error
+
+	if arg.FromAccountID == arg.ToAccountID {
+		return result, ErrSameAccount
+	}
+
+	amount, err := decimal.NewFromString(arg.Amount)
+	if err != nil {
+		return result, fmt.Errorf("invalid transfer amount %q: %w", arg.Amount, err)
+	}
+	if !amount.IsPositive() {
+		return result, ErrInvalidAmount
+	}
+
+	// Accounts are locked in a fixed ascending-ID order (rather than
+	// from-then-to) so two concurrent transfers between the same pair of
+	// accounts always acquire their row locks in the same order and can't
+	// deadlock against each other.
+	firstID, secondID := arg.FromAccountID, arg.ToAccountID
+	if firstID > secondID {
+		firstID, secondID = secondID, firstID
+	}
+
+	firstAccount, err := q.GetAccountByIdForUpdate(ctx, firstID)
+	if err != nil {
+		return result, err
+	}
+	secondAccount, err := q.GetAccountByIdForUpdate(ctx, secondID)
+	if err != nil {
+		return result, err
+	}
+
+	fromAccount, toAccount := firstAccount, secondAccount
+	if arg.FromAccountID != firstID {
+		fromAccount, toAccount = secondAccount, firstAccount
+	}
+
+	if fromAccount.Currency != toAccount.Currency {
+		return result, ErrCurrencyMismatch
+	}
+
+	fromBalance, err := decimal.NewFromString(fromAccount.Balance)
+	if err != nil {
+		return result, fmt.Errorf("invalid account balance %q: %w", fromAccount.Balance, err)
+	}
+	if fromBalance.LessThan(amount) {
+		return result, ErrInsufficientFunds
+	}
 
 	// Create transfer record
 	result.Transfer, err = q.CreateTransfer(ctx, sqlc.CreateTransferParams{
@@ -50,7 +98,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	}
 
 	//record for sending transaction
-	fromAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
+	debitedFromAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
 		ID:      arg.FromAccountID,
 		Balance: negativeAmount,
 	})
@@ -58,7 +106,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	if err != nil {
 		return result, err
 	}
-	result.FromAccount = mapper.UpdateBalanceAccountToAccount(fromAccount)
+	result.FromAccount = mapper.UpdateBalanceAccountToAccount(debitedFromAccount)
 
 	_, err = q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 		AccountID: arg.ToAccountID,
@@ -71,7 +119,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	}
 
 	//record for receiving transaction
-	toAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
+	creditedToAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
 		ID:      arg.ToAccountID,
 		Balance: arg.Amount,
 	})
@@ -80,7 +128,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 		return result, err
 	}
 
-	result.ToAccount = mapper.UpdateBalanceAccountToAccount(toAccount)
+	result.ToAccount = mapper.UpdateBalanceAccountToAccount(creditedToAccount)
 
 	return result, nil
 }

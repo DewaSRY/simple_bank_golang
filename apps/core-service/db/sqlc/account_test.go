@@ -42,17 +42,18 @@ func TestIncrementAccountBalance(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, account)
 
-	// update balance
-	newBalance := "2000"
+	// increment balance: starting balance (1000, from accountParams) + 2000 = 3000
+	incrementBy := "2000"
 	updateAccount, err := q.IncrementAccountBalance(context.Background(), IncrementAccountBalanceParams{
 		ID:      account.ID,
-		Balance: newBalance,
+		Balance: incrementBy,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, updateAccount)
-	convertedNewBalance := convertToStringDecimal(t, newBalance)
+
+	expectedBalance := convertToStringDecimal(t, "3000")
 	resultConvertedNewBalance := convertToStringDecimal(t, updateAccount.Balance)
 
-	require.Equal(t, convertedNewBalance, resultConvertedNewBalance)
+	require.Equal(t, expectedBalance, resultConvertedNewBalance)
 
 }

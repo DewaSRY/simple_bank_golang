@@ -1,6 +1,10 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	db "github.com/DewaSRY/core-service/db/sqlc"
@@ -26,11 +30,11 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	account, err := server.store.CreateAccount(ctx, arg)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	ctx.JSON(200, account)
+	ctx.JSON(http.StatusOK, account)
 
 }
 
@@ -47,9 +51,13 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 	account, err := server.store.GetAccountById(ctx, params.ID)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "account not found"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	ctx.JSON(200, account)
+	ctx.JSON(http.StatusOK, account)
 }

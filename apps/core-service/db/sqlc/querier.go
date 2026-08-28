@@ -14,6 +14,7 @@ type Querier interface {
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error)
+	GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAccountByIdForUpdateRow, error)
 	IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error)
 }
 

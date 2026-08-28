@@ -15,6 +15,12 @@ SELECT id, owner, balance, currency, created_at
 FROM accounts
 WHERE id = $1;
 
+-- name: GetAccountByIdForUpdate :one
+SELECT id, owner, balance, currency, created_at
+FROM accounts
+WHERE id = $1
+FOR UPDATE;
+
 -- name: IncrementAccountBalance :one
 UPDATE accounts
 SET balance =  balance + $2, updated_at = now()
