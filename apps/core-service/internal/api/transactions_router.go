@@ -26,6 +26,31 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 		Amount:        fmt.Sprintf("%.2f", req.Amount),
 	}
 
+	if req.FromAccountID == req.ToAccountID {
+		ctx.JSON(400, gin.H{"error": "from_account_id and to_account_id cannot be the same"})
+		return
+	}
+
+	fromAccountExists, err := server.store.CheckIsAccountWithIdExist(ctx, req.FromAccountID)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	if !fromAccountExists {
+		ctx.JSON(400, gin.H{"error": "from_account_id does not exist"})
+		return
+	}
+
+	toAccountExists, err := server.store.CheckIsAccountWithIdExist(ctx, req.ToAccountID)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	if !toAccountExists {
+		ctx.JSON(400, gin.H{"error": "to_account_id does not exist"})
+		return
+	}
+
 	transaction, err := server.store.CreateTransfer(ctx, arg)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})

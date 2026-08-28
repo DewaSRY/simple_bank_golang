@@ -10,6 +10,21 @@ import (
 	"time"
 )
 
+const checkIsAccountWithIdExist = `-- name: CheckIsAccountWithIdExist :one
+SELECT EXISTS (
+    SELECT 1
+    FROM accounts
+    WHERE id = $1
+)
+`
+
+func (q *Queries) CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error) {
+	row := q.queryRow(ctx, q.checkIsAccountWithIdExistStmt, checkIsAccountWithIdExist, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (
     owner,

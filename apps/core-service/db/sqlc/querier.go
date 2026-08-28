@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (CreateAccountRow, error)
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)

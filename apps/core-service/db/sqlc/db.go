@@ -24,6 +24,9 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.checkIsAccountWithIdExistStmt, err = db.PrepareContext(ctx, checkIsAccountWithIdExist); err != nil {
+		return nil, fmt.Errorf("error preparing query CheckIsAccountWithIdExist: %w", err)
+	}
 	if q.createAccountStmt, err = db.PrepareContext(ctx, createAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateAccount: %w", err)
 	}
@@ -44,6 +47,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.checkIsAccountWithIdExistStmt != nil {
+		if cerr := q.checkIsAccountWithIdExistStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing checkIsAccountWithIdExistStmt: %w", cerr)
+		}
+	}
 	if q.createAccountStmt != nil {
 		if cerr := q.createAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createAccountStmt: %w", cerr)
@@ -106,23 +114,25 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                          DBTX
-	tx                          *sql.Tx
-	createAccountStmt           *sql.Stmt
-	createEntriesStmt           *sql.Stmt
-	createTransferStmt          *sql.Stmt
-	getAccountByIdStmt          *sql.Stmt
-	incrementAccountBalanceStmt *sql.Stmt
+	db                            DBTX
+	tx                            *sql.Tx
+	checkIsAccountWithIdExistStmt *sql.Stmt
+	createAccountStmt             *sql.Stmt
+	createEntriesStmt             *sql.Stmt
+	createTransferStmt            *sql.Stmt
+	getAccountByIdStmt            *sql.Stmt
+	incrementAccountBalanceStmt   *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                          tx,
-		tx:                          tx,
-		createAccountStmt:           q.createAccountStmt,
-		createEntriesStmt:           q.createEntriesStmt,
-		createTransferStmt:          q.createTransferStmt,
-		getAccountByIdStmt:          q.getAccountByIdStmt,
-		incrementAccountBalanceStmt: q.incrementAccountBalanceStmt,
+		db:                            tx,
+		tx:                            tx,
+		checkIsAccountWithIdExistStmt: q.checkIsAccountWithIdExistStmt,
+		createAccountStmt:             q.createAccountStmt,
+		createEntriesStmt:             q.createEntriesStmt,
+		createTransferStmt:            q.createTransferStmt,
+		getAccountByIdStmt:            q.getAccountByIdStmt,
+		incrementAccountBalanceStmt:   q.incrementAccountBalanceStmt,
 	}
 }

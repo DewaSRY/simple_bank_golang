@@ -41,6 +41,21 @@ func (m *MockQuerier) EXPECT() *MockQuerierMockRecorder {
 	return m.recorder
 }
 
+// CheckIsAccountWithIdExist mocks base method.
+func (m *MockQuerier) CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckIsAccountWithIdExist", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckIsAccountWithIdExist indicates an expected call of CheckIsAccountWithIdExist.
+func (mr *MockQuerierMockRecorder) CheckIsAccountWithIdExist(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIsAccountWithIdExist", reflect.TypeOf((*MockQuerier)(nil).CheckIsAccountWithIdExist), ctx, id)
+}
+
 // CreateAccount mocks base method.
 func (m *MockQuerier) CreateAccount(ctx context.Context, arg db.CreateAccountParams) (db.CreateAccountRow, error) {
 	m.ctrl.T.Helper()
