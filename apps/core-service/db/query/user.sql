@@ -13,6 +13,11 @@ SELECT id, username, email, hashed_password, created_at
 FROM users
 WHERE email = $1;
 
+-- name: GetUserById :one
+SELECT id, username, email, created_at
+FROM users
+WHERE id = $1;
+
 -- name: CheckIsUsernameExist :one
 SELECT EXISTS (
     SELECT 1

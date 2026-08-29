@@ -91,6 +91,17 @@ definitions:
     - email
     - password
     type: object
+  api.profileResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
   api.registerUserRequest:
     properties:
       email:
@@ -416,6 +427,38 @@ paths:
           schema:
             $ref: '#/definitions/api.errorResponse'
       summary: Login
+      tags:
+      - auth
+  /auth/profile:
+    get:
+      description: Retrieve the profile of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.profileResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get profile
       tags:
       - auth
   /auth/register:

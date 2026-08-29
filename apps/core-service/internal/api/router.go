@@ -26,6 +26,9 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	authorized := v1.Group("/")
 	authorized.Use(authMiddleware(server.tokenMaker))
 
+	// Profile routes
+	authorized.GET("/auth/profile", server.GetProfile)
+
 	// Account routes
 	authorized.POST("/accounts", server.createAccount)
 	authorized.GET("/accounts/:id", server.getAccount)

@@ -236,6 +236,21 @@ func (mr *MockQuerierMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockQuerier)(nil).GetUserByEmail), ctx, email)
 }
 
+// GetUserById mocks base method.
+func (m *MockQuerier) GetUserById(ctx context.Context, id int64) (db.GetUserByIdRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserById", ctx, id)
+	ret0, _ := ret[0].(db.GetUserByIdRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserById indicates an expected call of GetUserById.
+func (mr *MockQuerierMockRecorder) GetUserById(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserById", reflect.TypeOf((*MockQuerier)(nil).GetUserById), ctx, id)
+}
+
 // IncrementAccountBalance mocks base method.
 func (m *MockQuerier) IncrementAccountBalance(ctx context.Context, arg db.IncrementAccountBalanceParams) (db.IncrementAccountBalanceRow, error) {
 	m.ctrl.T.Helper()

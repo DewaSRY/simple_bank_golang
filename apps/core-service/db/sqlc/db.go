@@ -63,6 +63,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
 	}
+	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
+	}
 	if q.incrementAccountBalanceStmt, err = db.PrepareContext(ctx, incrementAccountBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementAccountBalance: %w", err)
 	}
@@ -145,6 +148,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserByEmailStmt: %w", cerr)
 		}
 	}
+	if q.getUserByIdStmt != nil {
+		if cerr := q.getUserByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByIdStmt: %w", cerr)
+		}
+	}
 	if q.incrementAccountBalanceStmt != nil {
 		if cerr := q.incrementAccountBalanceStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing incrementAccountBalanceStmt: %w", cerr)
@@ -217,6 +225,7 @@ type Queries struct {
 	getAccountByIdForUpdateStmt   *sql.Stmt
 	getTransferByIdStmt           *sql.Stmt
 	getUserByEmailStmt            *sql.Stmt
+	getUserByIdStmt               *sql.Stmt
 	incrementAccountBalanceStmt   *sql.Stmt
 	listAccountsByOwnerStmt       *sql.Stmt
 	listEntriesByAccountStmt      *sql.Stmt
@@ -240,6 +249,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getAccountByIdForUpdateStmt:   q.getAccountByIdForUpdateStmt,
 		getTransferByIdStmt:           q.getTransferByIdStmt,
 		getUserByEmailStmt:            q.getUserByEmailStmt,
+		getUserByIdStmt:               q.getUserByIdStmt,
 		incrementAccountBalanceStmt:   q.incrementAccountBalanceStmt,
 		listAccountsByOwnerStmt:       q.listAccountsByOwnerStmt,
 		listEntriesByAccountStmt:      q.listEntriesByAccountStmt,
