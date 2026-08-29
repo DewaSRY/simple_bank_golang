@@ -16,5 +16,19 @@ services:
       timeout: 5s
       retries: 5
 
+  core-services:
+    image: core-service:latest
+    environment:
+      DB_DRIVER: postgres
+      DB_SOURCE: "postgresql://simple_bank:password@postgres:5432/simple_bank?sslmode=disable"
+      SERVER_ADDRESS: "0.0.0.0:8080"
+      JWT_SECRET_KEY: "46cb893a8ab20cb9042f3bdb49747c4fc813fb04a370aa2b16d7feaf30367fad"
+      JWT_ACCESS_TOKEN_DURATION: "15m"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   simple_bank_postgres_data:
