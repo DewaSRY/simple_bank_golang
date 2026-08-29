@@ -1,0 +1,11 @@
+{
+  "title": "Transfer",
+  "create": "New Transfer",
+  "fromAccount": "From account",
+  "toAccount": "To account",
+  "amount": "Amount",
+  "note": "Note",
+  "submit": "Send Transfer",
+  "success": "Transfer completed successfully",
+  "insufficientBalance": "Insufficient balance"
+}

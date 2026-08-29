@@ -1,0 +1,11 @@
+{
+  "title": "Transfer",
+  "create": "Transfer Baru",
+  "fromAccount": "Dari rekening",
+  "toAccount": "Ke rekening",
+  "amount": "Jumlah",
+  "note": "Catatan",
+  "submit": "Kirim Transfer",
+  "success": "Transfer berhasil dilakukan",
+  "insufficientBalance": "Saldo tidak mencukupi"
+}
