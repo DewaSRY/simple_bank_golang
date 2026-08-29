@@ -276,6 +276,18 @@ A working example of both lives in `app/[locale]/page.tsx` (server) and `compone
 
 Naming convention: keep feature file names singular or plural consistently (we use singular: `auth.json`, `transfer.json`).
 
+## Troubleshooting: "Encountered a script tag while rendering React component"
+
+This console warning showed up while building the locale switcher, even though no code in this repo writes a literal `<script>` tag. It's a symptom of a hydration break elsewhere in the tree, not a script tag you wrote:
+
+1. `LocaleSwitcher` (`components/locale-switcher.tsx`) originally rendered a native `<select>`, but its options were `DropdownMenuItem`s from `@base-ui/react`'s `Menu` primitive — which render as `<div role="menuitem">`. A `<div>` is not valid inside `<select>`, so the browser logged `In HTML, <div> cannot be a child of <select>. This will cause a hydration error.`
+2. That invalid nesting broke hydration for the page, which made Next.js Fast Refresh fall back to a client-only "full reload" of the React tree (`⚠ Fast Refresh had to perform a full reload due to a runtime error`) instead of a real server round-trip.
+3. `providers/theme-provider.tsx` wraps `next-themes`, which always renders an inline `<script>` (`dangerouslySetInnerHTML`, no `type` attribute) as its no-flash-of-unstyled-theme mechanism. This is invisible during a normal hydration because it's part of the server-rendered HTML. But when React had to rebuild the tree purely on the client instead of hydrating server markup, it created that `<script>` node via `document.createElement` — and any `<script>` element created this way is inert (browsers only execute `<script>` tags present in the originally parsed HTML), so React's DOM renderer warns: "Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client."
+
+**Fix:** rewrite `LocaleSwitcher` to use the same `DropdownMenu`/`Button` primitives as `ThemeToggle` (`components/theme-toggle.tsx`) instead of a raw `<select>`. That removes the invalid `<select>` > `<div>` nesting, so hydration no longer breaks and Fast Refresh no longer has to force a client-only remount — which is what was surfacing the (otherwise harmless) `next-themes` script tag as a warning.
+
+The lesson generalizes: if you see this specific warning without having written a `<script>` tag yourself, look for a hydration mismatch upstream (invalid HTML nesting is a common cause) rather than trying to silence the warning at its source.
+
 ## Verification performed
 
 - `yarn tsc --noEmit` — clean.

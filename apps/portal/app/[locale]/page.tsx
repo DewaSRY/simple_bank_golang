@@ -28,6 +28,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+        {/* header  */}
         <div className="flex w-full items-center justify-between">
           <span className="text-lg font-semibold text-black dark:text-zinc-50">
             {t("appName")}
@@ -43,6 +44,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             <ThemeToggle />
           </div>
         </div>
+
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
           <h1 className="max-w-md text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
             {t.rich("tagline", {
@@ -57,6 +59,8 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             {t("cta")}
           </p>
         </div>
+
+        {/* features list  */}
         <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-3">
           {features.map((feature) => (
             <div
