@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -28,9 +27,15 @@ func main() {
 		log.Fatal("cannot load config:", err)
 	}
 
-	conn, err := sql.Open(cfg.DBDriver, cfg.DBSource)
-	if err != nil {
-		log.Fatal("cannot connect to db:", err)
+	// create dabase connection pool and verify connectivity
+	conn := connectDB(cfg)
+	defer conn.Close()
+
+	// ping the database to verify connectivity
+	if conn.Ping() != nil {
+		log.Fatal("cannot ping db:", err)
+	} else {
+		log.Println("Successfully connected to the database")
 	}
 
 	store := store.NewStore(conn)
