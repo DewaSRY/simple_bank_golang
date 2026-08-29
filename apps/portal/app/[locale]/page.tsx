@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Link } from "@/i18n/navigation";
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
@@ -30,6 +31,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
               {tAuth("login")}
             </Link>
             <LocaleSwitcher />
+            <ThemeToggle />
           </div>
         </div>
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">

@@ -9,5 +9,9 @@
   "yourAccounts": "Akun Anda",
   "noAccounts": "Belum ada akun.",
   "loadingAccounts": "Memuat akun…",
-  "loadAccountsError": "Gagal memuat akun."
+  "loadAccountsError": "Gagal memuat akun.",
+  "toggleTheme": "Ubah tema",
+  "themeLight": "Terang",
+  "themeDark": "Gelap",
+  "themeSystem": "Sistem"
 }

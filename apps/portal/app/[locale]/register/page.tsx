@@ -19,9 +19,7 @@ export default async function RegisterPage({
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 bg-zinc-50 px-6 py-16 font-sans dark:bg-black">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t("register")}
-      </h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t("register")}</h1>
       <RegisterForm locale={locale} />
     </div>
   );
