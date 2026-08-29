@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -43,6 +45,7 @@ func NewServer(store Storer, cfg config.Config) (*Server, error) {
 	server := &Server{store: store, config: cfg, tokenMaker: tokenMaker}
 
 	router := gin.Default()
+	router.Use(corsMiddleware(cfg.CORSAllowedOrigins))
 	router.Use(errorHandlerMiddleware())
 
 	// binding gin controller to the router
@@ -77,4 +80,21 @@ func registerValidatorFieldNames() {
 
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
+}
+
+// corsMiddleware allows browser clients on allowedOrigins to call this API.
+// An empty list disables CORS entirely (no Access-Control-* headers are
+// sent), which is the safe default for server-to-server deployments.
+func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
+	if len(allowedOrigins) == 0 {
+		return func(ctx *gin.Context) { ctx.Next() }
+	}
+
+	return cors.New(cors.Config{
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	})
 }

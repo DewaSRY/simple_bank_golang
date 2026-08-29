@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/viper"
 )
 
@@ -13,6 +14,7 @@ type Config struct {
 	ServerAddress          string        `mapstructure:"SERVER_ADDRESS"`
 	JWTSecretKey           string        `mapstructure:"JWT_SECRET_KEY"`
 	JWTAccessTokenDuration time.Duration `mapstructure:"JWT_ACCESS_TOKEN_DURATION"`
+	CORSAllowedOrigins     []string      `mapstructure:"CORS_ALLOWED_ORIGINS"`
 }
 
 // LoadConfig reads configuration from app.env (or the environment) located at path.
@@ -27,6 +29,6 @@ func LoadConfig(path string) (config Config, err error) {
 		return
 	}
 
-	err = viper.Unmarshal(&config)
+	err = viper.Unmarshal(&config, viper.DecodeHook(mapstructure.StringToSliceHookFunc(",")))
 	return
 }
