@@ -8,5 +8,6 @@
   "dashboardTitle": "Dashboard",
   "yourAccounts": "Your accounts",
   "noAccounts": "No accounts yet.",
+  "loadingAccounts": "Loading accounts…",
   "loadAccountsError": "Failed to load accounts."
 }

@@ -8,5 +8,6 @@
   "dashboardTitle": "Dasbor",
   "yourAccounts": "Akun Anda",
   "noAccounts": "Belum ada akun.",
+  "loadingAccounts": "Memuat akun…",
   "loadAccountsError": "Gagal memuat akun."
 }
