@@ -71,6 +71,51 @@ func (mr *MockQuerierMockRecorder) CheckIsUsernameExist(ctx, username any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIsUsernameExist", reflect.TypeOf((*MockQuerier)(nil).CheckIsUsernameExist), ctx, username)
 }
 
+// CountAccountsByOwner mocks base method.
+func (m *MockQuerier) CountAccountsByOwner(ctx context.Context, owner string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountAccountsByOwner", ctx, owner)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountAccountsByOwner indicates an expected call of CountAccountsByOwner.
+func (mr *MockQuerierMockRecorder) CountAccountsByOwner(ctx, owner any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountsByOwner", reflect.TypeOf((*MockQuerier)(nil).CountAccountsByOwner), ctx, owner)
+}
+
+// CountEntriesByAccount mocks base method.
+func (m *MockQuerier) CountEntriesByAccount(ctx context.Context, accountID int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountEntriesByAccount", ctx, accountID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountEntriesByAccount indicates an expected call of CountEntriesByAccount.
+func (mr *MockQuerierMockRecorder) CountEntriesByAccount(ctx, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountEntriesByAccount", reflect.TypeOf((*MockQuerier)(nil).CountEntriesByAccount), ctx, accountID)
+}
+
+// CountTransfersByOwner mocks base method.
+func (m *MockQuerier) CountTransfersByOwner(ctx context.Context, owner string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountTransfersByOwner", ctx, owner)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountTransfersByOwner indicates an expected call of CountTransfersByOwner.
+func (mr *MockQuerierMockRecorder) CountTransfersByOwner(ctx, owner any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTransfersByOwner", reflect.TypeOf((*MockQuerier)(nil).CountTransfersByOwner), ctx, owner)
+}
+
 // CreateAccount mocks base method.
 func (m *MockQuerier) CreateAccount(ctx context.Context, arg db.CreateAccountParams) (db.CreateAccountRow, error) {
 	m.ctrl.T.Helper()
@@ -161,6 +206,21 @@ func (mr *MockQuerierMockRecorder) GetAccountByIdForUpdate(ctx, id any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountByIdForUpdate", reflect.TypeOf((*MockQuerier)(nil).GetAccountByIdForUpdate), ctx, id)
 }
 
+// GetTransferById mocks base method.
+func (m *MockQuerier) GetTransferById(ctx context.Context, id int64) (db.Transfer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransferById", ctx, id)
+	ret0, _ := ret[0].(db.Transfer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransferById indicates an expected call of GetTransferById.
+func (mr *MockQuerierMockRecorder) GetTransferById(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransferById", reflect.TypeOf((*MockQuerier)(nil).GetTransferById), ctx, id)
+}
+
 // GetUserByUsername mocks base method.
 func (m *MockQuerier) GetUserByUsername(ctx context.Context, username string) (db.GetUserByUsernameRow, error) {
 	m.ctrl.T.Helper()
@@ -189,4 +249,49 @@ func (m *MockQuerier) IncrementAccountBalance(ctx context.Context, arg db.Increm
 func (mr *MockQuerierMockRecorder) IncrementAccountBalance(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementAccountBalance", reflect.TypeOf((*MockQuerier)(nil).IncrementAccountBalance), ctx, arg)
+}
+
+// ListAccountsByOwner mocks base method.
+func (m *MockQuerier) ListAccountsByOwner(ctx context.Context, arg db.ListAccountsByOwnerParams) ([]db.ListAccountsByOwnerRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAccountsByOwner", ctx, arg)
+	ret0, _ := ret[0].([]db.ListAccountsByOwnerRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAccountsByOwner indicates an expected call of ListAccountsByOwner.
+func (mr *MockQuerierMockRecorder) ListAccountsByOwner(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsByOwner", reflect.TypeOf((*MockQuerier)(nil).ListAccountsByOwner), ctx, arg)
+}
+
+// ListEntriesByAccount mocks base method.
+func (m *MockQuerier) ListEntriesByAccount(ctx context.Context, arg db.ListEntriesByAccountParams) ([]db.Entry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListEntriesByAccount", ctx, arg)
+	ret0, _ := ret[0].([]db.Entry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListEntriesByAccount indicates an expected call of ListEntriesByAccount.
+func (mr *MockQuerierMockRecorder) ListEntriesByAccount(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEntriesByAccount", reflect.TypeOf((*MockQuerier)(nil).ListEntriesByAccount), ctx, arg)
+}
+
+// ListTransfersByOwner mocks base method.
+func (m *MockQuerier) ListTransfersByOwner(ctx context.Context, arg db.ListTransfersByOwnerParams) ([]db.Transfer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTransfersByOwner", ctx, arg)
+	ret0, _ := ret[0].([]db.Transfer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTransfersByOwner indicates an expected call of ListTransfersByOwner.
+func (mr *MockQuerierMockRecorder) ListTransfersByOwner(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransfersByOwner", reflect.TypeOf((*MockQuerier)(nil).ListTransfersByOwner), ctx, arg)
 }

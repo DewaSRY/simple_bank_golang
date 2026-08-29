@@ -11,14 +11,21 @@ import (
 type Querier interface {
 	CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error)
 	CheckIsUsernameExist(ctx context.Context, username string) (bool, error)
+	CountAccountsByOwner(ctx context.Context, owner string) (int64, error)
+	CountEntriesByAccount(ctx context.Context, accountID int64) (int64, error)
+	CountTransfersByOwner(ctx context.Context, owner string) (int64, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (CreateAccountRow, error)
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error)
 	GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAccountByIdForUpdateRow, error)
+	GetTransferById(ctx context.Context, id int64) (Transfer, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error)
+	ListAccountsByOwner(ctx context.Context, arg ListAccountsByOwnerParams) ([]ListAccountsByOwnerRow, error)
+	ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]Entry, error)
+	ListTransfersByOwner(ctx context.Context, arg ListTransfersByOwnerParams) ([]Transfer, error)
 }
 
 var _ Querier = (*Queries)(nil)

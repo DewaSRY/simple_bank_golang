@@ -33,3 +33,14 @@ SELECT EXISTS (
     FROM accounts
     WHERE id = $1
 );
+
+-- name: ListAccountsByOwner :many
+SELECT id, owner, balance, currency, created_at
+FROM accounts
+WHERE owner = sqlc.arg(owner)
+ORDER BY id
+LIMIT sqlc.arg(limit_count) OFFSET sqlc.arg(offset_count);
+
+-- name: CountAccountsByOwner :one
+SELECT COUNT(*) FROM accounts
+WHERE owner = $1;

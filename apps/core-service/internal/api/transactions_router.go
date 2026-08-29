@@ -61,6 +61,78 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 	succeed(ctx, http.StatusOK, result, "Transfer completed successfully")
 }
 
+type getTransactionParams struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+func (server *Server) getTransaction(ctx *gin.Context) {
+	var params getTransactionParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		return
+	}
+
+	transfer, err := server.store.GetTransferById(ctx, params.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			fail(ctx, NotFoundErr("transfer not found"))
+			return
+		}
+		fail(ctx, InternalErr())
+		return
+	}
+
+	fromAccount, err := server.store.GetAccountById(ctx, transfer.FromAccountID)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	toAccount, err := server.store.GetAccountById(ctx, transfer.ToAccountID)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	authPayload := getAuthPayload(ctx)
+	if fromAccount.Owner != authPayload.Username && toAccount.Owner != authPayload.Username {
+		fail(ctx, ForbiddenErr("transfer does not belong to the authenticated user"))
+		return
+	}
+
+	succeed(ctx, http.StatusOK, transfer, "Transfer retrieved successfully")
+}
+
+func (server *Server) listTransactions(ctx *gin.Context) {
+	var query paginationQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		return
+	}
+
+	authPayload := getAuthPayload(ctx)
+
+	transfers, err := server.store.ListTransfersByOwner(ctx, db.ListTransfersByOwnerParams{
+		Owner:       authPayload.Username,
+		LimitCount:  query.Limit,
+		OffsetCount: query.offset(),
+	})
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	total, err := server.store.CountTransfersByOwner(ctx, authPayload.Username)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	succeedWithMeta(ctx, http.StatusOK, transfers, "Transfer history retrieved successfully", Meta{
+		Page: query.Page, Limit: query.Limit, Total: total,
+	})
+}
+
 // transferAppError maps a transferTx failure to an AppError. This is the
 // only piece of this endpoint that's specific to transfers — the actual
 // response rendering is shared with every other endpoint via fail/AppError.

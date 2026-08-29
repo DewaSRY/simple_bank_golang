@@ -25,6 +25,18 @@ func (q *Queries) CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool
 	return exists, err
 }
 
+const countAccountsByOwner = `-- name: CountAccountsByOwner :one
+SELECT COUNT(*) FROM accounts
+WHERE owner = $1
+`
+
+func (q *Queries) CountAccountsByOwner(ctx context.Context, owner string) (int64, error) {
+	row := q.queryRow(ctx, q.countAccountsByOwnerStmt, countAccountsByOwner, owner)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (
     owner,
@@ -149,4 +161,55 @@ func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAcco
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listAccountsByOwner = `-- name: ListAccountsByOwner :many
+SELECT id, owner, balance, currency, created_at
+FROM accounts
+WHERE owner = $1
+ORDER BY id
+LIMIT $3 OFFSET $2
+`
+
+type ListAccountsByOwnerParams struct {
+	Owner       string `json:"owner"`
+	OffsetCount int32  `json:"offset_count"`
+	LimitCount  int32  `json:"limit_count"`
+}
+
+type ListAccountsByOwnerRow struct {
+	ID        int64     `json:"id"`
+	Owner     string    `json:"owner"`
+	Balance   string    `json:"balance"`
+	Currency  string    `json:"currency"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (q *Queries) ListAccountsByOwner(ctx context.Context, arg ListAccountsByOwnerParams) ([]ListAccountsByOwnerRow, error) {
+	rows, err := q.query(ctx, q.listAccountsByOwnerStmt, listAccountsByOwner, arg.Owner, arg.OffsetCount, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAccountsByOwnerRow
+	for rows.Next() {
+		var i ListAccountsByOwnerRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Balance,
+			&i.Currency,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

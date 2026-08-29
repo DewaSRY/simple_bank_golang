@@ -19,13 +19,13 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	// account routes
 	authorized.POST("/accounts", server.createAccount)
 	authorized.GET("/accounts/:id", server.getAccount)
+	authorized.GET("/accounts", server.listAccounts)
+	authorized.GET("/accounts/:id/entries", server.listAccountEntries)
 
 	//transaction routes
 	authorized.POST("/transactions/transfer", server.transactionTransfer)
-	// authorized.POST("/transactions", server.createTransaction)
-	// authorized.GET("/transactions/:id", server.getTransaction)
-	// authorized.GET("/transactions", server.listTransactions)
-
+	authorized.GET("/transactions/:id", server.getTransaction)
+	authorized.GET("/transactions", server.listTransactions)
 }
 
 func (server *Server) health(ctx *gin.Context) {

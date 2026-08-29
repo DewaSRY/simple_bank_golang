@@ -9,6 +9,18 @@ import (
 	"context"
 )
 
+const countEntriesByAccount = `-- name: CountEntriesByAccount :one
+SELECT COUNT(*) FROM entries
+WHERE account_id = $1
+`
+
+func (q *Queries) CountEntriesByAccount(ctx context.Context, accountID int64) (int64, error) {
+	row := q.queryRow(ctx, q.countEntriesByAccountStmt, countEntriesByAccount, accountID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createEntries = `-- name: CreateEntries :one
 INSERT INTO entries (
     account_id,
@@ -37,4 +49,47 @@ func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (E
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listEntriesByAccount = `-- name: ListEntriesByAccount :many
+SELECT id, account_id, type, amount, created_at
+FROM entries
+WHERE account_id = $1
+ORDER BY id DESC
+LIMIT $3 OFFSET $2
+`
+
+type ListEntriesByAccountParams struct {
+	AccountID   int64 `json:"account_id"`
+	OffsetCount int32 `json:"offset_count"`
+	LimitCount  int32 `json:"limit_count"`
+}
+
+func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]Entry, error) {
+	rows, err := q.query(ctx, q.listEntriesByAccountStmt, listEntriesByAccount, arg.AccountID, arg.OffsetCount, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Entry
+	for rows.Next() {
+		var i Entry
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Type,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

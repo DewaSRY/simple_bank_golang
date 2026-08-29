@@ -30,6 +30,15 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.checkIsUsernameExistStmt, err = db.PrepareContext(ctx, checkIsUsernameExist); err != nil {
 		return nil, fmt.Errorf("error preparing query CheckIsUsernameExist: %w", err)
 	}
+	if q.countAccountsByOwnerStmt, err = db.PrepareContext(ctx, countAccountsByOwner); err != nil {
+		return nil, fmt.Errorf("error preparing query CountAccountsByOwner: %w", err)
+	}
+	if q.countEntriesByAccountStmt, err = db.PrepareContext(ctx, countEntriesByAccount); err != nil {
+		return nil, fmt.Errorf("error preparing query CountEntriesByAccount: %w", err)
+	}
+	if q.countTransfersByOwnerStmt, err = db.PrepareContext(ctx, countTransfersByOwner); err != nil {
+		return nil, fmt.Errorf("error preparing query CountTransfersByOwner: %w", err)
+	}
 	if q.createAccountStmt, err = db.PrepareContext(ctx, createAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateAccount: %w", err)
 	}
@@ -48,11 +57,23 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getAccountByIdForUpdateStmt, err = db.PrepareContext(ctx, getAccountByIdForUpdate); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccountByIdForUpdate: %w", err)
 	}
+	if q.getTransferByIdStmt, err = db.PrepareContext(ctx, getTransferById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetTransferById: %w", err)
+	}
 	if q.getUserByUsernameStmt, err = db.PrepareContext(ctx, getUserByUsername); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserByUsername: %w", err)
 	}
 	if q.incrementAccountBalanceStmt, err = db.PrepareContext(ctx, incrementAccountBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementAccountBalance: %w", err)
+	}
+	if q.listAccountsByOwnerStmt, err = db.PrepareContext(ctx, listAccountsByOwner); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAccountsByOwner: %w", err)
+	}
+	if q.listEntriesByAccountStmt, err = db.PrepareContext(ctx, listEntriesByAccount); err != nil {
+		return nil, fmt.Errorf("error preparing query ListEntriesByAccount: %w", err)
+	}
+	if q.listTransfersByOwnerStmt, err = db.PrepareContext(ctx, listTransfersByOwner); err != nil {
+		return nil, fmt.Errorf("error preparing query ListTransfersByOwner: %w", err)
 	}
 	return &q, nil
 }
@@ -67,6 +88,21 @@ func (q *Queries) Close() error {
 	if q.checkIsUsernameExistStmt != nil {
 		if cerr := q.checkIsUsernameExistStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing checkIsUsernameExistStmt: %w", cerr)
+		}
+	}
+	if q.countAccountsByOwnerStmt != nil {
+		if cerr := q.countAccountsByOwnerStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countAccountsByOwnerStmt: %w", cerr)
+		}
+	}
+	if q.countEntriesByAccountStmt != nil {
+		if cerr := q.countEntriesByAccountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countEntriesByAccountStmt: %w", cerr)
+		}
+	}
+	if q.countTransfersByOwnerStmt != nil {
+		if cerr := q.countTransfersByOwnerStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countTransfersByOwnerStmt: %w", cerr)
 		}
 	}
 	if q.createAccountStmt != nil {
@@ -99,6 +135,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getAccountByIdForUpdateStmt: %w", cerr)
 		}
 	}
+	if q.getTransferByIdStmt != nil {
+		if cerr := q.getTransferByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getTransferByIdStmt: %w", cerr)
+		}
+	}
 	if q.getUserByUsernameStmt != nil {
 		if cerr := q.getUserByUsernameStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserByUsernameStmt: %w", cerr)
@@ -107,6 +148,21 @@ func (q *Queries) Close() error {
 	if q.incrementAccountBalanceStmt != nil {
 		if cerr := q.incrementAccountBalanceStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing incrementAccountBalanceStmt: %w", cerr)
+		}
+	}
+	if q.listAccountsByOwnerStmt != nil {
+		if cerr := q.listAccountsByOwnerStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAccountsByOwnerStmt: %w", cerr)
+		}
+	}
+	if q.listEntriesByAccountStmt != nil {
+		if cerr := q.listEntriesByAccountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listEntriesByAccountStmt: %w", cerr)
+		}
+	}
+	if q.listTransfersByOwnerStmt != nil {
+		if cerr := q.listTransfersByOwnerStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listTransfersByOwnerStmt: %w", cerr)
 		}
 	}
 	return err
@@ -150,14 +206,21 @@ type Queries struct {
 	tx                            *sql.Tx
 	checkIsAccountWithIdExistStmt *sql.Stmt
 	checkIsUsernameExistStmt      *sql.Stmt
+	countAccountsByOwnerStmt      *sql.Stmt
+	countEntriesByAccountStmt     *sql.Stmt
+	countTransfersByOwnerStmt     *sql.Stmt
 	createAccountStmt             *sql.Stmt
 	createEntriesStmt             *sql.Stmt
 	createTransferStmt            *sql.Stmt
 	createUserStmt                *sql.Stmt
 	getAccountByIdStmt            *sql.Stmt
 	getAccountByIdForUpdateStmt   *sql.Stmt
+	getTransferByIdStmt           *sql.Stmt
 	getUserByUsernameStmt         *sql.Stmt
 	incrementAccountBalanceStmt   *sql.Stmt
+	listAccountsByOwnerStmt       *sql.Stmt
+	listEntriesByAccountStmt      *sql.Stmt
+	listTransfersByOwnerStmt      *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -166,13 +229,20 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                            tx,
 		checkIsAccountWithIdExistStmt: q.checkIsAccountWithIdExistStmt,
 		checkIsUsernameExistStmt:      q.checkIsUsernameExistStmt,
+		countAccountsByOwnerStmt:      q.countAccountsByOwnerStmt,
+		countEntriesByAccountStmt:     q.countEntriesByAccountStmt,
+		countTransfersByOwnerStmt:     q.countTransfersByOwnerStmt,
 		createAccountStmt:             q.createAccountStmt,
 		createEntriesStmt:             q.createEntriesStmt,
 		createTransferStmt:            q.createTransferStmt,
 		createUserStmt:                q.createUserStmt,
 		getAccountByIdStmt:            q.getAccountByIdStmt,
 		getAccountByIdForUpdateStmt:   q.getAccountByIdForUpdateStmt,
+		getTransferByIdStmt:           q.getTransferByIdStmt,
 		getUserByUsernameStmt:         q.getUserByUsernameStmt,
 		incrementAccountBalanceStmt:   q.incrementAccountBalanceStmt,
+		listAccountsByOwnerStmt:       q.listAccountsByOwnerStmt,
+		listEntriesByAccountStmt:      q.listEntriesByAccountStmt,
+		listTransfersByOwnerStmt:      q.listTransfersByOwnerStmt,
 	}
 }

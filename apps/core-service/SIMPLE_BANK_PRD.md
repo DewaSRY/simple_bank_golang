@@ -23,7 +23,7 @@ The application will focus only on backend functionality. A frontend application
 
 ---
 
-## 1.1 Implementation Status (as of 2026-08-29)
+## 1.1 Implementation Status (updated 2026-08-29)
 
 This section tracks what is actually built versus what the PRD originally scoped, so the document stays a source of truth rather than an aspirational spec. Legend: ✅ Done · ⚠️ Partial / diverges from spec · ❌ Not implemented.
 
@@ -35,29 +35,30 @@ This section tracks what is actually built versus what the PRD originally scoped
 | Refresh tokens / logout / revocation | ❌ | Stateless access-token-only; no blacklist |
 | Create account | ✅ | `POST /accounts`; owner forced from JWT, not request body |
 | Get account by ID | ✅ | `GET /accounts/:id`, with ownership check (403 if not owner) |
-| List accounts (current user) | ❌ | No route, no backing query |
-| Update account | ❌ | Not implemented |
+| List accounts (current user) | ✅ | `GET /accounts`, paginated (`page`/`limit`), scoped to the caller |
+| Update account | ❌ | Not implemented — out of scope for this pass |
 | Money transfer | ✅ | `POST /transactions/transfer` (not `/transfers`); fully atomic |
 | Transfer DB transaction | ✅ | `Store.execTx` pattern wrapping a `sql.Tx` |
 | Row-level locking / deadlock avoidance | ✅ | `SELECT ... FOR UPDATE` with fixed ascending-ID lock order |
 | Atomic balance updates | ✅ | `balance = balance + $delta` increment query, not read-modify-write |
-| Get transfer by ID / transfer history | ❌ | Routes commented out in router, not implemented |
-| Transfer `status` (PENDING/SUCCESS/FAILED) | ❌ | No `status` column; transfers are only ever fully committed or rolled back |
-| Transfer `currency` column | ❌ | Not stored on `transfers` (only implied via account currency) |
-| Account entries (double-entry bookkeeping) | ⚠️ | Created on every transfer (`SEND`/`RECEIVED`, not `DEBIT`/`CREDIT`), but no `transfer_id` FK and no read/list API |
-| `GET /accounts/:id/entries` | ❌ | Not implemented |
+| Get transfer by ID / transfer history | ✅ | `GET /transactions/:id` (visible to either party) and `GET /transactions` (paginated, either-side ownership) |
+| Transfer `status` (PENDING/SUCCESS/FAILED) | ❌ | No `status` column; transfers are only ever fully committed or rolled back — deliberately deferred, not built this pass |
+| Transfer `currency` column | ❌ | Not stored on `transfers` (only implied via account currency) — deliberately deferred |
+| Account entries (double-entry bookkeeping) | ⚠️ | Created on every transfer (`SEND`/`RECEIVED`, not `DEBIT`/`CREDIT`); now readable via `GET /accounts/:id/entries`, but still no `transfer_id` FK |
+| `GET /accounts/:id/entries` | ✅ | Implemented, paginated, ownership-checked |
 | Normalized success/error response envelope | ✅ | Fully implemented, matches spec (`internal/api/response.go`, `apperror.go`) |
 | Centralized error handling | ✅ | `errorHandlerMiddleware`; DB/internal errors never leak to clients |
 | Request validation | ✅ | `go-playground/validator` via Gin binding, with field-name-aware error messages |
 | Concurrency correctness tests | ✅ | Integration tests proving no lost updates and no deadlock under concurrent transfers |
 | Unit tests for transfer business logic | ✅ | Table-driven, mocked-DB tests covering every failure branch |
-| HTTP handler-level tests | ❌ | No `httptest` coverage for account/user/auth/transfer handlers |
+| HTTP handler-level tests | ❌ | No `httptest` coverage for account/user/auth/transfer handlers — not addressed this pass, still the main testing gap |
 | DB-level integrity constraints | ✅ (extra) | `CHECK (balance >= 0)`, `CHECK (amount > 0)` — not originally scoped, added as defense-in-depth |
 | `owner_id` FK from accounts to users | ❌ | `accounts.owner` is a plain string matched against JWT username, not a foreign key |
-| CORS / rate limiting / structured logging / request tracing | ❌ | None implemented; only Gin's default logger + recovery |
+| CORS / rate limiting / structured logging / request tracing | ❌ | None implemented; only Gin's default logger + recovery — deliberately deferred, not a correctness gap |
 | Health check endpoint | ✅ (extra) | `GET /health`, not originally scoped |
+| Pagination (`page`/`limit`/`meta.total`) | ✅ (new) | Implemented once, shared via a `paginationQuery` helper, reused by all three list endpoints |
 
-**Summary:** The financial core — atomic transfers, deadlock-safe row locking, non-negative-balance guarantees, double-entry-style records, normalized responses, and JWT authentication with ownership checks — is solidly implemented and well-tested. The gaps are concentrated in read/listing endpoints (list accounts, transfer history, entries listing, get-account-update), a few schema fields that support those endpoints (`transfers.status`, `transfers.currency`, `entries.transfer_id`), route-naming alignment with this PRD, and HTTP-layer test coverage.
+**Summary:** The financial core — atomic transfers, deadlock-safe row locking, non-negative-balance guarantees, double-entry-style records, normalized responses, and JWT authentication with ownership checks — is solidly implemented and well-tested. As of this update, the previously-missing read/listing endpoints (list accounts, transfer history/detail, account entries) are now implemented and pagination is wired through the standard `{data, message, meta}` envelope. Remaining gaps: a few schema fields (`transfers.status`, `transfers.currency`, `entries.transfer_id`) left as deliberate scope decisions, route-naming divergence from the original spec (kept intentionally to avoid a breaking change), HTTP handler-level test coverage, an account update endpoint, and infra hardening (CORS, rate limiting, structured logging).
 
 ---
 
@@ -94,8 +95,8 @@ Each account contains (as built):
 
 - ✅ Create an account — owner is always derived from the authenticated JWT, ignoring any `owner` field a client sends, so a user can never create an account for someone else.
 - ✅ Get account by ID — enforces ownership (403 if the requester doesn't own the account).
-- ❌ Get all accounts — not implemented; no route and no "list by owner" query exists yet.
-- ❌ Update account information — not implemented.
+- ✅ Get all accounts — `GET /accounts`, paginated (`?page=&limit=`), scoped to the caller's own accounts via `ListAccountsByOwner`/`CountAccountsByOwner`.
+- ❌ Update account information — not implemented (deliberately out of scope; no concrete use case identified yet).
 
 ### Business Rules
 
@@ -105,7 +106,7 @@ Each account contains (as built):
 
 ### Improvement Opportunities
 
-- Add `GET /accounts` to list the authenticated user's accounts (pagination scaffolding already exists in the response envelope via `meta`, just unused).
+- ~~Add `GET /accounts` to list the authenticated user's accounts~~ — done.
 - Add an account update endpoint if a real use case emerges (e.g. renaming, deactivating).
 - Consider normalizing `accounts.owner` into a real `owner_id BIGINT REFERENCES users(id)` foreign key instead of a denormalized username string, to avoid drift if usernames ever change.
 
@@ -183,17 +184,19 @@ A `transfers` row actually contains:
 - Transfer amount
 - Creation timestamp
 
-Not present, despite being scoped: ❌ `currency` column, ❌ `status` column (so the `PENDING` / `SUCCESS` / `FAILED` state machine described below does not exist — there is no code path that writes a `FAILED` transfer row; failed attempts simply never get inserted, per the atomic rollback above).
+Not present, despite being scoped: ❌ `currency` column, ❌ `status` column (so the `PENDING` / `SUCCESS` / `FAILED` state machine described below does not exist — there is no code path that writes a `FAILED` transfer row; failed attempts simply never get inserted, per the atomic rollback above). These were evaluated and deliberately deferred (see below) rather than added in this pass.
+
+Transfer history and detail are now readable: `GET /transactions` (paginated, scoped to any account the caller owns on either side) and `GET /transactions/:id` (visible if the caller owns the source **or** destination account).
 
 ### Improvement Opportunities
 
-- If asynchronous or multi-step transfers are ever introduced (e.g. external payment rails), add a `status` column and the `PENDING`/`SUCCESS`/`FAILED` states as originally scoped. For the current fully-synchronous, single-DB-transaction transfer flow, the binary "row exists = success" model is arguably sufficient and simpler — worth a deliberate decision rather than treating this as an oversight.
-- Add a `currency` column to `transfers` for auditability (currently only inferable from the accounts involved, which is fragile if account currency could ever change).
-- Add `GET /transactions/:id` and `GET /transactions` (history) — routes are already stubbed out (commented) in the router but unimplemented.
+- ~~Add `GET /transactions/:id` and `GET /transactions` (history)~~ — done.
+- If asynchronous or multi-step transfers are ever introduced (e.g. external payment rails), add a `status` column and the `PENDING`/`SUCCESS`/`FAILED` states as originally scoped. For the current fully-synchronous, single-DB-transaction transfer flow, the binary "row exists = success" model is arguably sufficient and simpler — this was evaluated during the read-endpoint work and deliberately deferred rather than added speculatively.
+- Add a `currency` column to `transfers` for auditability (currently only inferable from the accounts involved, which is fragile if account currency could ever change) — same deferral reasoning as `status`.
 
 ---
 
-## 3.4 Account Entries — ⚠️ Partially implemented (write path only)
+## 3.4 Account Entries — ⚠️ Mostly implemented (read path added, `transfer_id` still missing)
 
 An account entry represents a balance change for a specific account.
 
@@ -217,15 +220,16 @@ Type: RECEIVED
 
 Each transfer generates entries for both accounts. A `DEPOSIT` entry type constant is also defined for a future non-transfer top-up flow, but nothing currently creates one.
 
-⚠️ Gaps versus the original scope:
+⚠️ Gap remaining versus the original scope:
 
-- `entries` has no `transfer_id` foreign key back to the `transfers` table — the link between an entry and the transfer that created it is only inferable indirectly (matching `account_id` + timestamp + type), not queryable directly.
-- There is no query or endpoint to *read* entries — `GET /accounts/:id/entries` from §4 does not exist. Entries are write-only from the API's perspective today.
+- `entries` still has no `transfer_id` foreign key back to the `transfers` table — the link between an entry and the transfer that created it is only inferable indirectly (matching `account_id` + timestamp + type), not queryable directly. This was in scope for consideration but deferred since it requires a migration; see §5.
+
+✅ Resolved: `GET /accounts/:id/entries` is now implemented — paginated (`page`/`limit`), ownership-checked (403 if the account isn't the caller's), backed by `ListEntriesByAccount`/`CountEntriesByAccount`. This was the highest-value missing read endpoint and is the first way to actually see "why did my balance change" via the API.
 
 ### Improvement Opportunities
 
-- Add `transfer_id BIGINT REFERENCES transfers(id)` to `entries` so entry history can be joined back to its originating transfer reliably.
-- Implement `GET /accounts/:id/entries` (with pagination, using the already-defined `meta` envelope field) so account statements are actually retrievable — this is likely the highest-value missing read endpoint since it's the only way to see "why did my balance change."
+- Add `transfer_id BIGINT REFERENCES transfers(id)` to `entries` so entry history can be joined back to its originating transfer reliably (requires a new migration — not done this pass).
+- ~~Implement `GET /accounts/:id/entries`~~ — done.
 - Rename entry types to `DEBIT`/`CREDIT` to match this PRD, or update the PRD's terminology to `SEND`/`RECEIVED` to match the code — pick one vocabulary and make it consistent.
 
 ---
@@ -282,7 +286,7 @@ Status reflects what's live today. Where the implemented path diverges from this
 | ------- | --------------- | ----------------------------------------------------- | ------ |
 | `POST`  | `/accounts`     | Create a new account (owner is always the caller)  | ✅ Implemented |
 | `GET`   | `/accounts/:id` | Get account information (ownership-checked)        | ✅ Implemented |
-| `GET`   | `/accounts`     | Get user accounts                                  | ❌ Not implemented |
+| `GET`   | `/accounts`     | Get user accounts, paginated (`?page=&limit=`)     | ✅ Implemented |
 | `PATCH` | `/accounts/:id` | Update account information                         | ❌ Not implemented |
 
 ### Transfer APIs
@@ -290,14 +294,14 @@ Status reflects what's live today. Where the implemented path diverges from this
 | Method | Endpoint                 | Description                                                          | Status |
 | ------ | ------------------------ | ----------------------------------------------------------------------- | ------ |
 | `POST` | `/transactions/transfer` | Transfer money between accounts (originally scoped as `/transfers`) | ✅ Implemented, path diverges |
-| `GET`  | `/transactions/:id`      | Get transfer details                                                 | ❌ Stubbed (route commented out) |
-| `GET`  | `/transactions`          | Get transfer history                                                 | ❌ Stubbed (route commented out) |
+| `GET`  | `/transactions/:id`      | Get transfer details (visible to either the source or destination account owner) | ✅ Implemented |
+| `GET`  | `/transactions`          | Get transfer history, paginated, scoped to accounts the caller owns on either side | ✅ Implemented |
 
 ### Account Entry APIs
 
-| Method | Endpoint                | Description                     | Status |
-| ------ | ----------------------- | ---------------------------------- | ------ |
-| `GET`  | `/accounts/:id/entries` | Get account transaction history | ❌ Not implemented (no backing query either) |
+| Method | Endpoint                | Description                                   | Status |
+| ------ | ----------------------- | ------------------------------------------------ | ------ |
+| `GET`  | `/accounts/:id/entries` | Get account transaction history, paginated, ownership-checked | ✅ Implemented |
 
 ### Other
 
@@ -305,10 +309,15 @@ Status reflects what's live today. Where the implemented path diverges from this
 | ------ | --------- | ------------------ | ------ |
 | `GET`  | `/health` | Liveness check  | ✅ Implemented (not originally scoped) |
 
+### Pagination
+
+`GET /accounts`, `GET /transactions`, and `GET /accounts/:id/entries` all accept `?page=` (default 1, min 1) and `?limit=` (default 10, min 1, max 100), and return `meta: {page, limit, total}` per §6/§5's pagination envelope. Implemented once as a shared `paginationQuery` binder (`internal/api/response.go`) reused by all three handlers.
+
 ### Improvement Opportunities
 
-- Decide whether to rename `/users` → `/auth/register` and `/transactions/transfer` → `/transfers` to match this PRD and conventional REST naming, or formally adopt the implemented naming in this PRD instead. Either is fine; the inconsistency is the actual problem.
-- Implement the stubbed read endpoints (`GET /accounts`, `GET /transactions/:id`, `GET /transactions`) plus `GET /accounts/:id/entries` — this is the bulk of the remaining scoped-but-missing work.
+- Decide whether to rename `/users` → `/auth/register` and `/transactions/transfer` → `/transfers` to match this PRD and conventional REST naming, or formally adopt the implemented naming in this PRD instead (current decision: keep the implemented names, documented above, to avoid a breaking change).
+- ~~Implement the stubbed read endpoints (`GET /accounts`, `GET /transactions/:id`, `GET /transactions`) plus `GET /accounts/:id/entries`~~ — done.
+- Add `PATCH /accounts/:id` if/when a real update use case emerges.
 
 ---
 
@@ -517,20 +526,20 @@ Status per item reflects the current codebase; this also roughly matches the act
 - ✅ Implement normalized API responses.
 - ✅ Implement error handling.
 
-### Phase 2 — Account Management — ⚠️ Partially done
+### Phase 2 — Account Management — ⚠️ Mostly done
 
 - ✅ Create account API.
 - ✅ Retrieve account API (`GET /accounts/:id`).
 - ✅ Add account ownership validation.
-- ❌ List accounts API (`GET /accounts`) — not started.
-- ❌ Update account API — not started.
+- ✅ List accounts API (`GET /accounts`), paginated.
+- ❌ Update account API — not started (no concrete use case yet).
 
-### Phase 3 — Transfers — ⚠️ Mostly done
+### Phase 3 — Transfers — ✅ Done
 
 - ✅ Implement money transfers.
 - ✅ Implement database transactions (with deadlock-safe row locking).
 - ✅ Create account entries.
-- ❌ Add transfer history (`GET /transactions`, `GET /transactions/:id`) — routes stubbed but not implemented.
+- ✅ Add transfer history (`GET /transactions`, paginated) and detail (`GET /transactions/:id`).
 
 ### Phase 4 — Authentication — ✅ Done (for the scoped access-token model)
 
@@ -547,11 +556,11 @@ Status per item reflects the current codebase; this also roughly matches the act
 - ❌ Add HTTP handler-level tests — not started.
 - ❌ Improve logging (structured logging) — not started; only Gin's default logger is in place.
 
-### Phase 6 — Remaining Read/List Endpoints (new, not in original milestones)
+### Phase 6 — Remaining Read/List Endpoints — ✅ Done (2026-08-29)
 
-- Implement `GET /accounts` (list current user's accounts).
-- Implement `GET /transactions` and `GET /transactions/:id` (transfer history/detail).
-- Implement `GET /accounts/:id/entries` (account statement), including the `entries.transfer_id` FK needed to back it properly.
+- ✅ Implemented `GET /accounts` (list current user's accounts), paginated.
+- ✅ Implemented `GET /transactions` and `GET /transactions/:id` (transfer history/detail), paginated, ownership-checked on either side of the transfer.
+- ✅ Implemented `GET /accounts/:id/entries` (account statement), paginated, ownership-checked. The `entries.transfer_id` FK was evaluated and deliberately deferred (requires a migration; not needed for this endpoint to work correctly since it's scoped by `account_id`) — tracked in §3.4 and §5.
 
 ---
 
@@ -560,16 +569,16 @@ Status per item reflects the current codebase; this also roughly matches the act
 The Simple Bank Application backend is considered complete when:
 
 - ✅ Users can register and log in.
-- ⚠️ Users can create and view their bank accounts — create and get-by-id work; **listing** accounts does not exist yet.
+- ✅ Users can create and view their bank accounts, including listing all of their own accounts.
 - ✅ Users can securely transfer money between accounts.
 - ✅ Account balances remain consistent after transfers.
-- ✅ Every balance change is recorded — recorded, though not yet readable via any API (no entries-list endpoint).
+- ✅ Every balance change is recorded and now readable via `GET /accounts/:id/entries`.
 - ✅ Transfers are executed using database transactions.
 - ✅ Unauthorized access is prevented.
-- ✅ API responses follow the normalized response format.
-- ⚠️ Core functionality is covered by automated tests — strong coverage on transfer logic, DB queries, and auth; **no HTTP handler-level tests** yet.
+- ✅ API responses follow the normalized response format, including pagination `meta` for list endpoints.
+- ⚠️ Core functionality is covered by automated tests — strong coverage on transfer logic, DB queries, and auth; **no HTTP handler-level tests** yet, including for the newly added list/detail endpoints.
 
-**Current overall status: core financial correctness is done; remaining work is read/listing endpoints and handler-level test coverage, not the harder concurrency/atomicity problem.**
+**Current overall status: all originally-scoped CRUD/read functionality is implemented. The one remaining gap against this Definition of Done is HTTP handler-level test coverage — the harder concurrency/atomicity problem was already solved and well-tested.**
 
 ---
 
@@ -581,7 +590,7 @@ The following features remain outside current scope. Items marked ⚠️ have so
 - Scheduled transfers.
 - Transfer cancellation.
 - Email notifications.
-- ⚠️ Account statements — blocked mainly on adding `GET /accounts/:id/entries` and `entries.transfer_id` (see §3.4), not a from-scratch feature.
+- ⚠️ Account statements — `GET /accounts/:id/entries` is now implemented; the remaining piece is the `entries.transfer_id` FK (see §3.4/§5) for reliable joins back to the originating transfer.
 - Refresh tokens.
 - Role-based access control.
 - Audit logs.

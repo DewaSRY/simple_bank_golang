@@ -42,6 +42,25 @@ type successResponse struct {
 	Meta    any    `json:"meta,omitempty"`
 }
 
+// Meta carries pagination metadata for list endpoints, per the Pagination
+// Response section of docs/NORMALIZE_RESPONSE.md.
+type Meta struct {
+	Page  int32 `json:"page"`
+	Limit int32 `json:"limit"`
+	Total int64 `json:"total"`
+}
+
+// paginationQuery binds the "page"/"limit" query params shared by every list
+// endpoint, so pagination is requested and validated the same way everywhere.
+type paginationQuery struct {
+	Page  int32 `form:"page,default=1" binding:"min=1"`
+	Limit int32 `form:"limit,default=10" binding:"min=1,max=100"`
+}
+
+func (p paginationQuery) offset() int32 {
+	return (p.Page - 1) * p.Limit
+}
+
 // succeed writes a normalized success envelope. Every endpoint should call
 // this (or succeedWithMeta for paginated lists) instead of ctx.JSON, so the
 // {data, message} shape stays consistent without each handler re-deriving it.
@@ -81,6 +100,8 @@ func validationMessage(fe validator.FieldError) string {
 		return fe.Field() + " is required"
 	case "min":
 		return fe.Field() + " must be at least " + fe.Param()
+	case "max":
+		return fe.Field() + " must be at most " + fe.Param()
 	case "gt":
 		return fe.Field() + " must be greater than " + fe.Param()
 	case "oneof":

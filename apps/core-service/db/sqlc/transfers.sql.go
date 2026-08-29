@@ -9,6 +9,21 @@ import (
 	"context"
 )
 
+const countTransfersByOwner = `-- name: CountTransfersByOwner :one
+SELECT COUNT(*)
+FROM transfers t
+JOIN accounts fa ON fa.id = t.from_account_id
+JOIN accounts ta ON ta.id = t.to_account_id
+WHERE fa.owner = $1 OR ta.owner = $1
+`
+
+func (q *Queries) CountTransfersByOwner(ctx context.Context, owner string) (int64, error) {
+	row := q.queryRow(ctx, q.countTransfersByOwnerStmt, countTransfersByOwner, owner)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createTransfer = `-- name: CreateTransfer :one
 INSERT INTO transfers (
     from_account_id,
@@ -37,4 +52,68 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getTransferById = `-- name: GetTransferById :one
+SELECT id, from_account_id, to_account_id, amount, created_at
+FROM transfers
+WHERE id = $1
+`
+
+func (q *Queries) GetTransferById(ctx context.Context, id int64) (Transfer, error) {
+	row := q.queryRow(ctx, q.getTransferByIdStmt, getTransferById, id)
+	var i Transfer
+	err := row.Scan(
+		&i.ID,
+		&i.FromAccountID,
+		&i.ToAccountID,
+		&i.Amount,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const listTransfersByOwner = `-- name: ListTransfersByOwner :many
+SELECT t.id, t.from_account_id, t.to_account_id, t.amount, t.created_at
+FROM transfers t
+JOIN accounts fa ON fa.id = t.from_account_id
+JOIN accounts ta ON ta.id = t.to_account_id
+WHERE fa.owner = $1 OR ta.owner = $1
+ORDER BY t.id DESC
+LIMIT $3 OFFSET $2
+`
+
+type ListTransfersByOwnerParams struct {
+	Owner       string `json:"owner"`
+	OffsetCount int32  `json:"offset_count"`
+	LimitCount  int32  `json:"limit_count"`
+}
+
+func (q *Queries) ListTransfersByOwner(ctx context.Context, arg ListTransfersByOwnerParams) ([]Transfer, error) {
+	rows, err := q.query(ctx, q.listTransfersByOwnerStmt, listTransfersByOwner, arg.Owner, arg.OffsetCount, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transfer
+	for rows.Next() {
+		var i Transfer
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAccountID,
+			&i.ToAccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

@@ -58,6 +58,9 @@ func registerValidatorFieldNames() {
 		if name := strings.SplitN(fld.Tag.Get("uri"), ",", 2)[0]; name != "" && name != "-" {
 			return name
 		}
+		if name := strings.SplitN(fld.Tag.Get("form"), ",", 2)[0]; name != "" && name != "-" {
+			return name
+		}
 		return ""
 	})
 }
