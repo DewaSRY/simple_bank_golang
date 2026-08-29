@@ -32,7 +32,10 @@ export default function proxy(request: NextRequest) {
   );
   const activeLocale = locale ?? routing.defaultLocale;
 
-  if (!isAuthenticated && PROTECTED_PATH_PREFIXES.some((p) => path.startsWith(p))) {
+  if (
+    !isAuthenticated &&
+    PROTECTED_PATH_PREFIXES.some((p) => path.startsWith(p))
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = `/${activeLocale}/login`;
     return NextResponse.redirect(url);
