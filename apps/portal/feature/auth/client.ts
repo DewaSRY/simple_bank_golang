@@ -1,40 +1,40 @@
-import { BaseClient } from "../base-client";
-import type { ApiSuccessResponse } from "../types";
+import { BaseClient } from "@/lib/api/base-client";
+import type { CommonSuccessResponse } from "@/feature/common/type";
 
-export interface LoginRequest {
+export type LoginRequest = {
   username: string;
   password: string;
-}
+};
 
-export interface LoginResponse {
+export type LoginResponse = {
   access_token: string;
   expires_in: number;
   token_type: string;
-}
+};
 
-export interface RegisterRequest {
+export type RegisterRequest = {
   username: string;
   email: string;
   password: string;
-}
+};
 
-export interface RegisterResponse {
+export type RegisterResponse = {
   id: number;
   username: string;
   email: string;
   created_at: string;
-}
+};
 
 export class AuthClient extends BaseClient {
   login(body: LoginRequest) {
-    return this.post<ApiSuccessResponse<LoginResponse>>({
+    return this.post<CommonSuccessResponse<LoginResponse>>({
       endpoint: "/auth/login",
       body,
     });
   }
 
   register(body: RegisterRequest) {
-    return this.post<ApiSuccessResponse<RegisterResponse>>({
+    return this.post<CommonSuccessResponse<RegisterResponse>>({
       endpoint: "/users",
       body,
     });

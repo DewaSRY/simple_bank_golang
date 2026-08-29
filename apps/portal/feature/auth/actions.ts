@@ -3,7 +3,7 @@
 import { getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
-import { authClient } from "@/lib/api/clients/auth-client";
+import { authClient } from "@/feature/auth/client";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 import { clearSessionCookie, setSessionCookie } from "./session";
 import type { AuthFormState } from "./types";
