@@ -34,6 +34,18 @@ func newUserResponse(user db.CreateUserRow) userResponse {
 	}
 }
 
+// createUser godoc
+// @Summary      Create a new user
+// @Description  Register a new user account
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request  body      createUserRequest  true  "User registration payload"
+// @Success      200      {object}  successResponse{data=userResponse}
+// @Failure      400      {object}  errorResponse
+// @Failure      409      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /users [post]
 func (server *Server) createUser(ctx *gin.Context) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

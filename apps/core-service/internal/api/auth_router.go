@@ -21,6 +21,18 @@ type loginUserResponse struct {
 	ExpiresIn   int64  `json:"expires_in"`
 }
 
+// loginUser godoc
+// @Summary      Login
+// @Description  Authenticate a user and return an access token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      loginUserRequest  true  "Login credentials"
+// @Success      200      {object}  successResponse{data=loginUserResponse}
+// @Failure      400      {object}  errorResponse
+// @Failure      401      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /auth/login [post]
 func (server *Server) loginUser(ctx *gin.Context) {
 	var req loginUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

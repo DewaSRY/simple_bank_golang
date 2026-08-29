@@ -18,6 +18,22 @@ type createTransactionTransferRequest struct {
 	Amount        decimal.Decimal `json:"amount"`
 }
 
+// transactionTransfer godoc
+// @Summary      Transfer funds
+// @Description  Transfer money from an account owned by the authenticated user to another account
+// @Tags         transactions
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request  body      createTransactionTransferRequest  true  "Transfer payload"
+// @Success      200      {object}  successResponse{data=store.TransferTxResult}
+// @Failure      400      {object}  errorResponse
+// @Failure      401      {object}  errorResponse
+// @Failure      403      {object}  errorResponse
+// @Failure      404      {object}  errorResponse
+// @Failure      409      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /transactions/transfer [post]
 func (server *Server) transactionTransfer(ctx *gin.Context) {
 	var req createTransactionTransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -65,6 +81,19 @@ type getTransactionParams struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
+// getTransaction godoc
+// @Summary      Get transfer by ID
+// @Description  Retrieve a single transfer involving an account owned by the authenticated user
+// @Tags         transactions
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Transfer ID"
+// @Success      200  {object}  successResponse{data=db.Transfer}
+// @Failure      401  {object}  errorResponse
+// @Failure      403  {object}  errorResponse
+// @Failure      404  {object}  errorResponse
+// @Failure      500  {object}  errorResponse
+// @Router       /transactions/{id} [get]
 func (server *Server) getTransaction(ctx *gin.Context) {
 	var params getTransactionParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
@@ -103,6 +132,19 @@ func (server *Server) getTransaction(ctx *gin.Context) {
 	succeed(ctx, http.StatusOK, transfer, "Transfer retrieved successfully")
 }
 
+// listTransactions godoc
+// @Summary      List transfers
+// @Description  List transfers involving accounts owned by the authenticated user, paginated
+// @Tags         transactions
+// @Produce      json
+// @Security     BearerAuth
+// @Param        page   query     int  false  "Page number"     default(1)
+// @Param        limit  query     int  false  "Items per page"  default(10)
+// @Success      200    {object}  successResponse{data=[]db.Transfer,meta=Meta}
+// @Failure      400    {object}  errorResponse
+// @Failure      401    {object}  errorResponse
+// @Failure      500    {object}  errorResponse
+// @Router       /transactions [get]
 func (server *Server) listTransactions(ctx *gin.Context) {
 	var query paginationQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {

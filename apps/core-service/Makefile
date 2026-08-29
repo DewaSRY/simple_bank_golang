@@ -32,4 +32,7 @@ docker-run:
 docker-stop:
 	docker stop $(CONTAINER_NAME)
 
-.PHONY: test server migrate-create migrate-up migrate-down sqlc generate-mock docker-build docker-run docker-stop
+swag-gen:
+	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
+
+.PHONY: test server migrate-create migrate-up migrate-down sqlc generate-mock docker-build docker-run docker-stop swag-gen

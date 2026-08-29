@@ -14,6 +14,19 @@ type createAccountRequest struct {
 	Currency string `json:"currency" binding:"required,oneof=USD EUR GBP IDR"`
 }
 
+// createAccount godoc
+// @Summary      Create a new account
+// @Description  Create a bank account for the authenticated user
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request  body      createAccountRequest  true  "Account creation payload"
+// @Success      200      {object}  successResponse{data=db.Account}
+// @Failure      400      {object}  errorResponse
+// @Failure      401      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /accounts [post]
 func (server *Server) createAccount(ctx *gin.Context) {
 	var req createAccountRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -42,6 +55,19 @@ type getAccountParams struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
+// getAccount godoc
+// @Summary      Get account by ID
+// @Description  Retrieve a single account owned by the authenticated user
+// @Tags         accounts
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Account ID"
+// @Success      200  {object}  successResponse{data=db.Account}
+// @Failure      401  {object}  errorResponse
+// @Failure      403  {object}  errorResponse
+// @Failure      404  {object}  errorResponse
+// @Failure      500  {object}  errorResponse
+// @Router       /accounts/{id} [get]
 func (server *Server) getAccount(ctx *gin.Context) {
 	var params getAccountParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
@@ -68,6 +94,19 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	succeed(ctx, http.StatusOK, account, "Account retrieved successfully")
 }
 
+// listAccounts godoc
+// @Summary      List accounts
+// @Description  List accounts owned by the authenticated user, paginated
+// @Tags         accounts
+// @Produce      json
+// @Security     BearerAuth
+// @Param        page   query     int  false  "Page number"     default(1)
+// @Param        limit  query     int  false  "Items per page"  default(10)
+// @Success      200    {object}  successResponse{data=[]db.Account,meta=Meta}
+// @Failure      400    {object}  errorResponse
+// @Failure      401    {object}  errorResponse
+// @Failure      500    {object}  errorResponse
+// @Router       /accounts [get]
 func (server *Server) listAccounts(ctx *gin.Context) {
 	var query paginationQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -102,6 +141,22 @@ type listAccountEntriesParams struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
+// listAccountEntries godoc
+// @Summary      List account entries
+// @Description  List ledger entries for an account owned by the authenticated user, paginated
+// @Tags         accounts
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id     path      int  true   "Account ID"
+// @Param        page   query     int  false  "Page number"     default(1)
+// @Param        limit  query     int  false  "Items per page"  default(10)
+// @Success      200    {object}  successResponse{data=[]db.Entry,meta=Meta}
+// @Failure      400    {object}  errorResponse
+// @Failure      401    {object}  errorResponse
+// @Failure      403    {object}  errorResponse
+// @Failure      404    {object}  errorResponse
+// @Failure      500    {object}  errorResponse
+// @Router       /accounts/{id}/entries [get]
 func (server *Server) listAccountEntries(ctx *gin.Context) {
 	var params listAccountEntriesParams
 	if err := ctx.ShouldBindUri(&params); err != nil {

@@ -4,10 +4,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func (server *Server) bindRouters(router *gin.Engine) {
 	router.GET("/health", server.health)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// auth routes (public)
 	router.POST("/users", server.createUser)
@@ -28,6 +32,13 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	authorized.GET("/transactions", server.listTransactions)
 }
 
+// health godoc
+// @Summary      Health check
+// @Description  Report service health status
+// @Tags         health
+// @Produce      json
+// @Success      200  {object}  successResponse
+// @Router       /health [get]
 func (server *Server) health(ctx *gin.Context) {
 	succeed(ctx, http.StatusOK, gin.H{"status": "ok"}, "Service is healthy")
 }
