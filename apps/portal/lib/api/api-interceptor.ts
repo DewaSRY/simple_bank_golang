@@ -1,4 +1,5 @@
 import { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import { SESSION_COOKIE_NAME } from "@/feature/auth/constants";
 
 export class BuildPhaseSkippedError extends Error {
   constructor(endpoint?: string) {
@@ -44,7 +45,7 @@ export class ApiInterceptor {
       try {
         const { cookies } = await import("next/headers");
         const cookieStore = await cookies();
-        token = cookieStore.get("session_token")?.value || "";
+        token = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
       } catch (error) {
         // Next bails routes out of static generation by throwing here when cookies()
         if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
@@ -52,7 +53,9 @@ export class ApiInterceptor {
         }
       }
     } else {
-      const match = document.cookie.match(/(?:^|;\s*)session_token=([^;]*)/);
+      const match = document.cookie.match(
+        new RegExp(`(?:^|;\\s*)${SESSION_COOKIE_NAME}=([^;]*)`),
+      );
       token = match ? decodeURIComponent(match[1]) : "";
     }
 

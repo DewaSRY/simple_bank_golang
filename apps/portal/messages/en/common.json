@@ -4,5 +4,9 @@
   "cta": "Looking for a starting point or more instructions? Head over to <templates>Templates</templates> or the <learning>Learning</learning> center.",
   "deployNow": "Deploy Now",
   "documentation": "Documentation",
-  "language": "Language"
+  "language": "Language",
+  "dashboardTitle": "Dashboard",
+  "yourAccounts": "Your accounts",
+  "noAccounts": "No accounts yet.",
+  "loadAccountsError": "Failed to load accounts."
 }

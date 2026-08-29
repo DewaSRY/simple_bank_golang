@@ -4,5 +4,9 @@
   "cta": "Mencari titik awal atau instruksi lainnya? Kunjungi <templates>Templat</templates> atau pusat <learning>Pembelajaran</learning>.",
   "deployNow": "Deploy Sekarang",
   "documentation": "Dokumentasi",
-  "language": "Bahasa"
+  "language": "Bahasa",
+  "dashboardTitle": "Dasbor",
+  "yourAccounts": "Akun Anda",
+  "noAccounts": "Belum ada akun.",
+  "loadAccountsError": "Gagal memuat akun."
 }

@@ -1,12 +1,14 @@
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { Link } from "@/i18n/navigation";
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);
 
   const t = await getTranslations("Common");
+  const tAuth = await getTranslations("Auth");
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -20,7 +22,15 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             height={20}
             priority
           />
-          <LocaleSwitcher />
+          <div className="flex items-center gap-4">
+            <Link
+              href="/login"
+              className="text-sm font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              {tAuth("login")}
+            </Link>
+            <LocaleSwitcher />
+          </div>
         </div>
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
           <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
