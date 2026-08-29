@@ -1,12 +1,18 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"time"
+
+	"github.com/spf13/viper"
+)
 
 // Config holds all configuration values, loaded from a file or environment variables.
 type Config struct {
-	DBDriver      string `mapstructure:"DB_DRIVER"`
-	DBSource      string `mapstructure:"DB_SOURCE"`
-	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
+	DBDriver               string        `mapstructure:"DB_DRIVER"`
+	DBSource               string        `mapstructure:"DB_SOURCE"`
+	ServerAddress          string        `mapstructure:"SERVER_ADDRESS"`
+	JWTSecretKey           string        `mapstructure:"JWT_SECRET_KEY"`
+	JWTAccessTokenDuration time.Duration `mapstructure:"JWT_ACCESS_TOKEN_DURATION"`
 }
 
 // LoadConfig reads configuration from app.env (or the environment) located at path.

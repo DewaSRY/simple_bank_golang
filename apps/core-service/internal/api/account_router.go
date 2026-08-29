@@ -11,7 +11,6 @@ import (
 )
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,oneof=USD EUR GBP IDR"`
 }
 
@@ -22,8 +21,10 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := getAuthPayload(ctx)
+
 	arg := db.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  "0",
 	}
@@ -55,6 +56,12 @@ func (server *Server) getAccount(ctx *gin.Context) {
 			return
 		}
 		fail(ctx, InternalErr())
+		return
+	}
+
+	authPayload := getAuthPayload(ctx)
+	if account.Owner != authPayload.Username {
+		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
 		return
 	}
 

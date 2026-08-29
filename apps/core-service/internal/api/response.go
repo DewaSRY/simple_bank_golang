@@ -15,6 +15,9 @@ const (
 	errCodeCurrencyMismatch  = "CURRENCY_MISMATCH"
 	errCodeInsufficientFunds = "INSUFFICIENT_FUNDS"
 	errCodeInternal          = "INTERNAL_ERROR"
+	errCodeUnauthorized      = "UNAUTHORIZED"
+	errCodeForbidden         = "FORBIDDEN"
+	errCodeConflict          = "CONFLICT"
 )
 
 // FieldError describes a single invalid request field, per docs/NORMALIZE_RESPONSE.md.

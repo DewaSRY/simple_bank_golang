@@ -39,3 +39,14 @@ type Transfer struct {
 	Amount    string    `json:"amount"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// Table to store user accounts used for authentication
+type User struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	// Password hash generated with bcrypt, plaintext passwords are never stored
+	HashedPassword string    `json:"hashed_password"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -9,18 +10,27 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	store "github.com/DewaSRY/core-service/db/store"
+	config "github.com/DewaSRY/core-service/internal/config"
+	"github.com/DewaSRY/core-service/internal/token"
 )
 
 // Server wires HTTP handlers to the underlying store.
 type Server struct {
-	store  *store.Store
-	router *gin.Engine
+	store      *store.Store
+	config     config.Config
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
-func NewServer(store *store.Store) *Server {
+func NewServer(store *store.Store, cfg config.Config) (*Server, error) {
 	registerValidatorFieldNames()
 
-	server := &Server{store: store}
+	tokenMaker, err := token.NewJWTMaker(cfg.JWTSecretKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+
+	server := &Server{store: store, config: cfg, tokenMaker: tokenMaker}
 
 	router := gin.Default()
 	router.Use(errorHandlerMiddleware())
@@ -28,7 +38,7 @@ func NewServer(store *store.Store) *Server {
 	// binding gin controller to the router
 	server.bindRouters(router)
 	server.router = router
-	return server
+	return server, nil
 }
 
 // registerValidatorFieldNames makes binding validation errors report the

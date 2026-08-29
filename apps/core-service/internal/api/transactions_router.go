@@ -30,6 +30,22 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 		return
 	}
 
+	fromAccount, err := server.store.GetAccountById(ctx, req.FromAccountID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			fail(ctx, NotFoundErr("account not found"))
+			return
+		}
+		fail(ctx, InternalErr())
+		return
+	}
+
+	authPayload := getAuthPayload(ctx)
+	if fromAccount.Owner != authPayload.Username {
+		fail(ctx, ForbiddenErr("from_account does not belong to the authenticated user"))
+		return
+	}
+
 	arg := db.CreateTransferParams{
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,

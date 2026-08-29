@@ -9,15 +9,22 @@ import (
 func (server *Server) bindRouters(router *gin.Engine) {
 	router.GET("/health", server.health)
 
+	// auth routes (public)
+	router.POST("/users", server.createUser)
+	router.POST("/auth/login", server.loginUser)
+
+	authorized := router.Group("/")
+	authorized.Use(authMiddleware(server.tokenMaker))
+
 	// account routes
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
+	authorized.POST("/accounts", server.createAccount)
+	authorized.GET("/accounts/:id", server.getAccount)
 
 	//transaction routes
-	router.POST("/transactions/transfer", server.transactionTransfer)
-	// router.POST("/transactions", server.createTransaction)
-	// router.GET("/transactions/:id", server.getTransaction)
-	// router.GET("/transactions", server.listTransactions)
+	authorized.POST("/transactions/transfer", server.transactionTransfer)
+	// authorized.POST("/transactions", server.createTransaction)
+	// authorized.GET("/transactions/:id", server.getTransaction)
+	// authorized.GET("/transactions", server.listTransactions)
 
 }
 

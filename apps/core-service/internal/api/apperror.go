@@ -45,6 +45,18 @@ func NotFoundErr(message string) *AppError {
 	return newAppError(http.StatusNotFound, errCodeNotFound, message)
 }
 
+// UnauthorizedErr builds a 401 response for authentication failures (missing,
+// malformed, or invalid/expired token) — see errCodeUnauthorized.
+func UnauthorizedErr(message string) *AppError {
+	return newAppError(http.StatusUnauthorized, errCodeUnauthorized, message)
+}
+
+// ForbiddenErr builds a 403 response for a valid but insufficiently
+// privileged caller (e.g. accessing another user's resource).
+func ForbiddenErr(message string) *AppError {
+	return newAppError(http.StatusForbidden, errCodeForbidden, message)
+}
+
 func ConflictErr(code, message string) *AppError {
 	return newAppError(http.StatusConflict, code, message)
 }

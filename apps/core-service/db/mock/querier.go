@@ -56,6 +56,21 @@ func (mr *MockQuerierMockRecorder) CheckIsAccountWithIdExist(ctx, id any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIsAccountWithIdExist", reflect.TypeOf((*MockQuerier)(nil).CheckIsAccountWithIdExist), ctx, id)
 }
 
+// CheckIsUsernameExist mocks base method.
+func (m *MockQuerier) CheckIsUsernameExist(ctx context.Context, username string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckIsUsernameExist", ctx, username)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckIsUsernameExist indicates an expected call of CheckIsUsernameExist.
+func (mr *MockQuerierMockRecorder) CheckIsUsernameExist(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIsUsernameExist", reflect.TypeOf((*MockQuerier)(nil).CheckIsUsernameExist), ctx, username)
+}
+
 // CreateAccount mocks base method.
 func (m *MockQuerier) CreateAccount(ctx context.Context, arg db.CreateAccountParams) (db.CreateAccountRow, error) {
 	m.ctrl.T.Helper()
@@ -101,6 +116,21 @@ func (mr *MockQuerierMockRecorder) CreateTransfer(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransfer", reflect.TypeOf((*MockQuerier)(nil).CreateTransfer), ctx, arg)
 }
 
+// CreateUser mocks base method.
+func (m *MockQuerier) CreateUser(ctx context.Context, arg db.CreateUserParams) (db.CreateUserRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", ctx, arg)
+	ret0, _ := ret[0].(db.CreateUserRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockQuerierMockRecorder) CreateUser(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockQuerier)(nil).CreateUser), ctx, arg)
+}
+
 // GetAccountById mocks base method.
 func (m *MockQuerier) GetAccountById(ctx context.Context, id int64) (db.GetAccountByIdRow, error) {
 	m.ctrl.T.Helper()
@@ -129,6 +159,21 @@ func (m *MockQuerier) GetAccountByIdForUpdate(ctx context.Context, id int64) (db
 func (mr *MockQuerierMockRecorder) GetAccountByIdForUpdate(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountByIdForUpdate", reflect.TypeOf((*MockQuerier)(nil).GetAccountByIdForUpdate), ctx, id)
+}
+
+// GetUserByUsername mocks base method.
+func (m *MockQuerier) GetUserByUsername(ctx context.Context, username string) (db.GetUserByUsernameRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByUsername", ctx, username)
+	ret0, _ := ret[0].(db.GetUserByUsernameRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByUsername indicates an expected call of GetUserByUsername.
+func (mr *MockQuerierMockRecorder) GetUserByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockQuerier)(nil).GetUserByUsername), ctx, username)
 }
 
 // IncrementAccountBalance mocks base method.
