@@ -13,22 +13,26 @@ func (server *Server) bindRouters(router *gin.Engine) {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// auth routes (public)
-	router.POST("/users", server.createUser)
+	// API v1 routes
+	v1 := router.Group("/api/v1")
 
-	router.POST("/auth/login", server.loginUser)
-	router.POST("/auth/register", server.registerUser)
+	// Auth routes (public)
+	v1.POST("/users", server.createUser) // TODO: DELETE this end point
 
-	authorized := router.Group("/")
+	v1.POST("/auth/login", server.loginUser)
+	v1.POST("/auth/register", server.registerUser)
+
+	// Authorized routes
+	authorized := v1.Group("/")
 	authorized.Use(authMiddleware(server.tokenMaker))
 
-	// account routes
+	// Account routes
 	authorized.POST("/accounts", server.createAccount)
 	authorized.GET("/accounts/:id", server.getAccount)
 	authorized.GET("/accounts", server.listAccounts)
 	authorized.GET("/accounts/:id/entries", server.listAccountEntries)
 
-	//transaction routes
+	// Transaction routes
 	authorized.POST("/transactions/transfer", server.transactionTransfer)
 	authorized.GET("/transactions/:id", server.getTransaction)
 	authorized.GET("/transactions", server.listTransactions)
