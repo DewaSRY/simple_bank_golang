@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 
 	"github.com/DewaSRY/core-service/pkg/utils"
 
@@ -96,6 +97,12 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		return
 	}
 
+	// Check if the password and password confirmation match
+	if req.Password != req.PasswordConfirm {
+		fail(ctx, BadRequestErr("password_mismatch", "password and password confirmation do not match"))
+		return
+	}
+
 	// Check if the email already exists
 	_, err := server.store.GetUserByEmail(ctx, req.Email)
 	if err == nil {
@@ -107,9 +114,14 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// Check if the password and password confirmation match
-	if req.Password != req.PasswordConfirm {
-		fail(ctx, BadRequestErr("password_mismatch", "password and password confirmation do not match"))
+	// Check if the username already exists
+	usernameExists, err := server.store.CheckIsUsernameExist(ctx, req.Username)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+	if usernameExists {
+		fail(ctx, BadRequestErr("username_exists", "username already exists"))
 		return
 	}
 
@@ -129,6 +141,11 @@ func (server *Server) registerUser(ctx *gin.Context) {
 
 	user, err := server.store.CreateUser(ctx, arg)
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code.Name() == "unique_violation" {
+			fail(ctx, ConflictErr(errCodeConflict, "username or email already exists"))
+			return
+		}
 		fail(ctx, InternalErr())
 		return
 	}
