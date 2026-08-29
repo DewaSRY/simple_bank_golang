@@ -23,6 +23,7 @@ type Config struct {
 	ServerAddress          string        `mapstructure:"SERVER_ADDRESS"`
 	JWTSecretKey           string        `mapstructure:"JWT_SECRET_KEY"`
 	JWTAccessTokenDuration time.Duration `mapstructure:"JWT_ACCESS_TOKEN_DURATION"`
+	CORSAllowedOrigins     []string      `mapstructure:"CORS_ALLOWED_ORIGINS"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -32,12 +33,30 @@ func LoadConfig(path string) (config Config, err error) {
 
 	viper.AutomaticEnv()        // real environment variables override the file
 
+	// app.env is optional. If it doesn't exist, continue and
+	// rely on environment variables instead.
 	if err = viper.ReadInConfig(); err != nil {
-		return
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return config, err
+		}
+	}
+
+	// Explicitly bind every mapstructure-tagged field to its env var.
+	// See "Pitfall: AutomaticEnv() does not mean Unmarshal() sees your
+	// env vars" below for why this loop has to exist.
+	fields := reflect.VisibleFields(reflect.TypeFor[Config]())
+	for _, field := range fields {
+		key := field.Tag.Get("mapstructure")
+		if key == "" {
+			continue
+		}
+		if err = viper.BindEnv(key); err != nil {
+			return config, err
+		}
 	}
 
 	err = viper.Unmarshal(&config)
-	return
+	return config, err
 }
 ```
 
@@ -45,9 +64,44 @@ Three mechanics worth understanding, because they're easy to misuse:
 
 1. **`mapstructure`, not `json` or `viper` tags.** Viper unmarshals through the [`mapstructure`](https://github.com/go-viper/mapstructure) library internally, so the struct tag that maps `DB_SOURCE` to `DBSource` is `mapstructure:"DB_SOURCE"` — a `json:"DB_SOURCE"` tag here does nothing. This is the single most common mistake when adding a new config field: add the field, forget the right tag name, and get a zero-value with no error.
 
-2. **File + environment are unified, and environment wins.** `viper.AutomaticEnv()` means any real environment variable with a matching name (`DB_SOURCE=...` set by the shell, Docker, or a deploy platform) overrides whatever [app.env](../app.env.example) says, without any extra code. In practice this means: `app.env` (git-ignored; [app.env.example](../app.env.example) documents the required keys) is the convenience path for local development, and production sets real env vars and never ships a config file at all. There's exactly one loader for both cases.
+2. **File + environment are unified, and environment wins.** Any real environment variable with a matching name (`DB_SOURCE=...` set by the shell, Docker, or a deploy platform) overrides whatever [app.env](../app.env.example) says, without any extra code. In practice this means: `app.env` (git-ignored; [app.env.example](../app.env.example) documents the required keys) is the convenience path for local development, and production (including the `core-services` container in [docker-compose.yaml](../../../docker-compose.yaml)) sets real env vars and never ships a config file at all. There's exactly one loader for both cases. **This is also the exact setup that triggers the pitfall below — read on before you assume `AutomaticEnv()` alone is enough.**
 
 3. **Config is loaded once, at process start, and passed down explicitly.** `cmd/server/main.go` calls `config.LoadConfig(".")` exactly once and threads the resulting `Config` value into `api.NewServer(store, cfg)` (see [cmd/server/main.go](../cmd/server/main.go)) — nothing downstream calls `viper.Get(...)` directly or re-reads config later. This matters for two reasons: it keeps `Config` a plain, mockable value for tests instead of a global you have to reset between them, and it means config is fully resolved and validated (via `LoadConfig`'s returned `err`) before the server binds a port — a missing `JWT_SECRET_KEY` fails fast at startup (`log.Fatal("cannot load config:", err)`), not on the first login request.
+
+## Pitfall: `AutomaticEnv()` does not mean `Unmarshal()` sees your env vars
+
+This bit us for real: the `core-services` container in `docker-compose.yaml` sets `DB_DRIVER`, `DB_SOURCE`, `SERVER_ADDRESS`, etc. as plain environment variables and does **not** mount an `app.env` file. The container started, but `sql.Open(cfg.DBDriver, cfg.DBSource)` in `cmd/server/connect_db.go` failed because `cfg.DBDriver` was an empty string — even though `DB_DRIVER=postgres` was clearly set in `docker-compose.yaml`.
+
+**Why this happens.** It's tempting to read `viper.AutomaticEnv()` as "check the environment for anything the struct asks for." That is not what it does. `AutomaticEnv()` only makes viper check the environment for keys **viper already knows about** — keys it learned from a config file it successfully read, from a default you set with `viper.SetDefault`, or from an explicit `viper.BindEnv(key)` call. `viper.Unmarshal(&config)` then only fills in the fields for keys viper knows about; it does not look at the `Config` struct's tags and go hunting through `os.Environ()` on its own.
+
+Put together, here's the failure sequence:
+
+1. No `app.env` file exists in the container (by design — see mechanic #2 above).
+2. `viper.ReadInConfig()` returns a `ConfigFileNotFoundError`, which `LoadConfig` correctly treats as "fine, keep going" (see the `if _, ok := err.(viper.ConfigFileNotFoundError)` check above) — so no error surfaces yet.
+3. But because no file was read, viper has **zero keys registered**. `AutomaticEnv()` has nothing to match environment variables against.
+4. `viper.Unmarshal(&config)` walks its (empty) set of known keys and finds none — every field in `Config` comes back as its Go zero value: `""` for strings, `0` for `time.Duration`, `nil` for the slice.
+5. `LoadConfig` returns `err == nil` and a struct that looks populated in the source but is actually empty. The failure only shows up later and somewhere else — here, as a cryptic `sql: unknown driver ""` from `connect_db.go`, not as a clear config error.
+
+That last point is the sharp edge: **this is a silent failure.** No error at startup, no log line — just a zero-value config quietly flowing into the rest of the app. It only reproduces when there is no config file at all, which is exactly the production/Docker setup this project is designed around, so it's easy to test locally with `app.env` present and never see it.
+
+**The fix.** `LoadConfig` now explicitly registers every field before unmarshalling:
+
+```go
+fields := reflect.VisibleFields(reflect.TypeFor[Config]())
+for _, field := range fields {
+	key := field.Tag.Get("mapstructure")
+	if key == "" {
+		continue
+	}
+	if err = viper.BindEnv(key); err != nil {
+		return config, err
+	}
+}
+```
+
+`viper.BindEnv(key)` tells viper "this key exists, go look for an environment variable with this exact name" — regardless of whether a config file was ever read. Looping over the struct's tags with `reflect` (instead of listing `"DB_DRIVER"`, `"DB_SOURCE"`, ... by hand) means this can't silently drift out of sync: add a field with a `mapstructure` tag to `Config`, and it's automatically bound, with no second place to remember to update.
+
+**The takeaway for next time:** if you ever see a `Config` field come back as its zero value with no error from `LoadConfig`, check two things in order — (1) does the struct tag actually say `mapstructure:"..."` and match the env var name exactly (mistake #1 above), and (2) is there actually a key registered for it (a config file that defines it, a `SetDefault`, or a `BindEnv`)? "I set the environment variable and viper has `AutomaticEnv()`" is not sufficient on its own.
 
 ## Adding a new setting — the actual workflow
 

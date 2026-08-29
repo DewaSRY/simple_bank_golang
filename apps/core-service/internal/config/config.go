@@ -1,6 +1,7 @@
 package config
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -17,22 +18,50 @@ type Config struct {
 	CORSAllowedOrigins     []string      `mapstructure:"CORS_ALLOWED_ORIGINS"`
 }
 
-// LoadConfig reads configuration from app.env (or the environment) located at path.
+// LoadConfig reads configuration from an optional app.env file
+// and/or environment variables.
 func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
 
+	// Enable reading from environment variables.
 	viper.AutomaticEnv()
 
+	// app.env is optional. If it doesn't exist, continue and
+	// rely on environment variables instead.
 	if err = viper.ReadInConfig(); err != nil {
-		return
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return config, err
+		}
 	}
 
-	err = viper.Unmarshal(&config, viper.DecodeHook(
-		mapstructure.ComposeDecodeHookFunc(
-			mapstructure.StringToTimeDurationHookFunc(),
-			mapstructure.StringToSliceHookFunc(","),
-		)))
-	return
+	// AutomaticEnv only checks the environment for keys viper already
+	// knows about (from the config file). When app.env isn't present,
+	// viper knows no keys at all, so env vars would otherwise be
+	// silently ignored. Bind every mapstructure-tagged key explicitly
+	// so plain environment variables (e.g. from docker-compose) work
+	// even without an app.env file.
+	fields := reflect.VisibleFields(reflect.TypeFor[Config]())
+	for _, field := range fields {
+		key := field.Tag.Get("mapstructure")
+		if key == "" {
+			continue
+		}
+		if err = viper.BindEnv(key); err != nil {
+			return config, err
+		}
+	}
+
+	err = viper.Unmarshal(
+		&config,
+		viper.DecodeHook(
+			mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				mapstructure.StringToSliceHookFunc(","),
+			),
+		),
+	)
+
+	return config, err
 }
