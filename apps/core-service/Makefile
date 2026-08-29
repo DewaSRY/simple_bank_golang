@@ -29,8 +29,8 @@ docker-run:
 	docker run --name $(CONTAINER_NAME) -p 8080:8080 -v $(CURDIR)/app.env:/app/app.env:ro $(IMAGE_NAME):latest
 
 docker-stop:
-	docker stop $(CONTAINER_NAME)
-	docekr rm $(CONTAINER_NAME)
+	docker stop $(CONTAINER_NAME) 
+	docker rm $(CONTAINER_NAME)
 
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
