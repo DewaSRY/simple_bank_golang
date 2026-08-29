@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 
 	_ "github.com/lib/pq"
 
@@ -43,6 +44,13 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
+
+	// verify the port is free before starting the server
+	listener, err := net.Listen("tcp", cfg.ServerAddress)
+	if err != nil {
+		log.Fatal("port already in use:", err)
+	}
+	listener.Close()
 
 	if err := server.Start(cfg.ServerAddress); err != nil {
 		log.Fatal("cannot start server:", err)
