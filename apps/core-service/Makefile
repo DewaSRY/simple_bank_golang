@@ -30,6 +30,7 @@ docker-run:
 
 docker-stop:
 	docker stop $(CONTAINER_NAME)
+	docekr rm $(CONTAINER_NAME)
 
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
