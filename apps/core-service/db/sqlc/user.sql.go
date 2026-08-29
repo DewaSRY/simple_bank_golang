@@ -61,13 +61,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	return i, err
 }
 
-const getUserByUsername = `-- name: GetUserByUsername :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, username, email, hashed_password, created_at
 FROM users
-WHERE username = $1
+WHERE email = $1
 `
 
-type GetUserByUsernameRow struct {
+type GetUserByEmailRow struct {
 	ID             int64     `json:"id"`
 	Username       string    `json:"username"`
 	Email          string    `json:"email"`
@@ -75,9 +75,9 @@ type GetUserByUsernameRow struct {
 	CreatedAt      time.Time `json:"created_at"`
 }
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
-	row := q.queryRow(ctx, q.getUserByUsernameStmt, getUserByUsername, username)
-	var i GetUserByUsernameRow
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
+	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,

@@ -8,14 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/DewaSRY/core-service/pkg/utils"
+
+	db "github.com/DewaSRY/core-service/db/sqlc"
 )
 
 type loginUserRequest struct {
-	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
 
-type loginUserResponse struct {
+type AuthResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int64  `json:"expires_in"`
@@ -28,7 +30,7 @@ type loginUserResponse struct {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      loginUserRequest  true  "Login credentials"
-// @Success      200      {object}  successResponse{data=loginUserResponse}
+// @Success      200      {object}  successResponse{data=AuthResponse}
 // @Failure      400      {object}  errorResponse
 // @Failure      401      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
@@ -40,7 +42,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.store.GetUserByUsername(ctx, req.Username)
+	user, err := server.store.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			fail(ctx, UnauthorizedErr("invalid username or password"))
@@ -61,9 +63,87 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	succeed(ctx, http.StatusOK, loginUserResponse{
+	succeed(ctx, http.StatusOK, AuthResponse{
 		AccessToken: accessToken,
 		TokenType:   "Bearer",
 		ExpiresIn:   int64(server.config.JWTAccessTokenDuration.Seconds()),
 	}, "Login successful")
+}
+
+type registerUserRequest struct {
+	Username        string `json:"username" binding:"required"`
+	Email           string `json:"email" binding:"required,email"`
+	Password        string `json:"password" binding:"required,min=8"`
+	PasswordConfirm string `json:"password_confirm" binding:"required,eqfield=Password"`
+}
+
+// registerUser godoc
+// @Summary      Register
+// @Description  Register a new user and return an access token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      registerUserRequest  true  "Registration details"
+// @Success      200      {object}  successResponse{data=AuthResponse}
+// @Failure      400      {object}  errorResponse
+// @Failure      401      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /auth/register [post]
+func (server *Server) registerUser(ctx *gin.Context) {
+	var req registerUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		return
+	}
+
+	// Check if the email already exists
+	_, err := server.store.GetUserByEmail(ctx, req.Email)
+	if err == nil {
+		fail(ctx, BadRequestErr("email_exists", "email already exists"))
+		return
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	// Check if the password and password confirmation match
+	if req.Password != req.PasswordConfirm {
+		fail(ctx, BadRequestErr("password_mismatch", "password and password confirmation do not match"))
+		return
+	}
+
+	// Hash the password
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	// Create the user in the database
+	arg := db.CreateUserParams{
+		Username:       req.Username,
+		Email:          req.Email,
+		HashedPassword: hashedPassword,
+	}
+
+	user, err := server.store.CreateUser(ctx, arg)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	// create access token for the new user
+	accessToken, _, err := server.tokenMaker.CreateToken(user.ID, user.Username, user.Email, server.config.JWTAccessTokenDuration)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	succeed(ctx, http.StatusOK, AuthResponse{
+		AccessToken: accessToken,
+		TokenType:   "Bearer",
+		ExpiresIn:   int64(server.config.JWTAccessTokenDuration.Seconds()),
+	}, "Registration successful")
+
 }

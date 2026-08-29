@@ -8,10 +8,10 @@ INSERT INTO users (
 )
 RETURNING id, username, email, created_at;
 
--- name: GetUserByUsername :one
+-- name: GetUserByEmail :one
 SELECT id, username, email, hashed_password, created_at
 FROM users
-WHERE username = $1;
+WHERE email = $1;
 
 -- name: CheckIsUsernameExist :one
 SELECT EXISTS (

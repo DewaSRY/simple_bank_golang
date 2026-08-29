@@ -21,7 +21,7 @@ type Querier interface {
 	GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error)
 	GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAccountByIdForUpdateRow, error)
 	GetTransferById(ctx context.Context, id int64) (Transfer, error)
-	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
+	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error)
 	ListAccountsByOwner(ctx context.Context, arg ListAccountsByOwnerParams) ([]ListAccountsByOwnerRow, error)
 	ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]Entry, error)

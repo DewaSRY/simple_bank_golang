@@ -1,5 +1,14 @@
 basePath: /api/v1
 definitions:
+  api.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+    type: object
   api.FieldError:
     properties:
       field:
@@ -74,22 +83,30 @@ definitions:
     type: object
   api.loginUserRequest:
     properties:
+      email:
+        type: string
       password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  api.registerUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      password_confirm:
         type: string
       username:
         type: string
     required:
+    - email
     - password
+    - password_confirm
     - username
-    type: object
-  api.loginUserResponse:
-    properties:
-      access_token:
-        type: string
-      expires_in:
-        type: integer
-      token_type:
-        type: string
     type: object
   api.successResponse:
     properties:
@@ -384,7 +401,7 @@ paths:
             - $ref: '#/definitions/api.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.loginUserResponse'
+                  $ref: '#/definitions/api.AuthResponse'
               type: object
         "400":
           description: Bad Request
@@ -399,6 +416,45 @@ paths:
           schema:
             $ref: '#/definitions/api.errorResponse'
       summary: Login
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user and return an access token
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.registerUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.AuthResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      summary: Register
       tags:
       - auth
   /health:

@@ -361,7 +361,71 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.loginUserResponse"
+                                            "$ref": "#/definitions/api.AuthResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Register a new user and return an access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "Registration details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.registerUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.successResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.AuthResponse"
                                         }
                                     }
                                 }
@@ -709,6 +773,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                },
+                "token_type": {
+                    "type": "string"
+                }
+            }
+        },
         "api.FieldError": {
             "type": "object",
             "properties": {
@@ -819,28 +897,38 @@ const docTemplate = `{
         "api.loginUserRequest": {
             "type": "object",
             "required": [
-                "password",
-                "username"
+                "email",
+                "password"
             ],
             "properties": {
-                "password": {
+                "email": {
                     "type": "string"
                 },
-                "username": {
+                "password": {
                     "type": "string"
                 }
             }
         },
-        "api.loginUserResponse": {
+        "api.registerUserRequest": {
             "type": "object",
+            "required": [
+                "email",
+                "password",
+                "password_confirm",
+                "username"
+            ],
             "properties": {
-                "access_token": {
+                "email": {
                     "type": "string"
                 },
-                "expires_in": {
-                    "type": "integer"
+                "password": {
+                    "type": "string",
+                    "minLength": 8
                 },
-                "token_type": {
+                "password_confirm": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

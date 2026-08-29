@@ -15,7 +15,9 @@ func (server *Server) bindRouters(router *gin.Engine) {
 
 	// auth routes (public)
 	router.POST("/users", server.createUser)
+
 	router.POST("/auth/login", server.loginUser)
+	router.POST("/auth/register", server.registerUser)
 
 	authorized := router.Group("/")
 	authorized.Use(authMiddleware(server.tokenMaker))

@@ -60,8 +60,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getTransferByIdStmt, err = db.PrepareContext(ctx, getTransferById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransferById: %w", err)
 	}
-	if q.getUserByUsernameStmt, err = db.PrepareContext(ctx, getUserByUsername); err != nil {
-		return nil, fmt.Errorf("error preparing query GetUserByUsername: %w", err)
+	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
 	}
 	if q.incrementAccountBalanceStmt, err = db.PrepareContext(ctx, incrementAccountBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementAccountBalance: %w", err)
@@ -140,9 +140,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getTransferByIdStmt: %w", cerr)
 		}
 	}
-	if q.getUserByUsernameStmt != nil {
-		if cerr := q.getUserByUsernameStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getUserByUsernameStmt: %w", cerr)
+	if q.getUserByEmailStmt != nil {
+		if cerr := q.getUserByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByEmailStmt: %w", cerr)
 		}
 	}
 	if q.incrementAccountBalanceStmt != nil {
@@ -216,7 +216,7 @@ type Queries struct {
 	getAccountByIdStmt            *sql.Stmt
 	getAccountByIdForUpdateStmt   *sql.Stmt
 	getTransferByIdStmt           *sql.Stmt
-	getUserByUsernameStmt         *sql.Stmt
+	getUserByEmailStmt            *sql.Stmt
 	incrementAccountBalanceStmt   *sql.Stmt
 	listAccountsByOwnerStmt       *sql.Stmt
 	listEntriesByAccountStmt      *sql.Stmt
@@ -239,7 +239,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getAccountByIdStmt:            q.getAccountByIdStmt,
 		getAccountByIdForUpdateStmt:   q.getAccountByIdForUpdateStmt,
 		getTransferByIdStmt:           q.getTransferByIdStmt,
-		getUserByUsernameStmt:         q.getUserByUsernameStmt,
+		getUserByEmailStmt:            q.getUserByEmailStmt,
 		incrementAccountBalanceStmt:   q.incrementAccountBalanceStmt,
 		listAccountsByOwnerStmt:       q.listAccountsByOwnerStmt,
 		listEntriesByAccountStmt:      q.listEntriesByAccountStmt,

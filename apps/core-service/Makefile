@@ -13,12 +13,11 @@ migrate-up:
 migrate-down:
 	go run ./cmd/migration/main.go down
 
-sqlc: 
-	sqlc generate
-
-
 generate-mock:
 	go run go.uber.org/mock/mockgen@latest -package mockdb -destination db/mock/querier.go github.com/DewaSRY/core-service/db/sqlc Querier
+
+sqlc: 
+	sqlc generate
 
 IMAGE_NAME := core-service
 CONTAINER_NAME := core-service
