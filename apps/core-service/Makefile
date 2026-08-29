@@ -20,4 +20,16 @@ sqlc:
 generate-mock:
 	go run go.uber.org/mock/mockgen@latest -package mockdb -destination db/mock/querier.go github.com/DewaSRY/core-service/db/sqlc Querier
 
-.PHONY: test server migrate-create migrate-up migrate-down sqlc generate-mock
+IMAGE_NAME := core-service
+CONTAINER_NAME := core-service
+
+docker-build:
+	docker build -t $(IMAGE_NAME):latest .
+
+docker-run:
+	docker run --name $(CONTAINER_NAME) -p 8080:8080 -v $(CURDIR)/app.env:/app/app.env:ro $(IMAGE_NAME):latest
+
+docker-stop:
+	docker stop $(CONTAINER_NAME)
+
+.PHONY: test server migrate-create migrate-up migrate-down sqlc generate-mock docker-build docker-run docker-stop

@@ -1,0 +1,6 @@
+.git
+app.env
+set-env.env
+rest-testing
+docs
+*.md
