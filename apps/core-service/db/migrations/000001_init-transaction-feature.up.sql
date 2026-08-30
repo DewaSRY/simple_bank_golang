@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS "accounts"  (
     id BIGSERIAL PRIMARY KEY,
     "owner" VARCHAR(255) NOT NULL,
@@ -52,3 +54,5 @@ COMMENT ON COLUMN "entries"."type" IS 'Type use to define the purpose of the ent
 COMMENT ON TABLE "transfers" IS 'Table to store transfer transactions between accounts';    
 COMMENT ON COLUMN "transfers"."amount" IS 'Amount cannot be negative, it is the amount of money transferred from one account to another';
 
+
+COMMIT;

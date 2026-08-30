@@ -1,3 +1,5 @@
+BEGIN;
+
 -- Add accounts balance constraint only if it does not exist
 DO $$
 BEGIN
@@ -27,3 +29,5 @@ BEGIN
         CHECK (amount > 0);
     END IF;
 END $$;
+
+COMMIT;

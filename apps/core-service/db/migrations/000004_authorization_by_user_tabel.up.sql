@@ -1,6 +1,7 @@
 -- ============================================================
 -- Accounts: nullable user_id
 -- ============================================================
+BEGIN;
 
 ALTER TABLE "accounts"
 ADD COLUMN IF NOT EXISTS "user_id" BIGINT;
@@ -42,5 +43,4 @@ BEGIN
     END IF;
 END $$;
 
-
-
+COMMIT;

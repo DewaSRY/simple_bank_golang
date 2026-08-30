@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS "users" (
     id BIGSERIAL PRIMARY KEY,
     "username" VARCHAR(255) UNIQUE NOT NULL,
@@ -11,3 +13,5 @@ CREATE INDEX ON "users" ("email");
 
 COMMENT ON TABLE "users" IS 'Table to store user accounts used for authentication';
 COMMENT ON COLUMN "users"."hashed_password" IS 'Password hash generated with bcrypt, plaintext passwords are never stored';
+
+COMMIT;
