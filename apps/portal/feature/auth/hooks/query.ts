@@ -2,13 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { authClient } from "@/feature/auth/client";
 import type {
   LoginRequest,
-  LoginResponse,
+  AuthResponse,
   ProfileResponse,
   RegisterRequest,
-  RegisterResponse,
 } from "@/feature/auth/client";
 
-import type { AxiosResponseWrapper } from "@/feature/common/type";
+import type { ApiResponse } from "@/feature/common/type";
 
 /**
  * Centralized query keys for the auth feature.
@@ -22,7 +21,7 @@ export const authQueryKeys = {
  * Login
  */
 export const useLoginMutation = () => {
-  return useMutation<AxiosResponseWrapper<LoginResponse>, Error, LoginRequest>({
+  return useMutation<ApiResponse<AuthResponse>, Error, LoginRequest>({
     mutationFn: (body) => authClient.login(body),
   });
 };
@@ -31,11 +30,7 @@ export const useLoginMutation = () => {
  * Register
  */
 export const useRegisterMutation = () => {
-  return useMutation<
-    AxiosResponseWrapper<RegisterResponse>,
-    Error,
-    RegisterRequest
-  >({
+  return useMutation<ApiResponse<AuthResponse>, Error, RegisterRequest>({
     mutationFn: (body) => authClient.register(body),
   });
 };
@@ -44,7 +39,7 @@ export const useRegisterMutation = () => {
  * Get current authenticated user's profile.
  */
 export const useProfileQuery = () => {
-  return useQuery<AxiosResponseWrapper<ProfileResponse>, Error>({
+  return useQuery<ApiResponse<ProfileResponse>, Error>({
     queryKey: authQueryKeys.profile(),
     queryFn: () => authClient.getProfile(),
   });

@@ -3,10 +3,9 @@ import type { NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing, type AppLocale } from "./i18n/routing";
 import { SESSION_COOKIE_NAME } from "./feature/auth/constants";
-import {
-  AUTH_ONLY_PATHS,
-  PROTECTED_PATH_PREFIXES,
-} from "./feature/auth/route-config";
+
+export const PROTECTED_PATH_PREFIXES = ["/dashboard"];
+export const AUTH_ONLY_PATHS = ["/login", "/register"];
 
 const intlMiddleware = createMiddleware(routing);
 
