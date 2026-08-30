@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { routing } from "@/i18n/routing";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { AccountList } from "@/feature/account/account-list";
+import { AccountList } from "@/components/dashboard/account-list";
 import { accountKeys, fetchAccounts } from "@/feature/account/hooks/query";
 
 export default async function DashboardPage({

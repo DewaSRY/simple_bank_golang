@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { getApiErrorMessage } from "@/lib/api/error";
-import { useAccounts } from "./hooks/query";
+import { useAccounts } from "../../feature/account/hooks/query";
 
 export function AccountList() {
   const t = useTranslations("Common");
