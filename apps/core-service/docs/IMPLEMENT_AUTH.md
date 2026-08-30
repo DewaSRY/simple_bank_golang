@@ -1,273 +1,132 @@
-# JWT Authentication Implementation Guide — Go + Gin
+# Authentication Implementation — Gin + JWT (HS256)
 
-This guide gives you a practical, production-oriented sequence for implementing JWT authentication in a Go project using **Gin**, **sqlc**, and **PostgreSQL**.
+This documents how authentication is actually implemented in this service, file by file. It assumes you know what a JWT is and have written a REST API before; it focuses on the concrete design decisions and where the code lives, not on JWT theory.
 
-## 1. Define the Authentication Flow
+Stack: **Gin**, **sqlc**, **PostgreSQL**, [`golang-jwt/jwt/v5`](https://github.com/golang-jwt/jwt), `golang.org/x/crypto/bcrypt`, `viper` for config.
 
-Before writing code, establish the flow:
-
-```text
-Client
-  │
-  │ POST /auth/login
-  ▼
-Gin Handler
-  │
-  ▼
-Service
-  │
-  ├── Find user
-  ├── Verify password
-  └── Generate JWT
-  │
-  ▼
-Client
-  │
-  │ Authorization: Bearer <token>
-  ▼
-JWT Middleware
-  │
-  ├── Extract token
-  ├── Verify signature
-  ├── Validate expiration
-  └── Extract user information
-  │
-  ▼
-Protected Handler
-```
-
----
-
-# 2. Decide What Goes Inside the JWT
-
-Keep the JWT payload small.
-
-A reasonable access-token payload is:
-
-```json
-{
-  "sub": "<user_id>",
-  "email": "dewa",
-  "iat": 1756400000,
-  "exp": 1756403600
-}
-```
-
-Recommended claims:
-
-| Claim   | Purpose                            |
-| ------- | ---------------------------------- |
-| `sub`   | User/account ID                    |
-| `iat`   | Token creation time                |
-| `exp`   | Token expiration                   |
-| `email` | Optional authorization information |
-
-Avoid putting sensitive information such as:
-
-- Password
-- Password hash
-- Bank balance
-- Personal secrets
-- Large user objects
-
-JWT payloads are **encoded, not encrypted**.
-
----
-
-# 3. Choose Your JWT Strategy
-
-For a typical REST API, use:
-
-- **Access token** — short-lived
-- **Refresh token** — longer-lived
-
-For example:
+## 1. Request flow
 
 ```text
-Access Token
-Expiration: 15 minutes
+POST /api/v1/auth/register or /api/v1/auth/login
+        │
+        ▼
+  auth_router.go handler
+        │
+        ├── validate request body (Gin binding tags)
+        ├── look up / create user (sqlc Querier via Server.store)
+        ├── bcrypt.CompareHashAndPassword (login) or HashPassword (register)
+        └── tokenMaker.CreateToken(userID, username, email, duration)
+        ▼
+  200 { access_token, token_type: "Bearer", expires_in }
 
-Refresh Token
-Expiration: 7 days
+Client stores the token, then sends it on every subsequent request:
+
+  Authorization: Bearer <token>
+        │
+        ▼
+  authMiddleware (internal/api/auth_middleware.go)
+        │
+        ├── split header into ["Bearer", "<token>"]
+        ├── tokenMaker.VerifyToken(token)   ← signature + expiry check
+        └── ctx.Set("authorization_payload", *token.Payload)
+        ▼
+  handler calls getAuthPayload(ctx) to read who's calling
+        │
+        └── (per-handler) ownership check against the resource being accessed
 ```
 
-Initially, you can implement only the access token. Add refresh tokens afterward.
+There is no separate "session" or "authorize" layer in the middleware — authentication (verifying the token) and authorization (can this user touch this resource) are deliberately split: the middleware only proves *who* is calling, and each handler that touches an owned resource (accounts, entries, transactions) decides *whether* that caller is allowed to see it.
 
----
+## 2. Token package — `internal/token/`
 
-# 4. Add the JWT Dependency
-
-A common choice is:
-
-```bash
-go get github.com/golang-jwt/jwt/v5
-```
-
-Then verify your `go.mod` contains the dependency.
-
----
-
-# 5. Create Your Environment Configuration
-
-Add JWT configuration to your environment:
-
-```env
-JWT_SECRET=your-very-long-random-secret
-JWT_ACCESS_TOKEN_DURATION=15m
-JWT_REFRESH_TOKEN_DURATION=168h
-```
-
-For production, don't commit the secret to Git.
-
-Your configuration might eventually look like:
-
-```text
-PORT
-DB_URI
-SECRET_KEY
-JWT_ACCESS_TOKEN_DURATION
-JWT_REFRESH_TOKEN_DURATION
-```
-
----
-
-# 6. Create a JWT Utility / Service
-
-Create something similar to:
-
-```text
-token/
-├── maker.go
-└── payload.go
-```
-
-Define a token maker interface:
+Three files, one interface:
 
 ```go
+// internal/token/maker.go
 type Maker interface {
-    CreateToken(username string, duration time.Duration) (string, error)
+    CreateToken(userID int64, username, email string, duration time.Duration) (string, *Payload, error)
     VerifyToken(token string) (*Payload, error)
 }
 ```
 
-This abstraction is useful because your application doesn't need to know how JWT itself works.
+`Maker` exists purely so `Server` depends on an interface, not on `jwt-go` directly — `internal/api` never imports the JWT library. If you ever swapped HS256 for PASETO or RS256, only `internal/token` would change.
 
----
-
-# 7. Create the JWT Payload
-
-For example:
+**Payload** (`internal/token/payload.go`) embeds `jwt.RegisteredClaims` and adds the fields handlers actually need:
 
 ```go
 type Payload struct {
-    Email string `json:"email"`
     ID       int64  `json:"id"`
+    Username string `json:"username"`
+    Email    string `json:"email"`
     jwt.RegisteredClaims
 }
 ```
 
-When creating the token:
+Only `iat`/`exp` (from `RegisteredClaims`) plus `id`/`username`/`email` are in the token. No password hash, no role/permission list — keep reading below for why that matters once you add roles.
+
+**JWTMaker** (`internal/token/jwt_maker.go`):
+
+- `NewJWTMaker(secretKey string)` rejects any secret under 32 bytes (`minSecretKeySize`), so a weak `.env` value fails fast at startup rather than producing a brute-forceable token.
+- `CreateToken` signs with `jwt.SigningMethodHS256` exclusively.
+- `VerifyToken` uses `jwt.ParseWithClaims(..., jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}))`. This is the important line: without pinning the accepted algorithm, a token forged with `alg: none` or `alg: RS256` (using the server's own HS256 secret reinterpreted as an RSA public key) could bypass verification — the classic "alg confusion" JWT attack. `jwt_maker_test.go`'s `TestJWTMakerInvalidAlgNone` exists specifically to pin this down.
+- Expired tokens are translated to a sentinel `ErrExpiredToken` so callers can distinguish "expired" from "otherwise invalid" if they ever need to (e.g. to trigger a refresh flow later).
+
+## 3. Password hashing — `pkg/utils/password.go`
 
 ```go
-claims := Payload{
-    Email: email,
-    ID:       userID,
-    RegisteredClaims: jwt.RegisteredClaims{
-        ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
-        IssuedAt:  jwt.NewNumericDate(time.Now()),
-    },
+func HashPassword(password string) (string, error) {
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    ...
+}
+
+func CheckPassword(password, hashedPassword string) error {
+    return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 ```
 
----
+Plain bcrypt at the library's default cost (10). `hashed_password` is the only password-related column in `users` (see `db/query/user.sql`) — there's no plaintext or reversible encryption path anywhere in the codebase.
 
-# 8. Generate the JWT
+## 4. Configuration — `internal/config/config.go`
 
-Create a signing method and sign the token using your secret.
-
-Conceptually:
-
-```text
-Payload
-   +
-Secret Key
-   ↓
-JWT
-```
-
-For example:
+JWT-relevant fields on `Config`:
 
 ```go
-token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-
-signedToken, err := token.SignedString(secretKey)
+JWTSecretKey           string        `mapstructure:"JWT_SECRET_KEY"`
+JWTAccessTokenDuration time.Duration `mapstructure:"JWT_ACCESS_TOKEN_DURATION"`
 ```
 
-For a first implementation, **HS256** is perfectly reasonable.
+Loaded from `app.env` if present, otherwise from real environment variables — `LoadConfig` explicitly calls `viper.BindEnv` for every `mapstructure` tag because `viper.AutomaticEnv()` alone only picks up keys viper already knows about from a config file, which would silently break env-only deployments (e.g. Docker Compose with no `app.env` mounted). There is currently **no refresh-token duration field** — only a single access token is issued (see §8, gaps).
 
----
+## 5. Auth endpoints — `internal/api/auth_router.go`
 
-# 9. Verify the JWT
-
-When a request arrives with:
-
-```http
-Authorization: Bearer eyJhbGciOiJIUzI1Ni...
-```
-
-Your JWT service should verify:
-
-1. Token exists
-2. Token format is valid
-3. Signing algorithm is expected
-4. Signature is valid
-5. Token isn't expired
-6. Claims can be parsed
-
-The important principle is:
+### `POST /api/v1/auth/register`
 
 ```text
-Never trust the claims before verifying the signature.
+bind + validate request
+  → password == password_confirm ?
+  → email already taken? (GetUserByEmail)
+  → username already taken? (CheckIsUsernameExist)
+  → HashPassword
+  → store.CreateUser
+  → tokenMaker.CreateToken
+  → 200 { access_token, token_type, expires_in }
 ```
 
----
+Validation on `registerUserRequest` uses Gin binding tags: `email` (`binding:"required,email"`), `password` (`binding:"required,min=8"`), and `password_confirm` (`binding:"required,eqfield=Password"`). Uniqueness is checked in the handler *before* insert (two round-trips), and the DB unique constraint is still the real backstop — if a race slips through, `CreateUser` returns a Postgres `unique_violation`, which is caught via `errors.As(err, &pqErr)` and mapped to a `409 Conflict`.
 
-# 10. Create the Login Endpoint
-
-Create:
-
-```http
-POST /auth/login
-```
-
-Request:
-
-```json
-{
-  "username": "dewa",
-  "password": "password123"
-}
-```
-
-The flow should be:
+### `POST /api/v1/auth/login`
 
 ```text
-Handler
-   ↓
-Validate request
-   ↓
-Service
-   ↓
-Get user from PostgreSQL
-   ↓
-Compare password hash
-   ↓
-Generate access token
-   ↓
-Return token
+bind + validate
+  → GetUserByEmail (sql.ErrNoRows → 401, not 404 — see below)
+  → utils.CheckPassword
+  → tokenMaker.CreateToken
+  → 200 { access_token, token_type, expires_in }
 ```
 
-Response:
+Both "user does not exist" and "wrong password" return the same `401 invalid username or password` — this is intentional and matters: returning 404 for an unknown email vs 401 for a wrong password would let an attacker enumerate which emails are registered.
+
+Response shape (`AuthResponse`) is identical for register and login:
 
 ```json
 {
@@ -279,476 +138,119 @@ Response:
 }
 ```
 
----
-
-# 11. Hash Passwords Properly
-
-Never store plaintext passwords.
-
-Use a password hashing algorithm such as:
-
-```text
-bcrypt
-```
-
-or preferably a modern password-hashing strategy such as:
-
-```text
-Argon2id
-```
-
-The database should contain something like:
-
-```text
-username: dewa
-password_hash: $2a$10$...
-```
-
-During login:
-
-```text
-Incoming password
-        ↓
-Password verification
-        ↓
-Stored password hash
-```
-
-Do not decrypt passwords because properly hashed passwords are not supposed to be decrypted.
-
----
-
-# 12. Create the Gin JWT Middleware
-
-Create something like:
-
-```text
-api/
-├── middleware/
-│   └── auth.go
-```
-
-The middleware should:
-
-```text
-Request
-   ↓
-Authorization header
-   ↓
-Extract Bearer token
-   ↓
-Verify JWT
-   ↓
-Extract user ID
-   ↓
-Store user ID in Gin context
-   ↓
-Next handler
-```
-
-Example:
+## 6. Middleware — `internal/api/auth_middleware.go`
 
 ```go
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
     return func(ctx *gin.Context) {
-        authorizationHeader := ctx.GetHeader("Authorization")
-
-        // Validate Bearer token
-        // Verify JWT
-        // Put user information into context
-
+        payload, err := parseAuthHeader(ctx.GetHeader(authorizationHeaderKey), tokenMaker)
+        if err != nil {
+            fail(ctx, UnauthorizedErr(err.Error()))
+            return
+        }
+        ctx.Set(authorizationPayloadKey, payload)
         ctx.Next()
     }
 }
 ```
 
----
+`parseAuthHeader` handles the header parsing edge cases explicitly rather than relying on `strings.TrimPrefix`:
 
-# 13. Put Authentication Information in Gin Context
+- missing header → `errAuthHeaderMissing`
+- `strings.Fields(header)` must produce exactly 2 tokens (so `"Bearer"` alone, or `"Bearer x y"`, both fail) → `errAuthHeaderInvalid`
+- scheme must case-insensitively equal `"bearer"` → `errAuthTypeUnsupported`
+- only then is `tokenMaker.VerifyToken` called
 
-After successfully validating the token:
+All three failure modes surface as `401`, which matches the "you are not authenticated" semantics from §7 — there's no reason to distinguish "you sent garbage" from "you sent an expired token" to the client.
+
+`getAuthPayload(ctx)` is how every downstream handler gets the caller's identity:
 
 ```go
-ctx.Set("user_id", payload.ID)
-ctx.Set("email", payload.Email)
+func getAuthPayload(ctx *gin.Context) *token.Payload {
+    payload, ok := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+    ...
+}
 ```
 
-Then your handler can retrieve it:
+It uses `MustGet`, so it will panic if called on a route that isn't behind `authMiddleware`. That's deliberate — it's a programmer error to call it from a public route, and Gin's recovery middleware turns that into a 500 rather than a silent nil-payload bug. Don't add a nil-safe fallback here; fix the route wiring instead.
+
+## 7. Route wiring — `internal/api/router.go`
 
 ```go
-userID, exists := ctx.Get("user_id")
-```
+v1 := router.Group("/api/v1")
 
-This allows protected endpoints to know who is making the request.
+// public
+v1.POST("/auth/login", server.loginUser)
+v1.POST("/auth/register", server.registerUser)
 
----
+// everything below requires a valid token
+authorized := v1.Group("/")
+authorized.Use(authMiddleware(server.tokenMaker))
 
-# 14. Protect Your Routes
-
-Public routes:
-
-```go
-router.POST("/auth/login", server.login)
-router.POST("/users", server.createUser)
-```
-
-Protected routes:
-
-```go
-authorized := router.Group("/")
-authorized.Use(authMiddleware(tokenMaker))
-
-authorized.GET("/accounts", server.getAccounts)
+authorized.GET("/auth/profile", server.GetProfile)
+authorized.POST("/accounts", server.createAccount)
 authorized.GET("/accounts/:id", server.getAccount)
-authorized.POST("/transfers", server.createTransfer)
+authorized.GET("/accounts", server.listAccounts)
+authorized.GET("/accounts/:id/entries", server.listAccountEntries)
+authorized.POST("/transactions/transfer", server.transactionTransfer)
+authorized.GET("/transactions/:id", server.getTransaction)
+authorized.GET("/transactions", server.listTransactions)
 ```
 
-The result is:
+Splitting into `v1` vs `authorized := v1.Group("/")` with `.Use(authMiddleware(...))` is the standard Gin pattern for "protect everything registered after this point in this group" — any new authenticated route just needs to be added under `authorized`, not wrapped individually.
 
-```text
-POST /auth/login
-       │
-       └── Public
+Note: `router.go:20` still has `v1.POST("/users", server.createUser)` marked `// TODO: DELETE this end point` — it's a public, unauthenticated user-creation endpoint left over from before `/auth/register` existed. It duplicates `registerUser` without issuing a token. See §8.
 
-GET /accounts
-       │
-       └── JWT required
+`server.go` builds the token maker once at startup (`token.NewJWTMaker(cfg.JWTSecretKey)`) and stores it on `Server`, alongside `errorHandlerMiddleware()` and `corsMiddleware()` registered globally before routes are bound.
 
-POST /transfers
-       │
-       └── JWT required
+## 8. Error semantics — `internal/api/apperror.go`
+
+Every handler reports failures through `fail(ctx, err)` with a typed `*AppError`, rendered centrally by `errorHandlerMiddleware`:
+
+| Helper | Status | Used for |
+|---|---|---|
+| `UnauthorizedErr` | 401 | missing/malformed/expired/invalid token, or bad login credentials |
+| `ForbiddenErr` | 403 | valid token, but the resource belongs to someone else |
+| `ValidationErr` | 400 | request body/query/uri failed binding |
+| `ConflictErr` | 409 | unique constraint violation (duplicate email/username) |
+
+This is what makes `403` mean "authenticated but not permitted" everywhere in this codebase — see the ownership checks below. Any handler that used `NotFoundErr` (404) for "not your resource" would leak which resource IDs exist to unauthorized callers; this codebase consistently prefers 403 for that case once the row is found, and 404 only when the row genuinely doesn't exist.
+
+## 9. Authorization / ownership checks — per handler, not centralized
+
+There's no generic "ownership middleware." Each handler that reads a specific resource fetches it first, then compares to the caller:
+
+```go
+// internal/api/account_router.go — getAccount
+account, err := server.store.GetAccountById(ctx, params.ID)
+// ... sql.ErrNoRows → 404 ...
+
+authPayload := getAuthPayload(ctx)
+if account.Owner != authPayload.Username {
+    fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
+    return
+}
 ```
 
----
+The same pattern repeats in `listAccountEntries`. List endpoints (`listAccounts`, `listTransactions`) instead scope the *query itself* to `authPayload.ID` (`ListAccountsByUserIdParams{UserID: ...}`), so there's nothing to leak in the first place — ownership is enforced by the WHERE clause, not a post-hoc check. When you add a new "get one resource by ID" endpoint, follow the `getAccount` pattern: fetch → compare owner → 403 if mismatched, *before* returning any field of the resource.
 
-# 15. Check Authorization Separately From Authentication
+## 10. Tests
 
-Authentication answers:
+| File | Covers |
+|---|---|
+| `internal/token/jwt_maker_test.go` | create/verify round-trip, expired token, `alg: none` forgery attempt, malformed token, tampered token, wrong secret, short-secret rejection |
+| `internal/api/auth_middleware_test.go` | header missing / malformed / wrong scheme / invalid token / expired token / valid token reaching the handler |
+| `internal/api/auth_router_test.go` | register + login against a mocked `Storer` (via `mockdb.MockQuerier` + gomock), including the duplicate-email/username and password-mismatch paths |
+| `internal/api/profile_router_test.go` | authenticated profile fetch |
 
-> Who are you?
+`auth_router_test.go` builds a real `*Server` with a mocked store (`newTestServerWithMockStore`) and drives requests through `server.router.ServeHTTP`, so these are router-level integration tests, not just handler-function unit tests — they exercise binding, middleware, and error-rendering together.
 
-Authorization answers:
+## 11. Known gaps / deliberate simplifications
 
-> Are you allowed to do this?
+If you extend this, be aware of what's *not* here yet:
 
-For example:
-
-```text
-JWT
- ↓
-User ID = 123
- ↓
-Is account 456 owned by user 123?
- ↓
-YES → continue
-NO  → 403 Forbidden
-```
-
-This is extremely important for applications involving accounts and money.
-
-Don't assume:
-
-```text
-Valid JWT = permission to access everything
-```
-
----
-
-# 16. Implement Resource Ownership Checks
-
-For an account endpoint:
-
-```http
-GET /accounts/10
-```
-
-Don't only check whether the JWT is valid.
-
-Also verify:
-
-```sql
-SELECT *
-FROM accounts
-WHERE id = $1
-  AND owner = $2;
-```
-
-or whatever ownership model your application uses.
-
-This prevents:
-
-```text
-User A
-  ↓
-Valid JWT
-  ↓
-Requests User B's account
-  ↓
-❌ Access denied
-```
-
----
-
-# 17. Return Appropriate HTTP Errors
-
-Use consistent responses.
-
-### Missing token
-
-```http
-401 Unauthorized
-```
-
-### Invalid token
-
-```http
-401 Unauthorized
-```
-
-### Expired token
-
-```http
-401 Unauthorized
-```
-
-### Valid token but insufficient permission
-
-```http
-403 Forbidden
-```
-
-A useful distinction:
-
-```text
-401 = You are not authenticated.
-
-403 = You are authenticated, but you aren't allowed to do this.
-```
-
----
-
-# 18. Add Tests for the Token Maker
-
-Test at least:
-
-### Create token
-
-```text
-✓ token is generated
-✓ token contains correct user ID
-✓ token contains correct username
-✓ expiration is correct
-```
-
-### Verify token
-
-```text
-✓ valid token passes
-✓ expired token fails
-✓ malformed token fails
-✓ modified token fails
-✓ wrong secret fails
-```
-
-This is one of the most important parts to test.
-
----
-
-# 19. Add Middleware Tests
-
-Test:
-
-```text
-✓ valid Authorization header
-✓ missing Authorization header
-✓ malformed Authorization header
-✓ missing Bearer prefix
-✓ invalid token
-✓ expired token
-✓ valid token reaches handler
-```
-
-For example:
-
-```text
-Authorization: Bearer <valid-token>
-```
-
-should reach the handler.
-
-But:
-
-```text
-Authorization: invalid
-```
-
-should return:
-
-```http
-401
-```
-
----
-
-# 20. Add Login Integration Tests
-
-Test the complete flow:
-
-```text
-Create user
-    ↓
-Hash password
-    ↓
-Insert user
-    ↓
-POST /auth/login
-    ↓
-Verify password
-    ↓
-Generate JWT
-    ↓
-Return 200
-```
-
-Also test:
-
-```text
-wrong username
-wrong password
-missing username
-missing password
-```
-
----
-
-# 21. Test a Protected Endpoint
-
-Create a test like:
-
-```text
-1. Create user
-2. Login
-3. Get access token
-4. Send request to protected endpoint
-5. Add Authorization header
-6. Expect HTTP 200
-```
-
-Then test:
-
-```text
-1. Send request without JWT
-2. Expect HTTP 401
-```
-
-And:
-
-```text
-1. Send request with invalid JWT
-2. Expect HTTP 401
-```
-
-This gives you confidence that the complete authentication system works.
-
----
-
-# 22. Recommended Implementation Order
-
-Implement it in this order:
-
-- [ ] Add `golang-jwt/jwt/v5`
-- [ ] Add JWT configuration to environment
-- [ ] Create `Payload`
-- [ ] Create `Maker` interface
-- [ ] Implement JWT token creation
-- [ ] Implement JWT verification
-- [ ] Write token unit tests
-- [ ] Implement password hashing
-- [ ] Implement login service
-- [ ] Implement `POST /auth/login`
-- [ ] Write login tests
-- [ ] Implement Gin JWT middleware
-- [ ] Extract `Authorization: Bearer <token>`
-- [ ] Validate JWT in middleware
-- [ ] Store authenticated user information in Gin context
-- [ ] Protect routes
-- [ ] Add authorization/ownership checks
-- [ ] Write middleware tests
-- [ ] Write protected-endpoint integration tests
-
----
-
-# 23. Final Architecture
-
-Once implemented, your application should roughly follow:
-
-```text
-                    ┌──────────────┐
-                    │    Client    │
-                    └──────┬───────┘
-                           │
-                    POST /auth/login
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │ Gin Handler  │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │    Service   │
-                    └──────┬───────┘
-                           │
-              ┌────────────┴────────────┐
-              ▼                         ▼
-        PostgreSQL                Password Verify
-              │                         │
-              └────────────┬────────────┘
-                           ▼
-                     JWT Maker
-                           │
-                           ▼
-                    Access Token
-                           │
-                           ▼
-                         Client
-                           │
-                           │ Authorization:
-                           │ Bearer <token>
-                           ▼
-                  ┌─────────────────┐
-                  │  JWT Middleware │
-                  └────────┬────────┘
-                           │
-                    Verify signature
-                    Check expiration
-                    Extract user ID
-                           │
-                           ▼
-                  ┌─────────────────┐
-                  │ Protected Route │
-                  └────────┬────────┘
-                           │
-                           ▼
-                  Authorization check
-                           │
-                           ▼
-                       Database
-```
-
-## 24. Important Security Rules
-
-Keep these rules throughout the implementation:
-
-1. **Never store plaintext passwords.**
-2. **Never put passwords or secrets inside JWT claims.**
-3. **Use a strong random JWT secret.**
-4. **Keep access tokens short-lived.**
-5. **Always verify the JWT signature before trusting claims.**
-6. **Check resource ownership separately from JWT validity.**
-7. **Return `401` for authentication failures and `403` for authorization failures.**
-8. **Don't log JWTs or passwords.**
-9. **Use HTTPS in production.**
-10. **Write tests for both authentication and authorization.**
-
-For your Go project, I would implement the JWT system as a **small independent `token` package + Gin middleware**, rather than putting JWT logic directly inside your handlers. This keeps the architecture clean and makes the token system very easy to unit-test and mock.
+- **No refresh token.** Only a single access token is issued (`JWTAccessTokenDuration`, currently used for both register and login). There's no revocation path — a leaked token is valid until it expires. If you add refresh tokens, they should *not* go inside the JWT itself; store them server-side (e.g. a `refresh_tokens` table with hash + expiry) so they can be revoked.
+- **No token blacklist / logout endpoint.** JWTs here are entirely stateless; "logout" only means "the client discards the token."
+- **`POST /api/v1/users` is still public and unauthenticated** (`internal/api/router.go:20`, `user_router.go`). It creates a user and hashes the password but does **not** issue a token, and it predates `/auth/register`. It's marked for deletion — don't build new features on it.
+- **Roles/permissions aren't modeled.** `Payload` has no role or scope claim, so every authenticated user has identical capabilities beyond resource ownership. If you add roles, put them in the DB and look them up per-request rather than trusting a `role` claim baked into a long-lived JWT (a role change wouldn't take effect until the token expires).
+- **No rate limiting on `/auth/login`.** Nothing here currently slows down credential-stuffing attempts.
