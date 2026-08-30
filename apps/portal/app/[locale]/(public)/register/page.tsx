@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { RegisterForm } from "@/feature/auth/register-form";
 
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
 export default async function RegisterPage({
   params,
 }: PageProps<"/[locale]/register">) {
@@ -18,9 +20,17 @@ export default async function RegisterPage({
   const t = await getTranslations("Auth");
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8 bg-zinc-50 px-6 py-16 font-sans dark:bg-black">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("register")}</h1>
-      <RegisterForm locale={locale} />
-    </div>
+    <main className="mx-auto h-screen w-full flex items-center justify-center">
+      <Card className=" py-16 px-4 xl:min-h-200 xl:w-125">
+        <CardHeader className="mb-4">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("register")}
+          </h1>
+        </CardHeader>
+        <CardContent>
+          <RegisterForm locale={locale} />
+        </CardContent>
+      </Card>
+    </main>
   );
 }

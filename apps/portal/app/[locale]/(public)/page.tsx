@@ -26,10 +26,10 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   ];
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <main className="mx-auto h-screen flex items-center justify-center">
+      <div className="flex gap-y-4 rounded-lg flex-1 w-full max-w-3xl flex-col items-center justify-between py-16 px-16 bg-white dark:bg-black sm:items-start">
         {/* header  */}
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-between mb-16">
           <span className="text-lg font-semibold text-black dark:text-zinc-50">
             {t("appName")}
           </span>
@@ -45,7 +45,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+        <div className="flex flex-col items-center gap-2 text-center sm:items-start sm:text-left">
           <h1 className="max-w-md text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
             {t.rich("tagline", {
               brand: (chunks) => (
@@ -76,21 +76,22 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             </div>
           ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+
+        <div className="mt-16 flex flex-col gap-4 text-base font-medium sm:flex-row">
           <Link
             href="/register"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
           >
             {t("getStarted")}
           </Link>
           <Link
             href="/login"
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+            className="flex h-12 w-full items-center justify-center rounded-lg border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
           >
             {tAuth("login")}
           </Link>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
