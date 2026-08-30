@@ -30,8 +30,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.checkIsUsernameExistStmt, err = db.PrepareContext(ctx, checkIsUsernameExist); err != nil {
 		return nil, fmt.Errorf("error preparing query CheckIsUsernameExist: %w", err)
 	}
-	if q.countAccountsByOwnerStmt, err = db.PrepareContext(ctx, countAccountsByOwner); err != nil {
-		return nil, fmt.Errorf("error preparing query CountAccountsByOwner: %w", err)
+	if q.countAccountsByUserIdStmt, err = db.PrepareContext(ctx, countAccountsByUserId); err != nil {
+		return nil, fmt.Errorf("error preparing query CountAccountsByUserId: %w", err)
 	}
 	if q.countEntriesByAccountStmt, err = db.PrepareContext(ctx, countEntriesByAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query CountEntriesByAccount: %w", err)
@@ -69,8 +69,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.incrementAccountBalanceStmt, err = db.PrepareContext(ctx, incrementAccountBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementAccountBalance: %w", err)
 	}
-	if q.listAccountsByOwnerStmt, err = db.PrepareContext(ctx, listAccountsByOwner); err != nil {
-		return nil, fmt.Errorf("error preparing query ListAccountsByOwner: %w", err)
+	if q.listAccountsByUserIdStmt, err = db.PrepareContext(ctx, listAccountsByUserId); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAccountsByUserId: %w", err)
 	}
 	if q.listEntriesByAccountStmt, err = db.PrepareContext(ctx, listEntriesByAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query ListEntriesByAccount: %w", err)
@@ -93,9 +93,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing checkIsUsernameExistStmt: %w", cerr)
 		}
 	}
-	if q.countAccountsByOwnerStmt != nil {
-		if cerr := q.countAccountsByOwnerStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing countAccountsByOwnerStmt: %w", cerr)
+	if q.countAccountsByUserIdStmt != nil {
+		if cerr := q.countAccountsByUserIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countAccountsByUserIdStmt: %w", cerr)
 		}
 	}
 	if q.countEntriesByAccountStmt != nil {
@@ -158,9 +158,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing incrementAccountBalanceStmt: %w", cerr)
 		}
 	}
-	if q.listAccountsByOwnerStmt != nil {
-		if cerr := q.listAccountsByOwnerStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listAccountsByOwnerStmt: %w", cerr)
+	if q.listAccountsByUserIdStmt != nil {
+		if cerr := q.listAccountsByUserIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAccountsByUserIdStmt: %w", cerr)
 		}
 	}
 	if q.listEntriesByAccountStmt != nil {
@@ -214,7 +214,7 @@ type Queries struct {
 	tx                            *sql.Tx
 	checkIsAccountWithIdExistStmt *sql.Stmt
 	checkIsUsernameExistStmt      *sql.Stmt
-	countAccountsByOwnerStmt      *sql.Stmt
+	countAccountsByUserIdStmt     *sql.Stmt
 	countEntriesByAccountStmt     *sql.Stmt
 	countTransfersByOwnerStmt     *sql.Stmt
 	createAccountStmt             *sql.Stmt
@@ -227,7 +227,7 @@ type Queries struct {
 	getUserByEmailStmt            *sql.Stmt
 	getUserByIdStmt               *sql.Stmt
 	incrementAccountBalanceStmt   *sql.Stmt
-	listAccountsByOwnerStmt       *sql.Stmt
+	listAccountsByUserIdStmt      *sql.Stmt
 	listEntriesByAccountStmt      *sql.Stmt
 	listTransfersByOwnerStmt      *sql.Stmt
 }
@@ -238,7 +238,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                            tx,
 		checkIsAccountWithIdExistStmt: q.checkIsAccountWithIdExistStmt,
 		checkIsUsernameExistStmt:      q.checkIsUsernameExistStmt,
-		countAccountsByOwnerStmt:      q.countAccountsByOwnerStmt,
+		countAccountsByUserIdStmt:     q.countAccountsByUserIdStmt,
 		countEntriesByAccountStmt:     q.countEntriesByAccountStmt,
 		countTransfersByOwnerStmt:     q.countTransfersByOwnerStmt,
 		createAccountStmt:             q.createAccountStmt,
@@ -251,7 +251,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserByEmailStmt:            q.getUserByEmailStmt,
 		getUserByIdStmt:               q.getUserByIdStmt,
 		incrementAccountBalanceStmt:   q.incrementAccountBalanceStmt,
-		listAccountsByOwnerStmt:       q.listAccountsByOwnerStmt,
+		listAccountsByUserIdStmt:      q.listAccountsByUserIdStmt,
 		listEntriesByAccountStmt:      q.listEntriesByAccountStmt,
 		listTransfersByOwnerStmt:      q.listTransfersByOwnerStmt,
 	}

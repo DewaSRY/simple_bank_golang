@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const countEntriesByAccount = `-- name: CountEntriesByAccount :one
@@ -38,9 +39,17 @@ type CreateEntriesParams struct {
 	Amount    string `json:"amount"`
 }
 
-func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error) {
+type CreateEntriesRow struct {
+	ID        int64     `json:"id"`
+	AccountID int64     `json:"account_id"`
+	Type      string    `json:"type"`
+	Amount    string    `json:"amount"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (CreateEntriesRow, error) {
 	row := q.queryRow(ctx, q.createEntriesStmt, createEntries, arg.AccountID, arg.Type, arg.Amount)
-	var i Entry
+	var i CreateEntriesRow
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
@@ -65,15 +74,23 @@ type ListEntriesByAccountParams struct {
 	LimitCount  int32 `json:"limit_count"`
 }
 
-func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]Entry, error) {
+type ListEntriesByAccountRow struct {
+	ID        int64     `json:"id"`
+	AccountID int64     `json:"account_id"`
+	Type      string    `json:"type"`
+	Amount    string    `json:"amount"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]ListEntriesByAccountRow, error) {
 	rows, err := q.query(ctx, q.listEntriesByAccountStmt, listEntriesByAccount, arg.AccountID, arg.OffsetCount, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Entry
+	items := []ListEntriesByAccountRow{}
 	for rows.Next() {
-		var i Entry
+		var i ListEntriesByAccountRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,

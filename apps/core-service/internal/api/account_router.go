@@ -40,6 +40,10 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  "0",
+		UserID: sql.NullInt64{
+			Int64: authPayload.ID,
+			Valid: true,
+		},
 	}
 
 	account, err := server.store.CreateAccount(ctx, arg)
@@ -116,8 +120,11 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 
 	authPayload := getAuthPayload(ctx)
 
-	accounts, err := server.store.ListAccountsByOwner(ctx, db.ListAccountsByOwnerParams{
-		Owner:       authPayload.Username,
+	accounts, err := server.store.ListAccountsByUserId(ctx, db.ListAccountsByUserIdParams{
+		UserID: sql.NullInt64{
+			Int64: authPayload.ID,
+			Valid: true,
+		},
 		LimitCount:  query.Limit,
 		OffsetCount: query.offset(),
 	})
@@ -126,7 +133,10 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	total, err := server.store.CountAccountsByOwner(ctx, authPayload.Username)
+	total, err := server.store.CountAccountsByUserId(ctx, sql.NullInt64{
+		Int64: authPayload.ID,
+		Valid: true,
+	})
 	if err != nil {
 		fail(ctx, InternalErr())
 		return

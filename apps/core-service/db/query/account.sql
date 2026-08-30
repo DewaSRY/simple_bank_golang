@@ -4,19 +4,20 @@
 INSERT INTO accounts (
     owner,
     balance,
-    currency
+    currency, 
+    user_id
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
-RETURNING id, owner, balance, currency, created_at;
+RETURNING id, owner, balance, currency, user_id, created_at;
 
 -- name: GetAccountById :one
-SELECT id, owner, balance, currency, created_at
+SELECT id, owner, balance, currency, user_id, created_at
 FROM accounts
 WHERE id = $1;
 
 -- name: GetAccountByIdForUpdate :one
-SELECT id, owner, balance, currency, created_at
+SELECT id, owner, balance, currency, user_id, created_at
 FROM accounts
 WHERE id = $1
 FOR UPDATE;
@@ -25,7 +26,7 @@ FOR UPDATE;
 UPDATE accounts
 SET balance =  balance + $2, updated_at = now()
 WHERE id = $1
-RETURNING id, owner, balance, currency, created_at;
+RETURNING id, owner, balance, currency, user_id, created_at;
 
 -- name: CheckIsAccountWithIdExist :one
 SELECT EXISTS (
@@ -34,13 +35,13 @@ SELECT EXISTS (
     WHERE id = $1
 );
 
--- name: ListAccountsByOwner :many
-SELECT id, owner, balance, currency, created_at
+-- name: ListAccountsByUserId :many
+SELECT id, owner, balance, currency, user_id, created_at
 FROM accounts
-WHERE owner = sqlc.arg(owner)
+WHERE user_id = sqlc.arg(user_id)
 ORDER BY id
 LIMIT sqlc.arg(limit_count) OFFSET sqlc.arg(offset_count);
 
--- name: CountAccountsByOwner :one
+-- name: CountAccountsByUserId :one
 SELECT COUNT(*) FROM accounts
-WHERE owner = $1;
+WHERE user_id = $1;

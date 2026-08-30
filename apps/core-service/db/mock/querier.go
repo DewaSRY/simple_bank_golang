@@ -11,6 +11,7 @@ package mockdb
 
 import (
 	context "context"
+	sql "database/sql"
 	reflect "reflect"
 
 	db "github.com/DewaSRY/core-service/db/sqlc"
@@ -71,19 +72,19 @@ func (mr *MockQuerierMockRecorder) CheckIsUsernameExist(ctx, username any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIsUsernameExist", reflect.TypeOf((*MockQuerier)(nil).CheckIsUsernameExist), ctx, username)
 }
 
-// CountAccountsByOwner mocks base method.
-func (m *MockQuerier) CountAccountsByOwner(ctx context.Context, owner string) (int64, error) {
+// CountAccountsByUserId mocks base method.
+func (m *MockQuerier) CountAccountsByUserId(ctx context.Context, userID sql.NullInt64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountAccountsByOwner", ctx, owner)
+	ret := m.ctrl.Call(m, "CountAccountsByUserId", ctx, userID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CountAccountsByOwner indicates an expected call of CountAccountsByOwner.
-func (mr *MockQuerierMockRecorder) CountAccountsByOwner(ctx, owner any) *gomock.Call {
+// CountAccountsByUserId indicates an expected call of CountAccountsByUserId.
+func (mr *MockQuerierMockRecorder) CountAccountsByUserId(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountsByOwner", reflect.TypeOf((*MockQuerier)(nil).CountAccountsByOwner), ctx, owner)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountsByUserId", reflect.TypeOf((*MockQuerier)(nil).CountAccountsByUserId), ctx, userID)
 }
 
 // CountEntriesByAccount mocks base method.
@@ -132,10 +133,10 @@ func (mr *MockQuerierMockRecorder) CreateAccount(ctx, arg any) *gomock.Call {
 }
 
 // CreateEntries mocks base method.
-func (m *MockQuerier) CreateEntries(ctx context.Context, arg db.CreateEntriesParams) (db.Entry, error) {
+func (m *MockQuerier) CreateEntries(ctx context.Context, arg db.CreateEntriesParams) (db.CreateEntriesRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateEntries", ctx, arg)
-	ret0, _ := ret[0].(db.Entry)
+	ret0, _ := ret[0].(db.CreateEntriesRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -266,26 +267,26 @@ func (mr *MockQuerierMockRecorder) IncrementAccountBalance(ctx, arg any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementAccountBalance", reflect.TypeOf((*MockQuerier)(nil).IncrementAccountBalance), ctx, arg)
 }
 
-// ListAccountsByOwner mocks base method.
-func (m *MockQuerier) ListAccountsByOwner(ctx context.Context, arg db.ListAccountsByOwnerParams) ([]db.ListAccountsByOwnerRow, error) {
+// ListAccountsByUserId mocks base method.
+func (m *MockQuerier) ListAccountsByUserId(ctx context.Context, arg db.ListAccountsByUserIdParams) ([]db.ListAccountsByUserIdRow, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAccountsByOwner", ctx, arg)
-	ret0, _ := ret[0].([]db.ListAccountsByOwnerRow)
+	ret := m.ctrl.Call(m, "ListAccountsByUserId", ctx, arg)
+	ret0, _ := ret[0].([]db.ListAccountsByUserIdRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListAccountsByOwner indicates an expected call of ListAccountsByOwner.
-func (mr *MockQuerierMockRecorder) ListAccountsByOwner(ctx, arg any) *gomock.Call {
+// ListAccountsByUserId indicates an expected call of ListAccountsByUserId.
+func (mr *MockQuerierMockRecorder) ListAccountsByUserId(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsByOwner", reflect.TypeOf((*MockQuerier)(nil).ListAccountsByOwner), ctx, arg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsByUserId", reflect.TypeOf((*MockQuerier)(nil).ListAccountsByUserId), ctx, arg)
 }
 
 // ListEntriesByAccount mocks base method.
-func (m *MockQuerier) ListEntriesByAccount(ctx context.Context, arg db.ListEntriesByAccountParams) ([]db.Entry, error) {
+func (m *MockQuerier) ListEntriesByAccount(ctx context.Context, arg db.ListEntriesByAccountParams) ([]db.ListEntriesByAccountRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListEntriesByAccount", ctx, arg)
-	ret0, _ := ret[0].([]db.Entry)
+	ret0, _ := ret[0].([]db.ListEntriesByAccountRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

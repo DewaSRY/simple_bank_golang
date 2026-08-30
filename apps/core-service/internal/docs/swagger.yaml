@@ -153,6 +153,8 @@ definitions:
         type: string
       updated_at:
         type: string
+      user_id:
+        $ref: '#/definitions/sql.NullInt64'
     type: object
   db.Entry:
     properties:
@@ -169,6 +171,8 @@ definitions:
       type:
         description: Type use to define the purpose of the entry
         type: string
+      user_id:
+        $ref: '#/definitions/sql.NullInt64'
     type: object
   db.Transfer:
     properties:
@@ -184,6 +188,15 @@ definitions:
         type: integer
       to_account_id:
         type: integer
+    type: object
+  sql.NullInt64:
+    properties:
+      int64:
+        format: int64
+        type: integer
+      valid:
+        description: Valid is true if Int64 is not NULL
+        type: boolean
     type: object
   store.TransferTxResult:
     properties:

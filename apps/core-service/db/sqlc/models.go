@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -13,10 +14,11 @@ type Account struct {
 	ID    int64  `json:"id"`
 	Owner string `json:"owner"`
 	// Balance cannot be negative, it is the amount of money in the account
-	Balance   string    `json:"balance"`
-	Currency  string    `json:"currency"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Balance   string        `json:"balance"`
+	Currency  string        `json:"currency"`
+	CreatedAt time.Time     `json:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at"`
+	UserID    sql.NullInt64 `json:"user_id"`
 }
 
 // Table to store account entries for each transaction
@@ -26,8 +28,9 @@ type Entry struct {
 	// Type use to define the purpose of the entry
 	Type string `json:"type"`
 	// Amount cannot be negative, it is the amount of money added or subtracted from the account
-	Amount    string    `json:"amount"`
-	CreatedAt time.Time `json:"created_at"`
+	Amount    string        `json:"amount"`
+	CreatedAt time.Time     `json:"created_at"`
+	UserID    sql.NullInt64 `json:"user_id"`
 }
 
 // Table to store transfer transactions between accounts

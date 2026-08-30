@@ -1053,6 +1053,9 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "user_id": {
+                    "$ref": "#/definitions/sql.NullInt64"
                 }
             }
         },
@@ -1075,6 +1078,9 @@ const docTemplate = `{
                 "type": {
                     "description": "Type use to define the purpose of the entry",
                     "type": "string"
+                },
+                "user_id": {
+                    "$ref": "#/definitions/sql.NullInt64"
                 }
             }
         },
@@ -1096,6 +1102,19 @@ const docTemplate = `{
                 },
                 "to_account_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "sql.NullInt64": {
+            "type": "object",
+            "properties": {
+                "int64": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "valid": {
+                    "description": "Valid is true if Int64 is not NULL",
+                    "type": "boolean"
                 }
             }
         },

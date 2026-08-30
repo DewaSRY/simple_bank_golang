@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -25,13 +26,13 @@ func (q *Queries) CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool
 	return exists, err
 }
 
-const countAccountsByOwner = `-- name: CountAccountsByOwner :one
+const countAccountsByUserId = `-- name: CountAccountsByUserId :one
 SELECT COUNT(*) FROM accounts
-WHERE owner = $1
+WHERE user_id = $1
 `
 
-func (q *Queries) CountAccountsByOwner(ctx context.Context, owner string) (int64, error) {
-	row := q.queryRow(ctx, q.countAccountsByOwnerStmt, countAccountsByOwner, owner)
+func (q *Queries) CountAccountsByUserId(ctx context.Context, userID sql.NullInt64) (int64, error) {
+	row := q.queryRow(ctx, q.countAccountsByUserIdStmt, countAccountsByUserId, userID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -41,52 +42,62 @@ const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (
     owner,
     balance,
-    currency
+    currency, 
+    user_id
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
-RETURNING id, owner, balance, currency, created_at
+RETURNING id, owner, balance, currency, user_id, created_at
 `
 
 type CreateAccountParams struct {
-	Owner    string `json:"owner"`
-	Balance  string `json:"balance"`
-	Currency string `json:"currency"`
+	Owner    string        `json:"owner"`
+	Balance  string        `json:"balance"`
+	Currency string        `json:"currency"`
+	UserID   sql.NullInt64 `json:"user_id"`
 }
 
 type CreateAccountRow struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Balance   string    `json:"balance"`
-	Currency  string    `json:"currency"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64         `json:"id"`
+	Owner     string        `json:"owner"`
+	Balance   string        `json:"balance"`
+	Currency  string        `json:"currency"`
+	UserID    sql.NullInt64 `json:"user_id"`
+	CreatedAt time.Time     `json:"created_at"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (CreateAccountRow, error) {
-	row := q.queryRow(ctx, q.createAccountStmt, createAccount, arg.Owner, arg.Balance, arg.Currency)
+	row := q.queryRow(ctx, q.createAccountStmt, createAccount,
+		arg.Owner,
+		arg.Balance,
+		arg.Currency,
+		arg.UserID,
+	)
 	var i CreateAccountRow
 	err := row.Scan(
 		&i.ID,
 		&i.Owner,
 		&i.Balance,
 		&i.Currency,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getAccountById = `-- name: GetAccountById :one
-SELECT id, owner, balance, currency, created_at
+SELECT id, owner, balance, currency, user_id, created_at
 FROM accounts
 WHERE id = $1
 `
 
 type GetAccountByIdRow struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Balance   string    `json:"balance"`
-	Currency  string    `json:"currency"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64         `json:"id"`
+	Owner     string        `json:"owner"`
+	Balance   string        `json:"balance"`
+	Currency  string        `json:"currency"`
+	UserID    sql.NullInt64 `json:"user_id"`
+	CreatedAt time.Time     `json:"created_at"`
 }
 
 func (q *Queries) GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error) {
@@ -97,24 +108,26 @@ func (q *Queries) GetAccountById(ctx context.Context, id int64) (GetAccountByIdR
 		&i.Owner,
 		&i.Balance,
 		&i.Currency,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getAccountByIdForUpdate = `-- name: GetAccountByIdForUpdate :one
-SELECT id, owner, balance, currency, created_at
+SELECT id, owner, balance, currency, user_id, created_at
 FROM accounts
 WHERE id = $1
 FOR UPDATE
 `
 
 type GetAccountByIdForUpdateRow struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Balance   string    `json:"balance"`
-	Currency  string    `json:"currency"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64         `json:"id"`
+	Owner     string        `json:"owner"`
+	Balance   string        `json:"balance"`
+	Currency  string        `json:"currency"`
+	UserID    sql.NullInt64 `json:"user_id"`
+	CreatedAt time.Time     `json:"created_at"`
 }
 
 func (q *Queries) GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAccountByIdForUpdateRow, error) {
@@ -125,6 +138,7 @@ func (q *Queries) GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAcc
 		&i.Owner,
 		&i.Balance,
 		&i.Currency,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -134,7 +148,7 @@ const incrementAccountBalance = `-- name: IncrementAccountBalance :one
 UPDATE accounts
 SET balance =  balance + $2, updated_at = now()
 WHERE id = $1
-RETURNING id, owner, balance, currency, created_at
+RETURNING id, owner, balance, currency, user_id, created_at
 `
 
 type IncrementAccountBalanceParams struct {
@@ -143,11 +157,12 @@ type IncrementAccountBalanceParams struct {
 }
 
 type IncrementAccountBalanceRow struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Balance   string    `json:"balance"`
-	Currency  string    `json:"currency"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64         `json:"id"`
+	Owner     string        `json:"owner"`
+	Balance   string        `json:"balance"`
+	Currency  string        `json:"currency"`
+	UserID    sql.NullInt64 `json:"user_id"`
+	CreatedAt time.Time     `json:"created_at"`
 }
 
 func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error) {
@@ -158,47 +173,50 @@ func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAcco
 		&i.Owner,
 		&i.Balance,
 		&i.Currency,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
-const listAccountsByOwner = `-- name: ListAccountsByOwner :many
-SELECT id, owner, balance, currency, created_at
+const listAccountsByUserId = `-- name: ListAccountsByUserId :many
+SELECT id, owner, balance, currency, user_id, created_at
 FROM accounts
-WHERE owner = $1
+WHERE user_id = $1
 ORDER BY id
 LIMIT $3 OFFSET $2
 `
 
-type ListAccountsByOwnerParams struct {
-	Owner       string `json:"owner"`
-	OffsetCount int32  `json:"offset_count"`
-	LimitCount  int32  `json:"limit_count"`
+type ListAccountsByUserIdParams struct {
+	UserID      sql.NullInt64 `json:"user_id"`
+	OffsetCount int32         `json:"offset_count"`
+	LimitCount  int32         `json:"limit_count"`
 }
 
-type ListAccountsByOwnerRow struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Balance   string    `json:"balance"`
-	Currency  string    `json:"currency"`
-	CreatedAt time.Time `json:"created_at"`
+type ListAccountsByUserIdRow struct {
+	ID        int64         `json:"id"`
+	Owner     string        `json:"owner"`
+	Balance   string        `json:"balance"`
+	Currency  string        `json:"currency"`
+	UserID    sql.NullInt64 `json:"user_id"`
+	CreatedAt time.Time     `json:"created_at"`
 }
 
-func (q *Queries) ListAccountsByOwner(ctx context.Context, arg ListAccountsByOwnerParams) ([]ListAccountsByOwnerRow, error) {
-	rows, err := q.query(ctx, q.listAccountsByOwnerStmt, listAccountsByOwner, arg.Owner, arg.OffsetCount, arg.LimitCount)
+func (q *Queries) ListAccountsByUserId(ctx context.Context, arg ListAccountsByUserIdParams) ([]ListAccountsByUserIdRow, error) {
+	rows, err := q.query(ctx, q.listAccountsByUserIdStmt, listAccountsByUserId, arg.UserID, arg.OffsetCount, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListAccountsByOwnerRow
+	items := []ListAccountsByUserIdRow{}
 	for rows.Next() {
-		var i ListAccountsByOwnerRow
+		var i ListAccountsByUserIdRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Owner,
 			&i.Balance,
 			&i.Currency,
+			&i.UserID,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
