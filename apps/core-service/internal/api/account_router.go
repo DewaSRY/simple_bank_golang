@@ -22,7 +22,7 @@ type createAccountRequest struct {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request  body      createAccountRequest  true  "Account creation payload"
-// @Success      200      {object}  successResponse{data=db.Account}
+// @Success      200      {object}  successResponse{data=accountResponse}
 // @Failure      400      {object}  errorResponse
 // @Failure      401      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
@@ -52,7 +52,14 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
-	succeed(ctx, http.StatusOK, account, "Account created successfully")
+	succeed(ctx, http.StatusOK, accountResponse{
+		ID:        account.ID,
+		Owner:     account.Owner,
+		Balance:   account.Balance,
+		Currency:  account.Currency,
+		UserID:    account.UserID.Int64,
+		CreatedAt: account.CreatedAt.Format("2006-01-02 15:04:05"),
+	}, "Account created successfully")
 }
 
 type getAccountParams struct {
@@ -66,7 +73,7 @@ type getAccountParams struct {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int  true  "Account ID"
-// @Success      200  {object}  successResponse{data=db.Account}
+// @Success      200  {object}  successResponse{data=accountResponse}
 // @Failure      401  {object}  errorResponse
 // @Failure      403  {object}  errorResponse
 // @Failure      404  {object}  errorResponse
@@ -95,7 +102,14 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	succeed(ctx, http.StatusOK, account, "Account retrieved successfully")
+	succeed(ctx, http.StatusOK, accountResponse{
+		ID:        account.ID,
+		Owner:     account.Owner,
+		Balance:   account.Balance,
+		Currency:  account.Currency,
+		UserID:    account.UserID.Int64,
+		CreatedAt: account.CreatedAt.Format("2006-01-02 15:04:05"),
+	}, "Account retrieved successfully")
 }
 
 // listAccounts godoc
@@ -106,7 +120,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 // @Security     BearerAuth
 // @Param        page   query     int  false  "Page number"     default(1)
 // @Param        limit  query     int  false  "Items per page"  default(10)
-// @Success      200    {object}  successResponse{data=[]db.Account,meta=Meta}
+// @Success      200    {object}  successResponse{data=[]accountResponse,meta=Meta}
 // @Failure      400    {object}  errorResponse
 // @Failure      401    {object}  errorResponse
 // @Failure      500    {object}  errorResponse
@@ -142,7 +156,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	succeedWithMeta(ctx, http.StatusOK, accounts, "Accounts retrieved successfully", Meta{
+	succeedWithMeta(ctx, http.StatusOK, toListAccountResponse(accounts), "Accounts retrieved successfully", Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 }
@@ -160,7 +174,7 @@ type listAccountEntriesParams struct {
 // @Param        id     path      int  true   "Account ID"
 // @Param        page   query     int  false  "Page number"     default(1)
 // @Param        limit  query     int  false  "Items per page"  default(10)
-// @Success      200    {object}  successResponse{data=[]db.Entry,meta=Meta}
+// @Success      200    {object}  successResponse{data=[]accountResponse,meta=Meta}
 // @Failure      400    {object}  errorResponse
 // @Failure      401    {object}  errorResponse
 // @Failure      403    {object}  errorResponse

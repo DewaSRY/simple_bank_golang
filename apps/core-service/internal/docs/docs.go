@@ -60,7 +60,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/db.Account"
+                                                "$ref": "#/definitions/api.accountResponse"
                                             }
                                         },
                                         "meta": {
@@ -131,7 +131,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/db.Account"
+                                            "$ref": "#/definitions/api.accountResponse"
                                         }
                                     }
                                 }
@@ -195,7 +195,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/db.Account"
+                                            "$ref": "#/definitions/api.accountResponse"
                                         }
                                     }
                                 }
@@ -281,7 +281,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/db.Entry"
+                                                "$ref": "#/definitions/api.accountResponse"
                                             }
                                         },
                                         "meta": {
@@ -867,6 +867,29 @@ const docTemplate = `{
                 }
             }
         },
+        "api.accountResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "api.createAccountRequest": {
             "type": "object",
             "required": [
@@ -1052,31 +1075,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "$ref": "#/definitions/sql.NullInt64"
-                }
-            }
-        },
-        "db.Entry": {
-            "type": "object",
-            "properties": {
-                "account_id": {
-                    "type": "integer"
-                },
-                "amount": {
-                    "description": "Amount cannot be negative, it is the amount of money added or subtracted from the account",
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "Type use to define the purpose of the entry",
                     "type": "string"
                 },
                 "user_id": {

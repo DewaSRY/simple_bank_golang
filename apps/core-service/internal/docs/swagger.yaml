@@ -25,6 +25,21 @@ definitions:
       total:
         type: integer
     type: object
+  api.accountResponse:
+    properties:
+      balance:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      owner:
+        type: string
+      user_id:
+        type: integer
+    type: object
   api.createAccountRequest:
     properties:
       currency:
@@ -156,24 +171,6 @@ definitions:
       user_id:
         $ref: '#/definitions/sql.NullInt64'
     type: object
-  db.Entry:
-    properties:
-      account_id:
-        type: integer
-      amount:
-        description: Amount cannot be negative, it is the amount of money added or
-          subtracted from the account
-        type: string
-      created_at:
-        type: string
-      id:
-        type: integer
-      type:
-        description: Type use to define the purpose of the entry
-        type: string
-      user_id:
-        $ref: '#/definitions/sql.NullInt64'
-    type: object
   db.Transfer:
     properties:
       amount:
@@ -238,7 +235,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/db.Account'
+                    $ref: '#/definitions/api.accountResponse'
                   type: array
                 meta:
                   $ref: '#/definitions/api.Meta'
@@ -281,7 +278,7 @@ paths:
             - $ref: '#/definitions/api.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/db.Account'
+                  $ref: '#/definitions/api.accountResponse'
               type: object
         "400":
           description: Bad Request
@@ -319,7 +316,7 @@ paths:
             - $ref: '#/definitions/api.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/db.Account'
+                  $ref: '#/definitions/api.accountResponse'
               type: object
         "401":
           description: Unauthorized
@@ -373,7 +370,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/db.Entry'
+                    $ref: '#/definitions/api.accountResponse'
                   type: array
                 meta:
                   $ref: '#/definitions/api.Meta'
