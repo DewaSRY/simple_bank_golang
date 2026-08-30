@@ -9,11 +9,16 @@ Files:
 - [providers/query-provider.tsx](../providers/query-provider.tsx) — the
   `QueryClientProvider`, mounted once in the root layout.
 - [feature/account/hooks/query.ts](../feature/account/hooks/query.ts) — query
-  keys + the `useAccounts` hook, the pattern to copy for a new feature.
+  keys + the `useAccounts` hook, the pattern to copy for a new
+  read/prefetch-shaped feature.
 - [feature/account/account-list.tsx](../feature/account/account-list.tsx) —
   a Client Component consuming that hook.
 - [app/[locale]/dashboard/page.tsx](../app/%5Blocale%5D/dashboard/page.tsx) —
   a Server Component that prefetches and hands off via `HydrationBoundary`.
+- [feature/auth/hooks/query.ts](../feature/auth/hooks/query.ts) — the
+  `useMutation`-based pattern (login/register) plus a plain `useQuery`
+  (profile) with no server prefetch — see
+  [Mutations: the auth feature](#mutations-the-auth-feature) below.
 
 ## Why this shape
 
@@ -122,7 +127,7 @@ import {
   accountClient,
   type Account,
   type ListAccountsParams,
-} from "@/lib/api/clients/account-client";
+} from "@/feature/account/client";
 
 export const accountKeys = {
   all: ["accounts"] as const,
@@ -232,6 +237,90 @@ same way on both sides — that's why it's a shared function in
 mismatched key (e.g. different param order or an extra field) means the
 client mounts a *different* cache entry than the one that was hydrated, and
 you get a loading flash instead of instant data.
+
+## Mutations: the auth feature
+
+Not every feature is a read + prefetch pair. `feature/auth/hooks/query.ts`
+covers the other two shapes hooks in this app need:
+
+```ts
+// feature/auth/hooks/query.ts
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { authClient } from "@/feature/auth/client";
+import type {
+  LoginRequest,
+  LoginResponse,
+  ProfileResponse,
+  RegisterRequest,
+  RegisterResponse,
+} from "@/feature/auth/client";
+import type { CommonSuccessResponse } from "@/feature/common/type";
+
+export const authQueryKeys = {
+  all: ["auth"] as const,
+  profile: () => [...authQueryKeys.all, "profile"] as const,
+};
+
+export const useLoginMutation = () => {
+  return useMutation<CommonSuccessResponse<LoginResponse>, Error, LoginRequest>({
+    mutationFn: (body) =>
+      authClient.login(body).then((response) => response.data),
+  });
+};
+
+export const useRegisterMutation = () => {
+  return useMutation<
+    CommonSuccessResponse<RegisterResponse>,
+    Error,
+    RegisterRequest
+  >({
+    mutationFn: (body) =>
+      authClient.register(body).then((response) => response.data),
+  });
+};
+
+export const useProfileQuery = () => {
+  return useQuery<CommonSuccessResponse<ProfileResponse>, Error>({
+    queryKey: authQueryKeys.profile(),
+    queryFn: () => authClient.getProfile().then((response) => response.data),
+  });
+};
+```
+
+**Mutations don't get a key factory.** `authQueryKeys` only has a `profile()`
+entry — login and register aren't cached, so there's nothing for a query key
+to identify. A mutation hook is just `useMutation` typed with
+`<TData, TError, TVariables>`; the component calling `useLoginMutation()`
+drives it with `.mutate(body)` / `.mutateAsync(body)` and reads
+`isPending`/`error`/`data` off the returned object, same as any other
+`useMutation` result.
+
+**Every `authClient` method needs `.then((response) => response.data)`.**
+`AuthClient` (like every `BaseClient` subclass) returns the raw
+`Promise<AxiosResponse<TResponse>>` — see `SETUP_API_PROVIDER.md`. A
+`mutationFn`/`queryFn` has to resolve to `TResponse` itself
+(`CommonSuccessResponse<LoginResponse>`, not
+`AxiosResponse<CommonSuccessResponse<LoginResponse>>`), so every call site
+unwraps the Axios envelope with `.then((response) => response.data)` before
+handing the promise to `useMutation`/`useQuery`. Forgetting this is a type
+error, not a runtime one — `mutationFn: (body) => authClient.login(body)`
+fails to typecheck against `MutationFunction<CommonSuccessResponse<LoginResponse>, LoginRequest>`
+because the resolved type still has an extra `AxiosResponse` wrapper around
+it (TypeScript reports it as `.data` "missing" the response fields, since
+it's comparing the wrong `.data` — the Axios one vs. the envelope's own).
+`feature/account/hooks/query.ts`'s `fetchAccounts` does the same unwrap, one
+level deeper (`.data.data`), because it also drops the `CommonSuccessResponse`
+envelope down to the plain `Account[]` — a call site choice, not a
+requirement; `feature/auth` keeps the envelope (`message`/`meta` intact) all
+the way to the component instead.
+
+**No server prefetch here.** Login/register/profile are all
+interaction-or-session driven, not part of a page's initial render the way
+the dashboard's account list is — there's no Server Component awaiting
+`queryClient.prefetchQuery` for these. `useProfileQuery` is a plain
+client-side `useQuery` for the same reason `useAccounts` *could* be used
+without prefetching (see "purely interaction-driven" in the next section) —
+it's a valid, simpler shape when there's no initial-render data to hand off.
 
 ## Adding a new feature's query hooks
 

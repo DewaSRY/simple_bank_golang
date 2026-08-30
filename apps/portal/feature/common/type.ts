@@ -1,3 +1,5 @@
+import type { AxiosResponse } from "axios";
+
 export type ApiMeta = {
   page: number;
   limit: number;
@@ -22,3 +24,7 @@ export interface ErrorResponse {
     message: string;
   };
 }
+
+export type AxiosResponseWrapper<T = unknown> = AxiosResponse<
+  CommonSuccessResponse<T>
+>;

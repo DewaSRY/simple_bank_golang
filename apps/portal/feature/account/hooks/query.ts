@@ -3,7 +3,7 @@ import {
   accountClient,
   type Account,
   type ListAccountsParams,
-} from "@/lib/api/clients/account-client";
+} from "@/feature/account/client";
 
 export const accountKeys = {
   all: ["accounts"] as const,

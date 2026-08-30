@@ -1,5 +1,5 @@
-import { BaseClient } from "../base-client";
-import type { ApiSuccessResponse } from "../types";
+import { BaseClient } from "../../lib/api/base-client";
+import type { CommonSuccessResponse } from "@/feature/common/type";
 
 export interface Account {
   id: number;
@@ -17,7 +17,7 @@ export interface ListAccountsParams {
 
 export class AccountClient extends BaseClient {
   listAccounts({ page = 1, limit = 10 }: ListAccountsParams = {}) {
-    return this.get<ApiSuccessResponse<Account[]>>({
+    return this.get<CommonSuccessResponse<Account[]>>({
       endpoint: "/accounts",
       params: { page, limit },
     });

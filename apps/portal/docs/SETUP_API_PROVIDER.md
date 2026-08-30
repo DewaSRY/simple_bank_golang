@@ -9,6 +9,9 @@ Files:
   instance and the `BaseClient` base class every API client extends.
 - [lib/api/api-interceptor.ts](../lib/api/api-interceptor.ts) — request
   interceptor logic (auth header, timezone header, build-phase guard).
+- [feature/auth/client.ts](../feature/auth/client.ts),
+  [feature/account/client.ts](../feature/account/client.ts) — real
+  `BaseClient` subclasses to copy the "Extending it" pattern from.
 
 ## Why this shape
 
@@ -49,11 +52,16 @@ every resource-specific client (`UserClient`, `OrderClient`, etc.) typed
 
 ```ts
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1",
   headers: { "Content-Type": "application/json" },
   timeout: 10_000,
 });
 ```
+
+The `/api/v1` prefix is baked into the fallback default (and into
+`NEXT_PUBLIC_API_URL` in `.env.local`) rather than repeated in every
+endpoint string — see the "Missing `/api/v1` prefix" gotcha in
+`SETUP_REACT_QUERY.md`.
 
 `apiClient` is a module-level singleton — created once, imported everywhere.
 That matters for the interceptor (see below): there is exactly one Axios
@@ -102,22 +110,34 @@ in what order they're constructed.
 
 ### Extending it
 
-```ts
-// lib/api/clients/user-client.ts
-import { BaseClient } from "../base-client";
+Resource clients live next to the feature they belong to —
+`feature/<name>/client.ts` (e.g. [feature/auth/client.ts](../feature/auth/client.ts),
+[feature/account/client.ts](../feature/account/client.ts)) — not under
+`lib/api/`, which only holds the transport-level pieces (`BaseClient`,
+`ApiInterceptor`) shared by all of them:
 
-interface UserProfile {
+```ts
+// feature/user/client.ts
+import { BaseClient } from "@/lib/api/base-client";
+import type { CommonSuccessResponse } from "@/feature/common/type";
+
+export type UserProfile = {
   id: string;
   name: string;
-}
+};
 
 export class UserClient extends BaseClient {
   getProfile(userId: string) {
-    return this.get<UserProfile>({ endpoint: `/users/${userId}` });
+    return this.get<CommonSuccessResponse<UserProfile>>({
+      endpoint: `/users/${userId}`,
+    });
   }
 
   updateProfile(userId: string, body: Partial<UserProfile>) {
-    return this.patch<UserProfile>({ endpoint: `/users/${userId}`, body });
+    return this.patch<CommonSuccessResponse<UserProfile>>({
+      endpoint: `/users/${userId}`,
+      body,
+    });
   }
 }
 
@@ -127,6 +147,12 @@ export const userClient = new UserClient();
 Export a singleton instance per resource (as above), the same way `apiClient`
 itself is a singleton — that's what lets the `WeakSet` guard do its job, and
 it avoids reconstructing the client (and its typed methods) on every import.
+
+Every method returns the raw `Promise<AxiosResponse<TResponse>>` — callers
+(typically a feature's `hooks/query.ts`) unwrap it with
+`.then((response) => response.data)` to get to `TResponse` itself. See
+"Mutations: the auth feature" in `SETUP_REACT_QUERY.md` for why skipping
+that unwrap is a type error, not a runtime bug.
 
 Only pass a custom instance to the constructor when you deliberately need
 isolation from the shared instance — e.g. a client for a *different* backend

@@ -25,6 +25,13 @@ export type RegisterResponse = {
   created_at: string;
 };
 
+export type ProfileResponse = {
+  id: number;
+  username: string;
+  email: string;
+  created_at: string;
+};
+
 export class AuthClient extends BaseClient {
   login(body: LoginRequest) {
     return this.post<CommonSuccessResponse<LoginResponse>>({
@@ -35,8 +42,14 @@ export class AuthClient extends BaseClient {
 
   register(body: RegisterRequest) {
     return this.post<CommonSuccessResponse<RegisterResponse>>({
-      endpoint: "/users",
+      endpoint: "/auth/register",
       body,
+    });
+  }
+
+  getProfile() {
+    return this.get<CommonSuccessResponse<ProfileResponse>>({
+      endpoint: "/auth/profile",
     });
   }
 }
