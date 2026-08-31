@@ -16,9 +16,6 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	// API v1 routes
 	v1 := router.Group("/api/v1")
 
-	// Auth routes (public)
-	v1.POST("/users", server.createUser) // TODO: DELETE this end point
-
 	v1.POST("/auth/login", server.loginUser)
 	v1.POST("/auth/register", server.registerUser)
 

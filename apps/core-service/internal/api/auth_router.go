@@ -150,6 +150,18 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		return
 	}
 
+	// Create a default account for the new user
+	_, err = server.store.CreateAccount(ctx, db.CreateAccountParams{
+		UserID:   sql.NullInt64{Int64: user.ID, Valid: true},
+		Currency: "IDR",
+		Balance:  "0",
+		Owner:    user.Username,
+	})
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
 	// create access token for the new user
 	accessToken, _, err := server.tokenMaker.CreateToken(user.ID, user.Username, user.Email, server.config.JWTAccessTokenDuration)
 	if err != nil {
