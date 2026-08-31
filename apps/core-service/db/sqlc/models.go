@@ -11,14 +11,16 @@ import (
 
 // Table to store account information
 type Account struct {
-	ID    int64  `json:"id"`
-	Owner string `json:"owner"`
+	ID int64 `json:"id"`
 	// Balance cannot be negative, it is the amount of money in the account
-	Balance   string        `json:"balance"`
-	Currency  string        `json:"currency"`
-	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at"`
-	UserID    sql.NullInt64 `json:"user_id"`
+	Balance     string         `json:"balance"`
+	Currency    string         `json:"currency"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	UserID      sql.NullInt64  `json:"user_id"`
+	Number      sql.NullString `json:"number"`
+	Name        sql.NullString `json:"name"`
+	Description sql.NullString `json:"description"`
 }
 
 // Table to store account entries for each transaction

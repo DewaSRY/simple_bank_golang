@@ -6,7 +6,6 @@ import (
 
 type accountResponse struct {
 	ID        int64  `json:"id"`
-	Owner     string `json:"owner"`
 	Balance   string `json:"balance"`
 	Currency  string `json:"currency"`
 	UserID    int64  `json:"user_id"`
@@ -16,7 +15,6 @@ type accountResponse struct {
 func toAccountResponse(account db.ListAccountsByUserIdRow) accountResponse {
 	return accountResponse{
 		ID:        account.ID,
-		Owner:     account.Owner,
 		Balance:   account.Balance,
 		Currency:  account.Currency,
 		UserID:    account.UserID.Int64,

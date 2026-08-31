@@ -102,21 +102,6 @@ func (mr *MockQuerierMockRecorder) CountEntriesByAccount(ctx, accountID any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountEntriesByAccount", reflect.TypeOf((*MockQuerier)(nil).CountEntriesByAccount), ctx, accountID)
 }
 
-// CountTransfersByOwner mocks base method.
-func (m *MockQuerier) CountTransfersByOwner(ctx context.Context, owner string) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountTransfersByOwner", ctx, owner)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountTransfersByOwner indicates an expected call of CountTransfersByOwner.
-func (mr *MockQuerierMockRecorder) CountTransfersByOwner(ctx, owner any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTransfersByOwner", reflect.TypeOf((*MockQuerier)(nil).CountTransfersByOwner), ctx, owner)
-}
-
 // CreateAccount mocks base method.
 func (m *MockQuerier) CreateAccount(ctx context.Context, arg db.CreateAccountParams) (db.CreateAccountRow, error) {
 	m.ctrl.T.Helper()
@@ -295,19 +280,4 @@ func (m *MockQuerier) ListEntriesByAccount(ctx context.Context, arg db.ListEntri
 func (mr *MockQuerierMockRecorder) ListEntriesByAccount(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEntriesByAccount", reflect.TypeOf((*MockQuerier)(nil).ListEntriesByAccount), ctx, arg)
-}
-
-// ListTransfersByOwner mocks base method.
-func (m *MockQuerier) ListTransfersByOwner(ctx context.Context, arg db.ListTransfersByOwnerParams) ([]db.Transfer, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTransfersByOwner", ctx, arg)
-	ret0, _ := ret[0].([]db.Transfer)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListTransfersByOwner indicates an expected call of ListTransfersByOwner.
-func (mr *MockQuerierMockRecorder) ListTransfersByOwner(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransfersByOwner", reflect.TypeOf((*MockQuerier)(nil).ListTransfersByOwner), ctx, arg)
 }

@@ -14,7 +14,6 @@ type Querier interface {
 	CheckIsUsernameExist(ctx context.Context, username string) (bool, error)
 	CountAccountsByUserId(ctx context.Context, userID sql.NullInt64) (int64, error)
 	CountEntriesByAccount(ctx context.Context, accountID int64) (int64, error)
-	CountTransfersByOwner(ctx context.Context, owner string) (int64, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (CreateAccountRow, error)
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (CreateEntriesRow, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
@@ -27,7 +26,6 @@ type Querier interface {
 	IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error)
 	ListAccountsByUserId(ctx context.Context, arg ListAccountsByUserIdParams) ([]ListAccountsByUserIdRow, error)
 	ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]ListEntriesByAccountRow, error)
-	ListTransfersByOwner(ctx context.Context, arg ListTransfersByOwnerParams) ([]Transfer, error)
 }
 
 var _ Querier = (*Queries)(nil)

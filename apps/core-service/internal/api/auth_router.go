@@ -155,7 +155,7 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		UserID:   sql.NullInt64{Int64: user.ID, Valid: true},
 		Currency: "IDR",
 		Balance:  "0",
-		Owner:    user.Username,
+		Number:   sql.NullString{String: GenerateAccountNumber(0), Valid: true},
 	})
 	if err != nil {
 		fail(ctx, InternalErr())

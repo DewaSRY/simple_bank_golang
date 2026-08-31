@@ -11,7 +11,8 @@ import (
 )
 
 type createAccountRequest struct {
-	Currency string `json:"currency" binding:"required,oneof=USD EUR GBP IDR"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description"`
 }
 
 // createAccount godoc
@@ -36,13 +37,33 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	authPayload := getAuthPayload(ctx)
 
+	accountCount, err := server.store.CountAccountsByUserId(ctx, sql.NullInt64{
+		Int64: authPayload.ID,
+		Valid: true,
+	})
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
 	arg := db.CreateAccountParams{
-		Owner:    authPayload.Username,
-		Currency: req.Currency,
+		Currency: "IDR",
 		Balance:  "0",
 		UserID: sql.NullInt64{
 			Int64: authPayload.ID,
 			Valid: true,
+		},
+		Number: sql.NullString{
+			String: GenerateAccountNumber(int(accountCount) + 1),
+			Valid:  true,
+		},
+		Name: sql.NullString{
+			String: req.Name,
+			Valid:  true,
+		},
+		Description: sql.NullString{
+			String: req.Description,
+			Valid:  true,
 		},
 	}
 
@@ -54,7 +75,6 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	succeed(ctx, http.StatusOK, accountResponse{
 		ID:        account.ID,
-		Owner:     account.Owner,
 		Balance:   account.Balance,
 		Currency:  account.Currency,
 		UserID:    account.UserID.Int64,
@@ -97,14 +117,13 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	}
 
 	authPayload := getAuthPayload(ctx)
-	if account.Owner != authPayload.Username {
+	if account.UserID.Int64 != authPayload.ID {
 		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
 		return
 	}
 
 	succeed(ctx, http.StatusOK, accountResponse{
 		ID:        account.ID,
-		Owner:     account.Owner,
 		Balance:   account.Balance,
 		Currency:  account.Currency,
 		UserID:    account.UserID.Int64,
@@ -139,8 +158,8 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 			Int64: authPayload.ID,
 			Valid: true,
 		},
-		LimitCount:  query.Limit,
-		OffsetCount: query.offset(),
+		Limit:  query.Limit,
+		Offset: query.offset(),
 	})
 	if err != nil {
 		fail(ctx, InternalErr())
@@ -205,7 +224,7 @@ func (server *Server) listAccountEntries(ctx *gin.Context) {
 	}
 
 	authPayload := getAuthPayload(ctx)
-	if account.Owner != authPayload.Username {
+	if account.UserID.Int64 != authPayload.ID {
 		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
 		return
 	}

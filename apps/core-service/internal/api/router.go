@@ -33,9 +33,9 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	authorized.GET("/accounts/:id/entries", server.listAccountEntries)
 
 	// Transaction routes
-	authorized.POST("/transactions/transfer", server.transactionTransfer)
-	authorized.GET("/transactions/:id", server.getTransaction)
-	authorized.GET("/transactions", server.listTransactions)
+	// authorized.POST("/transactions/transfer", server.transactionTransfer)
+	// authorized.GET("/transactions/:id", server.getTransaction)
+	// authorized.GET("/transactions", server.listTransactions)
 }
 
 // health godoc

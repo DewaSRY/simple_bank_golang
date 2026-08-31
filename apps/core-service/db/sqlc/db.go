@@ -36,9 +36,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countEntriesByAccountStmt, err = db.PrepareContext(ctx, countEntriesByAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query CountEntriesByAccount: %w", err)
 	}
-	if q.countTransfersByOwnerStmt, err = db.PrepareContext(ctx, countTransfersByOwner); err != nil {
-		return nil, fmt.Errorf("error preparing query CountTransfersByOwner: %w", err)
-	}
 	if q.createAccountStmt, err = db.PrepareContext(ctx, createAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateAccount: %w", err)
 	}
@@ -75,9 +72,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listEntriesByAccountStmt, err = db.PrepareContext(ctx, listEntriesByAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query ListEntriesByAccount: %w", err)
 	}
-	if q.listTransfersByOwnerStmt, err = db.PrepareContext(ctx, listTransfersByOwner); err != nil {
-		return nil, fmt.Errorf("error preparing query ListTransfersByOwner: %w", err)
-	}
 	return &q, nil
 }
 
@@ -101,11 +95,6 @@ func (q *Queries) Close() error {
 	if q.countEntriesByAccountStmt != nil {
 		if cerr := q.countEntriesByAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countEntriesByAccountStmt: %w", cerr)
-		}
-	}
-	if q.countTransfersByOwnerStmt != nil {
-		if cerr := q.countTransfersByOwnerStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing countTransfersByOwnerStmt: %w", cerr)
 		}
 	}
 	if q.createAccountStmt != nil {
@@ -168,11 +157,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listEntriesByAccountStmt: %w", cerr)
 		}
 	}
-	if q.listTransfersByOwnerStmt != nil {
-		if cerr := q.listTransfersByOwnerStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listTransfersByOwnerStmt: %w", cerr)
-		}
-	}
 	return err
 }
 
@@ -216,7 +200,6 @@ type Queries struct {
 	checkIsUsernameExistStmt      *sql.Stmt
 	countAccountsByUserIdStmt     *sql.Stmt
 	countEntriesByAccountStmt     *sql.Stmt
-	countTransfersByOwnerStmt     *sql.Stmt
 	createAccountStmt             *sql.Stmt
 	createEntriesStmt             *sql.Stmt
 	createTransferStmt            *sql.Stmt
@@ -229,7 +212,6 @@ type Queries struct {
 	incrementAccountBalanceStmt   *sql.Stmt
 	listAccountsByUserIdStmt      *sql.Stmt
 	listEntriesByAccountStmt      *sql.Stmt
-	listTransfersByOwnerStmt      *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -240,7 +222,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		checkIsUsernameExistStmt:      q.checkIsUsernameExistStmt,
 		countAccountsByUserIdStmt:     q.countAccountsByUserIdStmt,
 		countEntriesByAccountStmt:     q.countEntriesByAccountStmt,
-		countTransfersByOwnerStmt:     q.countTransfersByOwnerStmt,
 		createAccountStmt:             q.createAccountStmt,
 		createEntriesStmt:             q.createEntriesStmt,
 		createTransferStmt:            q.createTransferStmt,
@@ -253,6 +234,5 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		incrementAccountBalanceStmt:   q.incrementAccountBalanceStmt,
 		listAccountsByUserIdStmt:      q.listAccountsByUserIdStmt,
 		listEntriesByAccountStmt:      q.listEntriesByAccountStmt,
-		listTransfersByOwnerStmt:      q.listTransfersByOwnerStmt,
 	}
 }
