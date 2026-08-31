@@ -45,8 +45,8 @@ func TestTransferTx(t *testing.T) {
 		CreatedAt:     now,
 	}
 
-	sentEntry := sqlc.Entry{ID: 1, AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: negatedTransferAmount, CreatedAt: now}
-	receivedEntry := sqlc.Entry{ID: 2, AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: transferAmount, CreatedAt: now}
+	sentEntry := sqlc.CreateEntriesRow{ID: 1, AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: negatedTransferAmount, CreatedAt: now}
+	receivedEntry := sqlc.CreateEntriesRow{ID: 2, AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: transferAmount, CreatedAt: now}
 
 	debitedFromAccount := sqlc.IncrementAccountBalanceRow{ID: arg.FromAccountID, Owner: "owner1", Balance: "900", Currency: "USD", CreatedAt: now}
 	creditedToAccount := sqlc.IncrementAccountBalanceRow{ID: arg.ToAccountID, Owner: "owner2", Balance: "1100", Currency: "USD", CreatedAt: now}
@@ -176,7 +176,7 @@ func TestTransferTx(t *testing.T) {
 				lockAccounts(q)
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
-					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sqlc.Entry{}, errors.New("create from entry error")),
+					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sqlc.CreateEntriesRow{}, errors.New("create from entry error")),
 				)
 				// Balances should never be touched if the entry failed.
 				q.EXPECT().IncrementAccountBalance(gomock.Any(), gomock.Any()).Times(0)
@@ -209,7 +209,7 @@ func TestTransferTx(t *testing.T) {
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sentEntry, nil),
 					q.EXPECT().IncrementAccountBalance(gomock.Any(), debitFromAccountParams()).Return(debitedFromAccount, nil),
-					q.EXPECT().CreateEntries(gomock.Any(), receiveEntryParams()).Return(sqlc.Entry{}, errors.New("create to entry error")),
+					q.EXPECT().CreateEntries(gomock.Any(), receiveEntryParams()).Return(sqlc.CreateEntriesRow{}, errors.New("create to entry error")),
 				)
 			},
 			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
