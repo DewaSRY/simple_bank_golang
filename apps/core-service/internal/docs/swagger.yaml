@@ -33,29 +33,34 @@ definitions:
         type: string
       currency:
         type: string
+      description:
+        type: string
       id:
         type: integer
-      owner:
+      is_main:
+        type: boolean
+      name:
+        type: string
+      number:
         type: string
       user_id:
         type: integer
     type: object
   api.createAccountRequest:
     properties:
-      currency:
-        enum:
-        - USD
-        - EUR
-        - GBP
-        - IDR
+      description:
+        type: string
+      name:
         type: string
     required:
-    - currency
+    - name
     type: object
   api.createTransactionTransferRequest:
     properties:
       amount:
         type: number
+      description:
+        type: string
       from_account_id:
         minimum: 1
         type: integer
@@ -66,19 +71,19 @@ definitions:
     - from_account_id
     - to_account_id
     type: object
-  api.createUserRequest:
+  api.deleteAccountResponse:
     properties:
-      email:
+      account:
+        $ref: '#/definitions/api.accountResponse'
+      balance_swept_to_account_id:
+        type: integer
+    type: object
+  api.depositRequest:
+    properties:
+      amount:
+        type: number
+      description:
         type: string
-      password:
-        minLength: 8
-        type: string
-      username:
-        type: string
-    required:
-    - email
-    - password
-    - username
     type: object
   api.errorBody:
     properties:
@@ -117,6 +122,15 @@ definitions:
       username:
         type: string
     type: object
+  api.publicAccountResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      number:
+        type: string
+    type: object
   api.registerUserRequest:
     properties:
       email:
@@ -141,15 +155,37 @@ definitions:
         type: string
       meta: {}
     type: object
-  api.userResponse:
+  api.transactionHistoryCounterparty:
     properties:
+      id:
+        type: integer
+      name:
+        type: string
+      number:
+        type: string
+    type: object
+  api.transactionHistoryItem:
+    properties:
+      amount:
+        type: string
+      counterparty:
+        $ref: '#/definitions/api.transactionHistoryCounterparty'
       created_at:
         type: string
-      email:
+      currency:
+        type: string
+      description:
         type: string
       id:
         type: integer
-      username:
+      label:
+        type: string
+    type: object
+  api.updateAccountRequest:
+    properties:
+      description:
+        type: string
+      name:
         type: string
     type: object
   db.Account:
@@ -162,14 +198,43 @@ definitions:
         type: string
       currency:
         type: string
+      deleted_at:
+        allOf:
+        - $ref: '#/definitions/sql.NullTime'
+        description: Soft-delete marker; NULL means active
+      description:
+        $ref: '#/definitions/sql.NullString'
       id:
         type: integer
-      owner:
-        type: string
+      is_main:
+        description: True for the single auto-created account a user gets at registration;
+          cannot be deleted
+        type: boolean
+      name:
+        $ref: '#/definitions/sql.NullString'
+      number:
+        $ref: '#/definitions/sql.NullString'
       updated_at:
         type: string
       user_id:
         $ref: '#/definitions/sql.NullInt64'
+    type: object
+  db.CreateEntriesRow:
+    properties:
+      account_id:
+        type: integer
+      amount:
+        type: string
+      created_at:
+        type: string
+      description:
+        $ref: '#/definitions/sql.NullString'
+      id:
+        type: integer
+      transfer_id:
+        $ref: '#/definitions/sql.NullInt64'
+      type:
+        type: string
     type: object
   db.Transfer:
     properties:
@@ -179,6 +244,8 @@ definitions:
         type: string
       created_at:
         type: string
+      description:
+        $ref: '#/definitions/sql.NullString'
       from_account_id:
         type: integer
       id:
@@ -194,6 +261,29 @@ definitions:
       valid:
         description: Valid is true if Int64 is not NULL
         type: boolean
+    type: object
+  sql.NullString:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
+        type: boolean
+    type: object
+  sql.NullTime:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  store.DepositTxResult:
+    properties:
+      account:
+        $ref: '#/definitions/db.Account'
+      entry:
+        $ref: '#/definitions/db.CreateEntriesRow'
     type: object
   store.TransferTxResult:
     properties:
@@ -298,6 +388,52 @@ paths:
       tags:
       - accounts
   /accounts/{id}:
+    delete:
+      description: Soft-delete an account owned by the authenticated user, sweeping
+        any remaining balance to the user's main account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.deleteAccountResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete an account
+      tags:
+      - accounts
     get:
       description: Retrieve a single account owned by the authenticated user
       parameters:
@@ -337,6 +473,114 @@ paths:
       security:
       - BearerAuth: []
       summary: Get account by ID
+      tags:
+      - accounts
+    put:
+      consumes:
+      - application/json
+      description: Update the name and/or description of an account owned by the authenticated
+        user
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Account update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.updateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.accountResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an account
+      tags:
+      - accounts
+  /accounts/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposit money into an account owned by the authenticated user
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Deposit payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.depositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/store.DepositTxResult'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Deposit into an account
       tags:
       - accounts
   /accounts/{id}/entries:
@@ -398,6 +642,163 @@ paths:
       security:
       - BearerAuth: []
       summary: List account entries
+      tags:
+      - accounts
+  /accounts/{id}/recent-destinations:
+    get:
+      description: List accounts recently transferred to from an account owned by
+        the authenticated user
+      parameters:
+      - description: Source account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/api.publicAccountResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: List recent transfer destinations
+      tags:
+      - accounts
+  /accounts/{id}/transactions:
+    get:
+      description: List an account's deposit and transfer entries for a given month,
+        defaulting to the current month
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Month (1-12), defaults to the current month
+        in: query
+        name: month
+        type: integer
+      - description: Year, defaults to the current year
+        in: query
+        name: year
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/api.transactionHistoryItem'
+                  type: array
+                meta:
+                  $ref: '#/definitions/api.Meta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: List account transaction history
+      tags:
+      - accounts
+  /accounts/search-by-number:
+    get:
+      description: Look up a destination account by its account number, for picking
+        a transfer destination
+      parameters:
+      - description: Account number
+        in: query
+        name: number
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.publicAccountResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Search an account by number
       tags:
       - accounts
   /auth/login:
@@ -523,97 +924,6 @@ paths:
       summary: Health check
       tags:
       - health
-  /transactions:
-    get:
-      description: List transfers involving accounts owned by the authenticated user,
-        paginated
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api.successResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/db.Transfer'
-                  type: array
-                meta:
-                  $ref: '#/definitions/api.Meta'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-      security:
-      - BearerAuth: []
-      summary: List transfers
-      tags:
-      - transactions
-  /transactions/{id}:
-    get:
-      description: Retrieve a single transfer involving an account owned by the authenticated
-        user
-      parameters:
-      - description: Transfer ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api.successResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/db.Transfer'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get transfer by ID
-      tags:
-      - transactions
   /transactions/transfer:
     post:
       consumes:
@@ -668,45 +978,6 @@ paths:
       summary: Transfer funds
       tags:
       - transactions
-  /users:
-    post:
-      consumes:
-      - application/json
-      description: Register a new user account
-      parameters:
-      - description: User registration payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.createUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api.successResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/api.userResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-      summary: Create a new user
-      tags:
-      - users
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and the JWT access token.

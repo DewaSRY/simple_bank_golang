@@ -29,7 +29,6 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	// Account routes
 	authorized.POST("/accounts", server.createAccount)
 	authorized.GET("/accounts/search-by-number", server.searchAccountByNumber)
-	authorized.GET("/accounts/:id", server.getAccount)
 	authorized.PUT("/accounts/:id", server.updateAccount)
 	authorized.DELETE("/accounts/:id", server.deleteAccount)
 	authorized.GET("/accounts", server.listAccounts)

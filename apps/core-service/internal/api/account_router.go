@@ -57,49 +57,6 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	succeed(ctx, http.StatusOK, toAccountResponse(account), "Account created successfully")
 }
 
-type getAccountParams struct {
-	ID int64 `uri:"id" binding:"required,min=0"`
-}
-
-// getAccount godoc
-// @Summary      Get account by ID
-// @Description  Retrieve a single account owned by the authenticated user
-// @Tags         accounts
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id   path      int  true  "Account ID"
-// @Success      200  {object}  successResponse{data=accountResponse}
-// @Failure      401  {object}  errorResponse
-// @Failure      403  {object}  errorResponse
-// @Failure      404  {object}  errorResponse
-// @Failure      500  {object}  errorResponse
-// @Router       /accounts/{id} [get]
-func (server *Server) getAccount(ctx *gin.Context) {
-	var params getAccountParams
-	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
-		return
-	}
-
-	account, err := server.store.GetAccountById(ctx, params.ID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
-			return
-		}
-		fail(ctx, InternalErr())
-		return
-	}
-
-	authPayload := getAuthPayload(ctx)
-	if account.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
-		return
-	}
-
-	succeed(ctx, http.StatusOK, toAccountResponse(mapper.GetAccountByIdRowToAccount(account)), "Account retrieved successfully")
-}
-
 // listAccounts godoc
 // @Summary      List accounts
 // @Description  List accounts owned by the authenticated user, paginated
