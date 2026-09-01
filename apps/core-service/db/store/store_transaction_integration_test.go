@@ -20,9 +20,9 @@ func TestTransferTxConcurrent(t *testing.T) {
 	testStore := newTestStore(t)
 	ctx := context.Background()
 
-	fromAccount, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Owner: "concurrency-test-from", Balance: "1000.00", Currency: "USD"})
+	fromAccount, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Balance: "1000.00", Currency: "USD"})
 	require.NoError(t, err)
-	toAccount, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Owner: "concurrency-test-to", Balance: "1000.00", Currency: "USD"})
+	toAccount, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Balance: "1000.00", Currency: "USD"})
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -80,9 +80,9 @@ func TestTransferTxConcurrentReverse(t *testing.T) {
 	testStore := newTestStore(t)
 	ctx := context.Background()
 
-	accountA, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Owner: "concurrency-test-a", Balance: "1000.00", Currency: "USD"})
+	accountA, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Balance: "1000.00", Currency: "USD"})
 	require.NoError(t, err)
-	accountB, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Owner: "concurrency-test-b", Balance: "1000.00", Currency: "USD"})
+	accountB, err := testStore.CreateAccount(ctx, sqlc.CreateAccountParams{Balance: "1000.00", Currency: "USD"})
 	require.NoError(t, err)
 
 	t.Cleanup(func() {

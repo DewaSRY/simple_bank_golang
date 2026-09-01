@@ -28,14 +28,18 @@ func (server *Server) bindRouters(router *gin.Engine) {
 
 	// Account routes
 	authorized.POST("/accounts", server.createAccount)
+	authorized.GET("/accounts/search-by-number", server.searchAccountByNumber)
 	authorized.GET("/accounts/:id", server.getAccount)
+	authorized.PUT("/accounts/:id", server.updateAccount)
+	authorized.DELETE("/accounts/:id", server.deleteAccount)
 	authorized.GET("/accounts", server.listAccounts)
 	authorized.GET("/accounts/:id/entries", server.listAccountEntries)
+	authorized.GET("/accounts/:id/transactions", server.listAccountTransactionHistory)
+	authorized.GET("/accounts/:id/recent-destinations", server.listRecentTransferDestinations)
+	authorized.POST("/accounts/:id/deposit", server.deposit)
 
 	// Transaction routes
-	// authorized.POST("/transactions/transfer", server.transactionTransfer)
-	// authorized.GET("/transactions/:id", server.getTransaction)
-	// authorized.GET("/transactions", server.listTransactions)
+	authorized.POST("/transactions/transfer", server.transactionTransfer)
 }
 
 // health godoc

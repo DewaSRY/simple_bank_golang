@@ -7,27 +7,35 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createTransfer = `-- name: CreateTransfer :one
 INSERT INTO transfers (
     from_account_id,
     to_account_id,
-    amount
+    amount,
+    description
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
-RETURNING id, from_account_id, to_account_id, amount, created_at
+RETURNING id, from_account_id, to_account_id, amount, created_at, description
 `
 
 type CreateTransferParams struct {
-	FromAccountID int64  `json:"from_account_id"`
-	ToAccountID   int64  `json:"to_account_id"`
-	Amount        string `json:"amount"`
+	FromAccountID int64          `json:"from_account_id"`
+	ToAccountID   int64          `json:"to_account_id"`
+	Amount        string         `json:"amount"`
+	Description   sql.NullString `json:"description"`
 }
 
 func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error) {
-	row := q.queryRow(ctx, q.createTransferStmt, createTransfer, arg.FromAccountID, arg.ToAccountID, arg.Amount)
+	row := q.queryRow(ctx, q.createTransferStmt, createTransfer,
+		arg.FromAccountID,
+		arg.ToAccountID,
+		arg.Amount,
+		arg.Description,
+	)
 	var i Transfer
 	err := row.Scan(
 		&i.ID,
@@ -35,12 +43,13 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 		&i.ToAccountID,
 		&i.Amount,
 		&i.CreatedAt,
+		&i.Description,
 	)
 	return i, err
 }
 
 const getTransferById = `-- name: GetTransferById :one
-SELECT id, from_account_id, to_account_id, amount, created_at
+SELECT id, from_account_id, to_account_id, amount, created_at, description
 FROM transfers
 WHERE id = $1
 `
@@ -54,6 +63,7 @@ func (q *Queries) GetTransferById(ctx context.Context, id int64) (Transfer, erro
 		&i.ToAccountID,
 		&i.Amount,
 		&i.CreatedAt,
+		&i.Description,
 	)
 	return i, err
 }

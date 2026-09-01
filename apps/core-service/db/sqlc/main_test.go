@@ -51,7 +51,6 @@ func createTestQueries(t *testing.T) *Queries {
 
 func accountParams() CreateAccountParams {
 	return CreateAccountParams{
-		Owner:    "John Doe new",
 		Balance:  "1000",
 		Currency: "USD",
 	}

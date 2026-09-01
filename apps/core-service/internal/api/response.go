@@ -18,6 +18,7 @@ const (
 	errCodeUnauthorized      = "UNAUTHORIZED"
 	errCodeForbidden         = "FORBIDDEN"
 	errCodeConflict          = "CONFLICT"
+	errCodeMainAccount       = "MAIN_ACCOUNT"
 )
 
 // FieldError describes a single invalid request field, per docs/NORMALIZE_RESPONSE.md.

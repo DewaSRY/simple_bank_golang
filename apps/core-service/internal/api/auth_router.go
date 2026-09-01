@@ -11,6 +11,7 @@ import (
 	"github.com/DewaSRY/core-service/pkg/utils"
 
 	db "github.com/DewaSRY/core-service/db/sqlc"
+	"github.com/DewaSRY/core-service/db/store"
 )
 
 type loginUserRequest struct {
@@ -150,12 +151,13 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// Create a default account for the new user
-	_, err = server.store.CreateAccount(ctx, db.CreateAccountParams{
-		UserID:   sql.NullInt64{Int64: user.ID, Valid: true},
-		Currency: "IDR",
-		Balance:  "0",
-		Number:   sql.NullString{String: GenerateAccountNumber(0), Valid: true},
+	// Create the user's Main Account. This is the only account flagged
+	// IsMain: true — it can never be deleted, and receives the remaining
+	// balance whenever another of the user's accounts is deleted.
+	_, err = server.store.CreateAccountTx(ctx, store.CreateAccountTxParams{
+		UserID: sql.NullInt64{Int64: user.ID, Valid: true},
+		Name:   "Main Account",
+		IsMain: true,
 	})
 	if err != nil {
 		fail(ctx, InternalErr())

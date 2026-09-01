@@ -30,26 +30,28 @@ func TestTransferTx(t *testing.T) {
 		FromAccountID: 1,
 		ToAccountID:   2,
 		Amount:        transferAmount,
+		Description:   sql.NullString{String: "rent", Valid: true},
 	}
 
 	now := time.Now()
 
-	fromAccountLocked := sqlc.GetAccountByIdForUpdateRow{ID: 1, Owner: "owner1", Balance: "1000", Currency: "USD", CreatedAt: now}
-	toAccountLocked := sqlc.GetAccountByIdForUpdateRow{ID: 2, Owner: "owner2", Balance: "1000", Currency: "USD", CreatedAt: now}
+	fromAccountLocked := sqlc.GetAccountByIdForUpdateRow{ID: 1, Balance: "1000", Currency: "USD", CreatedAt: now}
+	toAccountLocked := sqlc.GetAccountByIdForUpdateRow{ID: 2, Balance: "1000", Currency: "USD", CreatedAt: now}
 
 	transfer := sqlc.Transfer{
 		ID:            10,
 		FromAccountID: arg.FromAccountID,
 		ToAccountID:   arg.ToAccountID,
 		Amount:        arg.Amount,
+		Description:   arg.Description,
 		CreatedAt:     now,
 	}
 
 	sentEntry := sqlc.CreateEntriesRow{ID: 1, AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: negatedTransferAmount, CreatedAt: now}
 	receivedEntry := sqlc.CreateEntriesRow{ID: 2, AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: transferAmount, CreatedAt: now}
 
-	debitedFromAccount := sqlc.IncrementAccountBalanceRow{ID: arg.FromAccountID, Owner: "owner1", Balance: "900", Currency: "USD", CreatedAt: now}
-	creditedToAccount := sqlc.IncrementAccountBalanceRow{ID: arg.ToAccountID, Owner: "owner2", Balance: "1100", Currency: "USD", CreatedAt: now}
+	debitedFromAccount := sqlc.IncrementAccountBalanceRow{ID: arg.FromAccountID, Balance: "900", Currency: "USD", CreatedAt: now}
+	creditedToAccount := sqlc.IncrementAccountBalanceRow{ID: arg.ToAccountID, Balance: "1100", Currency: "USD", CreatedAt: now}
 
 	// Small helpers so each test case can describe "what happens next" without
 	// re-typing the same params struct every time.
@@ -60,10 +62,22 @@ func TestTransferTx(t *testing.T) {
 		)
 	}
 	sendEntryParams := func() sqlc.CreateEntriesParams {
-		return sqlc.CreateEntriesParams{AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: negatedTransferAmount}
+		return sqlc.CreateEntriesParams{
+			AccountID:   arg.FromAccountID,
+			Type:        constant.ENTRY_TYPE_SEND,
+			Amount:      negatedTransferAmount,
+			Description: arg.Description,
+			TransferID:  sql.NullInt64{Int64: transfer.ID, Valid: true},
+		}
 	}
 	receiveEntryParams := func() sqlc.CreateEntriesParams {
-		return sqlc.CreateEntriesParams{AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: transferAmount}
+		return sqlc.CreateEntriesParams{
+			AccountID:   arg.ToAccountID,
+			Type:        constant.ENTRY_TYPE_RECEIVED,
+			Amount:      transferAmount,
+			Description: arg.Description,
+			TransferID:  sql.NullInt64{Int64: transfer.ID, Valid: true},
+		}
 	}
 	debitFromAccountParams := func() sqlc.IncrementAccountBalanceParams {
 		return sqlc.IncrementAccountBalanceParams{ID: arg.FromAccountID, Balance: negatedTransferAmount}
@@ -135,7 +149,7 @@ func TestTransferTx(t *testing.T) {
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), arg.FromAccountID).Return(fromAccountLocked, nil)
 				q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), arg.ToAccountID).Return(
-					sqlc.GetAccountByIdForUpdateRow{ID: 2, Owner: "owner2", Balance: "1000", Currency: "EUR", CreatedAt: now}, nil,
+					sqlc.GetAccountByIdForUpdateRow{ID: 2, Balance: "1000", Currency: "EUR", CreatedAt: now}, nil,
 				)
 				q.EXPECT().CreateTransfer(gomock.Any(), gomock.Any()).Times(0)
 			},

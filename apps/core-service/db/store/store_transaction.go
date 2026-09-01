@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	mapper "github.com/DewaSRY/core-service/db/mapper"
@@ -79,18 +80,23 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 		FromAccountID: arg.FromAccountID,
 		ToAccountID:   arg.ToAccountID,
 		Amount:        arg.Amount,
+		Description:   arg.Description,
 	})
 
 	if err != nil {
 		return result, err
 	}
 
+	transferID := sql.NullInt64{Int64: result.Transfer.ID, Valid: true}
+
 	negativeAmount := "-" + arg.Amount
 	// Create entries for sending
 	_, err = q.CreateEntries(ctx, sqlc.CreateEntriesParams{
-		AccountID: arg.FromAccountID,
-		Type:      constant.ENTRY_TYPE_SEND,
-		Amount:    negativeAmount,
+		AccountID:   arg.FromAccountID,
+		Type:        constant.ENTRY_TYPE_SEND,
+		Amount:      negativeAmount,
+		Description: arg.Description,
+		TransferID:  transferID,
 	})
 
 	if err != nil {
@@ -109,9 +115,11 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	result.FromAccount = mapper.UpdateBalanceAccountToAccount(debitedFromAccount)
 
 	_, err = q.CreateEntries(ctx, sqlc.CreateEntriesParams{
-		AccountID: arg.ToAccountID,
-		Type:      constant.ENTRY_TYPE_RECEIVED,
-		Amount:    arg.Amount,
+		AccountID:   arg.ToAccountID,
+		Type:        constant.ENTRY_TYPE_RECEIVED,
+		Amount:      arg.Amount,
+		Description: arg.Description,
+		TransferID:  transferID,
 	})
 
 	if err != nil {

@@ -23,18 +23,47 @@ import (
 )
 
 // mockStorer adapts a *mockdb.MockQuerier (generated only from sqlc.Querier)
-// into the Server's Storer interface, which additionally requires TransferTx.
-// None of the auth tests exercise transfers, so TransferTx just returns a
-// zero result.
+// into the Server's Storer interface, which additionally requires the
+// hand-written store transactions. Each transaction method has an optional
+// override func so a test can assert on its args/control its result; tests
+// that don't care about a given transaction get a harmless zero result.
 type mockStorer struct {
 	*mockdb.MockQuerier
+	transferTxFunc      func(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error)
+	createAccountTxFunc func(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
+	depositTxFunc       func(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error)
+	deleteAccountTxFunc func(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error)
 }
 
 func (m *mockStorer) TransferTx(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error) {
+	if m.transferTxFunc != nil {
+		return m.transferTxFunc(ctx, arg)
+	}
 	return store.TransferTxResult{}, nil
 }
 
-func newTestServerWithMockStore(t *testing.T, q *mockdb.MockQuerier) *Server {
+func (m *mockStorer) CreateAccountTx(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error) {
+	if m.createAccountTxFunc != nil {
+		return m.createAccountTxFunc(ctx, arg)
+	}
+	return db.Account{}, nil
+}
+
+func (m *mockStorer) DepositTx(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error) {
+	if m.depositTxFunc != nil {
+		return m.depositTxFunc(ctx, arg)
+	}
+	return store.DepositTxResult{}, nil
+}
+
+func (m *mockStorer) DeleteAccountTx(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
+	if m.deleteAccountTxFunc != nil {
+		return m.deleteAccountTxFunc(ctx, arg)
+	}
+	return store.DeleteAccountTxResult{}, nil
+}
+
+func newTestServerWithStorer(t *testing.T, storer Storer) *Server {
 	gin.SetMode(gin.TestMode)
 
 	cfg := config.Config{
@@ -42,9 +71,13 @@ func newTestServerWithMockStore(t *testing.T, q *mockdb.MockQuerier) *Server {
 		JWTAccessTokenDuration: time.Minute,
 	}
 
-	server, err := NewServer(&mockStorer{MockQuerier: q}, cfg)
+	server, err := NewServer(storer, cfg)
 	require.NoError(t, err)
 	return server
+}
+
+func newTestServerWithMockStore(t *testing.T, q *mockdb.MockQuerier) *Server {
+	return newTestServerWithStorer(t, &mockStorer{MockQuerier: q})
 }
 
 func doRegisterRequest(t *testing.T, server *Server, body registerUserRequest) *httptest.ResponseRecorder {

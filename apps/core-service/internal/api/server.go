@@ -24,6 +24,9 @@ import (
 type Storer interface {
 	db.Querier
 	TransferTx(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error)
+	CreateAccountTx(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
+	DepositTx(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error)
+	DeleteAccountTx(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error)
 }
 
 // Server wires HTTP handlers to the underlying store.

@@ -7,8 +7,29 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
+
+const countAccountTransactionHistory = `-- name: CountAccountTransactionHistory :one
+SELECT COUNT(*) FROM entries
+WHERE account_id = $1
+  AND created_at >= $2
+  AND created_at < $3
+`
+
+type CountAccountTransactionHistoryParams struct {
+	AccountID   int64     `json:"account_id"`
+	PeriodStart time.Time `json:"period_start"`
+	PeriodEnd   time.Time `json:"period_end"`
+}
+
+func (q *Queries) CountAccountTransactionHistory(ctx context.Context, arg CountAccountTransactionHistoryParams) (int64, error) {
+	row := q.queryRow(ctx, q.countAccountTransactionHistoryStmt, countAccountTransactionHistory, arg.AccountID, arg.PeriodStart, arg.PeriodEnd)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const countEntriesByAccount = `-- name: CountEntriesByAccount :one
 SELECT COUNT(*) FROM entries
@@ -26,42 +47,137 @@ const createEntries = `-- name: CreateEntries :one
 INSERT INTO entries (
     account_id,
     type,
-    amount
+    amount,
+    description,
+    transfer_id
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4, $5
 )
-RETURNING id, account_id, type, amount, created_at
+RETURNING id, account_id, type, amount, description, transfer_id, created_at
 `
 
 type CreateEntriesParams struct {
-	AccountID int64  `json:"account_id"`
-	Type      string `json:"type"`
-	Amount    string `json:"amount"`
+	AccountID   int64          `json:"account_id"`
+	Type        string         `json:"type"`
+	Amount      string         `json:"amount"`
+	Description sql.NullString `json:"description"`
+	TransferID  sql.NullInt64  `json:"transfer_id"`
 }
 
 type CreateEntriesRow struct {
-	ID        int64     `json:"id"`
-	AccountID int64     `json:"account_id"`
-	Type      string    `json:"type"`
-	Amount    string    `json:"amount"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          int64          `json:"id"`
+	AccountID   int64          `json:"account_id"`
+	Type        string         `json:"type"`
+	Amount      string         `json:"amount"`
+	Description sql.NullString `json:"description"`
+	TransferID  sql.NullInt64  `json:"transfer_id"`
+	CreatedAt   time.Time      `json:"created_at"`
 }
 
 func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (CreateEntriesRow, error) {
-	row := q.queryRow(ctx, q.createEntriesStmt, createEntries, arg.AccountID, arg.Type, arg.Amount)
+	row := q.queryRow(ctx, q.createEntriesStmt, createEntries,
+		arg.AccountID,
+		arg.Type,
+		arg.Amount,
+		arg.Description,
+		arg.TransferID,
+	)
 	var i CreateEntriesRow
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
 		&i.Type,
 		&i.Amount,
+		&i.Description,
+		&i.TransferID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
+const listAccountTransactionHistory = `-- name: ListAccountTransactionHistory :many
+SELECT
+    e.id,
+    e.type,
+    e.amount,
+    e.description,
+    e.created_at,
+    ca.id     AS counterparty_account_id,
+    ca.name   AS counterparty_account_name,
+    ca.number AS counterparty_account_number
+FROM entries e
+LEFT JOIN transfers t ON t.id = e.transfer_id
+LEFT JOIN accounts ca ON ca.id = CASE e.type
+    WHEN 'SEND'     THEN t.to_account_id
+    WHEN 'RECEIVED' THEN t.from_account_id
+    ELSE NULL
+END
+WHERE e.account_id = $1
+  AND e.created_at >= $2
+  AND e.created_at < $3
+ORDER BY e.created_at DESC, e.id DESC
+LIMIT $5 OFFSET $4
+`
+
+type ListAccountTransactionHistoryParams struct {
+	AccountID   int64     `json:"account_id"`
+	PeriodStart time.Time `json:"period_start"`
+	PeriodEnd   time.Time `json:"period_end"`
+	OffsetCount int32     `json:"offset_count"`
+	LimitCount  int32     `json:"limit_count"`
+}
+
+type ListAccountTransactionHistoryRow struct {
+	ID                        int64          `json:"id"`
+	Type                      string         `json:"type"`
+	Amount                    string         `json:"amount"`
+	Description               sql.NullString `json:"description"`
+	CreatedAt                 time.Time      `json:"created_at"`
+	CounterpartyAccountID     sql.NullInt64  `json:"counterparty_account_id"`
+	CounterpartyAccountName   sql.NullString `json:"counterparty_account_name"`
+	CounterpartyAccountNumber sql.NullString `json:"counterparty_account_number"`
+}
+
+func (q *Queries) ListAccountTransactionHistory(ctx context.Context, arg ListAccountTransactionHistoryParams) ([]ListAccountTransactionHistoryRow, error) {
+	rows, err := q.query(ctx, q.listAccountTransactionHistoryStmt, listAccountTransactionHistory,
+		arg.AccountID,
+		arg.PeriodStart,
+		arg.PeriodEnd,
+		arg.OffsetCount,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAccountTransactionHistoryRow{}
+	for rows.Next() {
+		var i ListAccountTransactionHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Type,
+			&i.Amount,
+			&i.Description,
+			&i.CreatedAt,
+			&i.CounterpartyAccountID,
+			&i.CounterpartyAccountName,
+			&i.CounterpartyAccountNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listEntriesByAccount = `-- name: ListEntriesByAccount :many
-SELECT id, account_id, type, amount, created_at
+SELECT id, account_id, type, amount, description, transfer_id, created_at
 FROM entries
 WHERE account_id = $1
 ORDER BY id DESC
@@ -75,11 +191,13 @@ type ListEntriesByAccountParams struct {
 }
 
 type ListEntriesByAccountRow struct {
-	ID        int64     `json:"id"`
-	AccountID int64     `json:"account_id"`
-	Type      string    `json:"type"`
-	Amount    string    `json:"amount"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          int64          `json:"id"`
+	AccountID   int64          `json:"account_id"`
+	Type        string         `json:"type"`
+	Amount      string         `json:"amount"`
+	Description sql.NullString `json:"description"`
+	TransferID  sql.NullInt64  `json:"transfer_id"`
+	CreatedAt   time.Time      `json:"created_at"`
 }
 
 func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]ListEntriesByAccountRow, error) {
@@ -96,6 +214,8 @@ func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAcc
 			&i.AccountID,
 			&i.Type,
 			&i.Amount,
+			&i.Description,
+			&i.TransferID,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

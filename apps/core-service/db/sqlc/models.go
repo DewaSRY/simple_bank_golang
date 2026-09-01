@@ -21,6 +21,10 @@ type Account struct {
 	Number      sql.NullString `json:"number"`
 	Name        sql.NullString `json:"name"`
 	Description sql.NullString `json:"description"`
+	// True for the single auto-created account a user gets at registration; cannot be deleted
+	IsMain bool `json:"is_main"`
+	// Soft-delete marker; NULL means active
+	DeletedAt sql.NullTime `json:"deleted_at"`
 }
 
 // Table to store account entries for each transaction
@@ -30,9 +34,11 @@ type Entry struct {
 	// Type use to define the purpose of the entry
 	Type string `json:"type"`
 	// Amount cannot be negative, it is the amount of money added or subtracted from the account
-	Amount    string        `json:"amount"`
-	CreatedAt time.Time     `json:"created_at"`
-	UserID    sql.NullInt64 `json:"user_id"`
+	Amount      string         `json:"amount"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UserID      sql.NullInt64  `json:"user_id"`
+	Description sql.NullString `json:"description"`
+	TransferID  sql.NullInt64  `json:"transfer_id"`
 }
 
 // Table to store transfer transactions between accounts
@@ -41,8 +47,9 @@ type Transfer struct {
 	FromAccountID int64 `json:"from_account_id"`
 	ToAccountID   int64 `json:"to_account_id"`
 	// Amount cannot be negative, it is the amount of money transferred from one account to another
-	Amount    string    `json:"amount"`
-	CreatedAt time.Time `json:"created_at"`
+	Amount      string         `json:"amount"`
+	CreatedAt   time.Time      `json:"created_at"`
+	Description sql.NullString `json:"description"`
 }
 
 // Table to store user accounts used for authentication
