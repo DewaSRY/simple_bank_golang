@@ -27,6 +27,20 @@ type Account struct {
 	DeletedAt sql.NullTime `json:"deleted_at"`
 }
 
+type AccountUserDetailsView struct {
+	ID          int64          `json:"id"`
+	Balance     string         `json:"balance"`
+	Currency    string         `json:"currency"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	UserID      sql.NullInt64  `json:"user_id"`
+	Name        sql.NullString `json:"name"`
+	Description sql.NullString `json:"description"`
+	IsMain      bool           `json:"is_main"`
+	Number      sql.NullString `json:"number"`
+	Username    sql.NullString `json:"username"`
+}
+
 // Table to store account entries for each transaction
 type Entry struct {
 	ID        int64 `json:"id"`

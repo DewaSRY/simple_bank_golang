@@ -267,10 +267,21 @@ func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAcco
 }
 
 const listAccountsByUserId = `-- name: ListAccountsByUserId :many
-SELECT id, balance, currency, user_id, number, name, description, is_main, created_at
-FROM accounts
-WHERE user_id = $1 AND deleted_at IS NULL
-ORDER BY id
+SELECT
+    id,
+    balance,
+    currency,
+    created_at,
+    updated_at,
+    user_id,
+    name,
+    description,
+    is_main,
+    username,
+    number
+FROM account_user_details_view
+WHERE user_id = $1
+ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `
 
@@ -284,12 +295,14 @@ type ListAccountsByUserIdRow struct {
 	ID          int64          `json:"id"`
 	Balance     string         `json:"balance"`
 	Currency    string         `json:"currency"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
 	Name        sql.NullString `json:"name"`
 	Description sql.NullString `json:"description"`
 	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
+	Username    sql.NullString `json:"username"`
+	Number      sql.NullString `json:"number"`
 }
 
 func (q *Queries) ListAccountsByUserId(ctx context.Context, arg ListAccountsByUserIdParams) ([]ListAccountsByUserIdRow, error) {
@@ -305,12 +318,14 @@ func (q *Queries) ListAccountsByUserId(ctx context.Context, arg ListAccountsByUs
 			&i.ID,
 			&i.Balance,
 			&i.Currency,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.UserID,
-			&i.Number,
 			&i.Name,
 			&i.Description,
 			&i.IsMain,
-			&i.CreatedAt,
+			&i.Username,
+			&i.Number,
 		); err != nil {
 			return nil, err
 		}

@@ -99,5 +99,6 @@ func ListAccountsByUserIdRowToAccount(row sqlc.ListAccountsByUserIdRow) sqlc.Acc
 		Description: row.Description,
 		IsMain:      row.IsMain,
 		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
 	}
 }
