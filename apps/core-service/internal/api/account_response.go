@@ -66,6 +66,28 @@ func toListAccountuserResponse(accounts []db.ListAccountsByUserIdRow) []accountu
 	return accountuserResponses
 }
 
+func toAccountuserResponseFromSearch(account db.ListAccountsSearchByUserNumberRow) accountuserResponse {
+	return accountuserResponse{
+		ID:          account.ID,
+		Balance:     account.Balance,
+		Currency:    account.Currency,
+		UserID:      account.UserID.Int64,
+		Number:      account.Number.String,
+		Name:        account.Name.String,
+		Description: account.Description.String,
+		IsMain:      account.IsMain,
+		CreatedAt:   account.CreatedAt.Format("2006-01-02 15:04:05"),
+		Username:    account.Username.String,
+	}
+}
+func toListAccountuserResponseFromSearch(accounts []db.ListAccountsSearchByUserNumberRow) []accountuserResponse {
+	accountuserResponses := make([]accountuserResponse, len(accounts))
+	for i, account := range accounts {
+		accountuserResponses[i] = toAccountuserResponseFromSearch(account)
+	}
+	return accountuserResponses
+}
+
 // publicAccountResponse is the minimal, non-sensitive view of an account
 // used when the account being looked up may belong to another user (transfer
 // destination search, recent destinations) — it never exposes balance or

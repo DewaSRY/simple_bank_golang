@@ -750,6 +750,16 @@ paths:
         name: number
         required: true
         type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
@@ -760,7 +770,11 @@ paths:
             - $ref: '#/definitions/api.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.publicAccountResponse'
+                  items:
+                    $ref: '#/definitions/api.accountuserResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/api.Meta'
               type: object
         "400":
           description: Bad Request

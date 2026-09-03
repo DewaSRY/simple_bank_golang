@@ -102,6 +102,21 @@ func (mr *MockQuerierMockRecorder) CountAccountsByUserId(ctx, userID any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountsByUserId", reflect.TypeOf((*MockQuerier)(nil).CountAccountsByUserId), ctx, userID)
 }
 
+// CountAccountsSearchByUserNumber mocks base method.
+func (m *MockQuerier) CountAccountsSearchByUserNumber(ctx context.Context, number sql.NullString) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountAccountsSearchByUserNumber", ctx, number)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountAccountsSearchByUserNumber indicates an expected call of CountAccountsSearchByUserNumber.
+func (mr *MockQuerierMockRecorder) CountAccountsSearchByUserNumber(ctx, number any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountsSearchByUserNumber", reflect.TypeOf((*MockQuerier)(nil).CountAccountsSearchByUserNumber), ctx, number)
+}
+
 // CountEntriesByAccount mocks base method.
 func (m *MockQuerier) CountEntriesByAccount(ctx context.Context, accountID int64) (int64, error) {
 	m.ctrl.T.Helper()
@@ -175,21 +190,6 @@ func (m *MockQuerier) CreateUser(ctx context.Context, arg db.CreateUserParams) (
 func (mr *MockQuerierMockRecorder) CreateUser(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockQuerier)(nil).CreateUser), ctx, arg)
-}
-
-// FindAccountByNumber mocks base method.
-func (m *MockQuerier) FindAccountByNumber(ctx context.Context, number sql.NullString) (db.FindAccountByNumberRow, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAccountByNumber", ctx, number)
-	ret0, _ := ret[0].(db.FindAccountByNumberRow)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindAccountByNumber indicates an expected call of FindAccountByNumber.
-func (mr *MockQuerierMockRecorder) FindAccountByNumber(ctx, number any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAccountByNumber", reflect.TypeOf((*MockQuerier)(nil).FindAccountByNumber), ctx, number)
 }
 
 // GetAccountById mocks base method.
@@ -325,6 +325,21 @@ func (m *MockQuerier) ListAccountsByUserId(ctx context.Context, arg db.ListAccou
 func (mr *MockQuerierMockRecorder) ListAccountsByUserId(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsByUserId", reflect.TypeOf((*MockQuerier)(nil).ListAccountsByUserId), ctx, arg)
+}
+
+// ListAccountsSearchByUserNumber mocks base method.
+func (m *MockQuerier) ListAccountsSearchByUserNumber(ctx context.Context, arg db.ListAccountsSearchByUserNumberParams) ([]db.ListAccountsSearchByUserNumberRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAccountsSearchByUserNumber", ctx, arg)
+	ret0, _ := ret[0].([]db.ListAccountsSearchByUserNumberRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAccountsSearchByUserNumber indicates an expected call of ListAccountsSearchByUserNumber.
+func (mr *MockQuerierMockRecorder) ListAccountsSearchByUserNumber(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsSearchByUserNumber", reflect.TypeOf((*MockQuerier)(nil).ListAccountsSearchByUserNumber), ctx, arg)
 }
 
 // ListEntriesByAccount mocks base method.

@@ -36,6 +36,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countAccountsByUserIdStmt, err = db.PrepareContext(ctx, countAccountsByUserId); err != nil {
 		return nil, fmt.Errorf("error preparing query CountAccountsByUserId: %w", err)
 	}
+	if q.countAccountsSearchByUserNumberStmt, err = db.PrepareContext(ctx, countAccountsSearchByUserNumber); err != nil {
+		return nil, fmt.Errorf("error preparing query CountAccountsSearchByUserNumber: %w", err)
+	}
 	if q.countEntriesByAccountStmt, err = db.PrepareContext(ctx, countEntriesByAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query CountEntriesByAccount: %w", err)
 	}
@@ -50,9 +53,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
-	}
-	if q.findAccountByNumberStmt, err = db.PrepareContext(ctx, findAccountByNumber); err != nil {
-		return nil, fmt.Errorf("error preparing query FindAccountByNumber: %w", err)
 	}
 	if q.getAccountByIdStmt, err = db.PrepareContext(ctx, getAccountById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccountById: %w", err)
@@ -80,6 +80,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.listAccountsByUserIdStmt, err = db.PrepareContext(ctx, listAccountsByUserId); err != nil {
 		return nil, fmt.Errorf("error preparing query ListAccountsByUserId: %w", err)
+	}
+	if q.listAccountsSearchByUserNumberStmt, err = db.PrepareContext(ctx, listAccountsSearchByUserNumber); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAccountsSearchByUserNumber: %w", err)
 	}
 	if q.listEntriesByAccountStmt, err = db.PrepareContext(ctx, listEntriesByAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query ListEntriesByAccount: %w", err)
@@ -121,6 +124,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing countAccountsByUserIdStmt: %w", cerr)
 		}
 	}
+	if q.countAccountsSearchByUserNumberStmt != nil {
+		if cerr := q.countAccountsSearchByUserNumberStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countAccountsSearchByUserNumberStmt: %w", cerr)
+		}
+	}
 	if q.countEntriesByAccountStmt != nil {
 		if cerr := q.countEntriesByAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countEntriesByAccountStmt: %w", cerr)
@@ -144,11 +152,6 @@ func (q *Queries) Close() error {
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
-		}
-	}
-	if q.findAccountByNumberStmt != nil {
-		if cerr := q.findAccountByNumberStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing findAccountByNumberStmt: %w", cerr)
 		}
 	}
 	if q.getAccountByIdStmt != nil {
@@ -194,6 +197,11 @@ func (q *Queries) Close() error {
 	if q.listAccountsByUserIdStmt != nil {
 		if cerr := q.listAccountsByUserIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listAccountsByUserIdStmt: %w", cerr)
+		}
+	}
+	if q.listAccountsSearchByUserNumberStmt != nil {
+		if cerr := q.listAccountsSearchByUserNumberStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAccountsSearchByUserNumberStmt: %w", cerr)
 		}
 	}
 	if q.listEntriesByAccountStmt != nil {
@@ -258,61 +266,63 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                                 DBTX
-	tx                                 *sql.Tx
-	checkIsAccountWithIdExistStmt      *sql.Stmt
-	checkIsUsernameExistStmt           *sql.Stmt
-	countAccountTransactionHistoryStmt *sql.Stmt
-	countAccountsByUserIdStmt          *sql.Stmt
-	countEntriesByAccountStmt          *sql.Stmt
-	createAccountStmt                  *sql.Stmt
-	createEntriesStmt                  *sql.Stmt
-	createTransferStmt                 *sql.Stmt
-	createUserStmt                     *sql.Stmt
-	findAccountByNumberStmt            *sql.Stmt
-	getAccountByIdStmt                 *sql.Stmt
-	getAccountByIdForUpdateStmt        *sql.Stmt
-	getMainAccountByUserIdStmt         *sql.Stmt
-	getTransferByIdStmt                *sql.Stmt
-	getUserByEmailStmt                 *sql.Stmt
-	getUserByIdStmt                    *sql.Stmt
-	incrementAccountBalanceStmt        *sql.Stmt
-	listAccountTransactionHistoryStmt  *sql.Stmt
-	listAccountsByUserIdStmt           *sql.Stmt
-	listEntriesByAccountStmt           *sql.Stmt
-	listRecentTransferDestinationsStmt *sql.Stmt
-	softDeleteAccountStmt              *sql.Stmt
-	updateAccountStmt                  *sql.Stmt
-	updateAccountNumberStmt            *sql.Stmt
+	db                                  DBTX
+	tx                                  *sql.Tx
+	checkIsAccountWithIdExistStmt       *sql.Stmt
+	checkIsUsernameExistStmt            *sql.Stmt
+	countAccountTransactionHistoryStmt  *sql.Stmt
+	countAccountsByUserIdStmt           *sql.Stmt
+	countAccountsSearchByUserNumberStmt *sql.Stmt
+	countEntriesByAccountStmt           *sql.Stmt
+	createAccountStmt                   *sql.Stmt
+	createEntriesStmt                   *sql.Stmt
+	createTransferStmt                  *sql.Stmt
+	createUserStmt                      *sql.Stmt
+	getAccountByIdStmt                  *sql.Stmt
+	getAccountByIdForUpdateStmt         *sql.Stmt
+	getMainAccountByUserIdStmt          *sql.Stmt
+	getTransferByIdStmt                 *sql.Stmt
+	getUserByEmailStmt                  *sql.Stmt
+	getUserByIdStmt                     *sql.Stmt
+	incrementAccountBalanceStmt         *sql.Stmt
+	listAccountTransactionHistoryStmt   *sql.Stmt
+	listAccountsByUserIdStmt            *sql.Stmt
+	listAccountsSearchByUserNumberStmt  *sql.Stmt
+	listEntriesByAccountStmt            *sql.Stmt
+	listRecentTransferDestinationsStmt  *sql.Stmt
+	softDeleteAccountStmt               *sql.Stmt
+	updateAccountStmt                   *sql.Stmt
+	updateAccountNumberStmt             *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                                 tx,
-		tx:                                 tx,
-		checkIsAccountWithIdExistStmt:      q.checkIsAccountWithIdExistStmt,
-		checkIsUsernameExistStmt:           q.checkIsUsernameExistStmt,
-		countAccountTransactionHistoryStmt: q.countAccountTransactionHistoryStmt,
-		countAccountsByUserIdStmt:          q.countAccountsByUserIdStmt,
-		countEntriesByAccountStmt:          q.countEntriesByAccountStmt,
-		createAccountStmt:                  q.createAccountStmt,
-		createEntriesStmt:                  q.createEntriesStmt,
-		createTransferStmt:                 q.createTransferStmt,
-		createUserStmt:                     q.createUserStmt,
-		findAccountByNumberStmt:            q.findAccountByNumberStmt,
-		getAccountByIdStmt:                 q.getAccountByIdStmt,
-		getAccountByIdForUpdateStmt:        q.getAccountByIdForUpdateStmt,
-		getMainAccountByUserIdStmt:         q.getMainAccountByUserIdStmt,
-		getTransferByIdStmt:                q.getTransferByIdStmt,
-		getUserByEmailStmt:                 q.getUserByEmailStmt,
-		getUserByIdStmt:                    q.getUserByIdStmt,
-		incrementAccountBalanceStmt:        q.incrementAccountBalanceStmt,
-		listAccountTransactionHistoryStmt:  q.listAccountTransactionHistoryStmt,
-		listAccountsByUserIdStmt:           q.listAccountsByUserIdStmt,
-		listEntriesByAccountStmt:           q.listEntriesByAccountStmt,
-		listRecentTransferDestinationsStmt: q.listRecentTransferDestinationsStmt,
-		softDeleteAccountStmt:              q.softDeleteAccountStmt,
-		updateAccountStmt:                  q.updateAccountStmt,
-		updateAccountNumberStmt:            q.updateAccountNumberStmt,
+		db:                                  tx,
+		tx:                                  tx,
+		checkIsAccountWithIdExistStmt:       q.checkIsAccountWithIdExistStmt,
+		checkIsUsernameExistStmt:            q.checkIsUsernameExistStmt,
+		countAccountTransactionHistoryStmt:  q.countAccountTransactionHistoryStmt,
+		countAccountsByUserIdStmt:           q.countAccountsByUserIdStmt,
+		countAccountsSearchByUserNumberStmt: q.countAccountsSearchByUserNumberStmt,
+		countEntriesByAccountStmt:           q.countEntriesByAccountStmt,
+		createAccountStmt:                   q.createAccountStmt,
+		createEntriesStmt:                   q.createEntriesStmt,
+		createTransferStmt:                  q.createTransferStmt,
+		createUserStmt:                      q.createUserStmt,
+		getAccountByIdStmt:                  q.getAccountByIdStmt,
+		getAccountByIdForUpdateStmt:         q.getAccountByIdForUpdateStmt,
+		getMainAccountByUserIdStmt:          q.getMainAccountByUserIdStmt,
+		getTransferByIdStmt:                 q.getTransferByIdStmt,
+		getUserByEmailStmt:                  q.getUserByEmailStmt,
+		getUserByIdStmt:                     q.getUserByIdStmt,
+		incrementAccountBalanceStmt:         q.incrementAccountBalanceStmt,
+		listAccountTransactionHistoryStmt:   q.listAccountTransactionHistoryStmt,
+		listAccountsByUserIdStmt:            q.listAccountsByUserIdStmt,
+		listAccountsSearchByUserNumberStmt:  q.listAccountsSearchByUserNumberStmt,
+		listEntriesByAccountStmt:            q.listEntriesByAccountStmt,
+		listRecentTransferDestinationsStmt:  q.listRecentTransferDestinationsStmt,
+		softDeleteAccountStmt:               q.softDeleteAccountStmt,
+		updateAccountStmt:                   q.updateAccountStmt,
+		updateAccountNumberStmt:             q.updateAccountNumberStmt,
 	}
 }

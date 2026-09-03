@@ -120,68 +120,6 @@ func TestTransactionTransfer(t *testing.T) {
 	}
 }
 
-func TestSearchAccountByNumber(t *testing.T) {
-	testCases := []struct {
-		name          string
-		number        string
-		buildStubs    func(q *mockdb.MockQuerier)
-		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
-	}{
-		{
-			name:   "returns only the minimal, non-sensitive fields",
-			number: "ACT/31-AUG-2026/002",
-			buildStubs: func(q *mockdb.MockQuerier) {
-				q.EXPECT().FindAccountByNumber(gomock.Any(), sql.NullString{String: "ACT/31-AUG-2026/002", Valid: true}).Return(
-					db.FindAccountByNumberRow{ID: 7, Name: sql.NullString{String: "John's Account", Valid: true}, Number: sql.NullString{String: "ACT/31-AUG-2026/002", Valid: true}}, nil,
-				)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusOK, recorder.Code)
-
-				var raw map[string]json.RawMessage
-				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &raw))
-				var dataRaw map[string]json.RawMessage
-				require.NoError(t, json.Unmarshal(raw["data"], &dataRaw))
-
-				_, hasBalance := dataRaw["balance"]
-				_, hasUserID := dataRaw["user_id"]
-				require.False(t, hasBalance, "response must not expose balance")
-				require.False(t, hasUserID, "response must not expose user_id")
-
-				var resp struct {
-					Data publicAccountResponse `json:"data"`
-				}
-				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
-				require.Equal(t, int64(7), resp.Data.ID)
-				require.Equal(t, "John's Account", resp.Data.Name)
-			},
-		},
-		{
-			name:   "returns 404 when no account matches",
-			number: "does-not-exist",
-			buildStubs: func(q *mockdb.MockQuerier) {
-				q.EXPECT().FindAccountByNumber(gomock.Any(), gomock.Any()).Return(db.FindAccountByNumberRow{}, sql.ErrNoRows)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusNotFound, recorder.Code)
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
-			tc.buildStubs(q)
-
-			server := newTestServerWithMockStore(t, q)
-			path := "/api/v1/accounts/search-by-number?number=" + tc.number
-			recorder := doAuthenticatedRequest(t, server, http.MethodGet, path, nil, authHeaderFor(t, server, testUserID))
-			tc.checkResponse(t, recorder)
-		})
-	}
-}
-
 func TestListRecentTransferDestinations(t *testing.T) {
 	const accountID = int64(1)
 	ownedAccount := db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}

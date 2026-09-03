@@ -48,11 +48,6 @@ SELECT id, balance, currency, user_id, number, name, description, is_main, creat
 FROM accounts
 WHERE user_id = $1 AND is_main = true AND deleted_at IS NULL;
 
--- name: FindAccountByNumber :one
-SELECT id, name, number
-FROM accounts
-WHERE number = $1 AND deleted_at IS NULL;
-
 -- name: ListRecentTransferDestinations :many
 SELECT id, name, number, last_used_at FROM (
     SELECT DISTINCT ON (a.id) a.id, a.name, a.number, t.created_at AS last_used_at
@@ -99,3 +94,29 @@ LIMIT $2 OFFSET $3;;
 SELECT COUNT(*) FROM accounts
 WHERE user_id = $1 AND deleted_at IS NULL;
 
+-- name: ListAccountsSearchByUserNumber :many
+SELECT
+    id,
+    balance,
+    currency,
+    created_at,
+    updated_at,
+    user_id,
+    name,
+    description,
+    is_main,
+    username,
+    number
+FROM account_user_details_view
+WHERE number LIKE '%' || sqlc.arg(number) || '%'
+  AND deleted_at IS NULL
+ORDER BY created_at DESC
+LIMIT sqlc.arg(limit_count)
+OFFSET sqlc.arg(offset_count);
+
+
+-- name: CountAccountsSearchByUserNumber :one
+SELECT COUNT(*)
+FROM account_user_details_view
+WHERE number LIKE '%' || sqlc.arg(number) || '%'
+  AND deleted_at IS NULL;

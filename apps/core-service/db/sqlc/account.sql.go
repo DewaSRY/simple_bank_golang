@@ -38,6 +38,20 @@ func (q *Queries) CountAccountsByUserId(ctx context.Context, userID sql.NullInt6
 	return count, err
 }
 
+const countAccountsSearchByUserNumber = `-- name: CountAccountsSearchByUserNumber :one
+SELECT COUNT(*)
+FROM account_user_details_view
+WHERE number LIKE '%' || $1 || '%'
+  AND deleted_at IS NULL
+`
+
+func (q *Queries) CountAccountsSearchByUserNumber(ctx context.Context, number sql.NullString) (int64, error) {
+	row := q.queryRow(ctx, q.countAccountsSearchByUserNumberStmt, countAccountsSearchByUserNumber, number)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (
     number,
@@ -97,25 +111,6 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (C
 		&i.IsMain,
 		&i.CreatedAt,
 	)
-	return i, err
-}
-
-const findAccountByNumber = `-- name: FindAccountByNumber :one
-SELECT id, name, number
-FROM accounts
-WHERE number = $1 AND deleted_at IS NULL
-`
-
-type FindAccountByNumberRow struct {
-	ID     int64          `json:"id"`
-	Name   sql.NullString `json:"name"`
-	Number sql.NullString `json:"number"`
-}
-
-func (q *Queries) FindAccountByNumber(ctx context.Context, number sql.NullString) (FindAccountByNumberRow, error) {
-	row := q.queryRow(ctx, q.findAccountByNumberStmt, findAccountByNumber, number)
-	var i FindAccountByNumberRow
-	err := row.Scan(&i.ID, &i.Name, &i.Number)
 	return i, err
 }
 
@@ -314,6 +309,82 @@ func (q *Queries) ListAccountsByUserId(ctx context.Context, arg ListAccountsByUs
 	items := []ListAccountsByUserIdRow{}
 	for rows.Next() {
 		var i ListAccountsByUserIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Balance,
+			&i.Currency,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.Name,
+			&i.Description,
+			&i.IsMain,
+			&i.Username,
+			&i.Number,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAccountsSearchByUserNumber = `-- name: ListAccountsSearchByUserNumber :many
+SELECT
+    id,
+    balance,
+    currency,
+    created_at,
+    updated_at,
+    user_id,
+    name,
+    description,
+    is_main,
+    username,
+    number
+FROM account_user_details_view
+WHERE number LIKE '%' || $1 || '%'
+  AND deleted_at IS NULL
+ORDER BY created_at DESC
+LIMIT $3
+OFFSET $2
+`
+
+type ListAccountsSearchByUserNumberParams struct {
+	Number      sql.NullString `json:"number"`
+	OffsetCount int32          `json:"offset_count"`
+	LimitCount  int32          `json:"limit_count"`
+}
+
+type ListAccountsSearchByUserNumberRow struct {
+	ID          int64          `json:"id"`
+	Balance     string         `json:"balance"`
+	Currency    string         `json:"currency"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	UserID      sql.NullInt64  `json:"user_id"`
+	Name        sql.NullString `json:"name"`
+	Description sql.NullString `json:"description"`
+	IsMain      bool           `json:"is_main"`
+	Username    sql.NullString `json:"username"`
+	Number      sql.NullString `json:"number"`
+}
+
+func (q *Queries) ListAccountsSearchByUserNumber(ctx context.Context, arg ListAccountsSearchByUserNumberParams) ([]ListAccountsSearchByUserNumberRow, error) {
+	rows, err := q.query(ctx, q.listAccountsSearchByUserNumberStmt, listAccountsSearchByUserNumber, arg.Number, arg.OffsetCount, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAccountsSearchByUserNumberRow{}
+	for rows.Next() {
+		var i ListAccountsSearchByUserNumberRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Balance,

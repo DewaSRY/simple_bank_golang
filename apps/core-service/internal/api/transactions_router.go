@@ -109,6 +109,7 @@ func transferAppError(err error) *AppError {
 }
 
 type searchAccountByNumberQuery struct {
+	*paginationQuery
 	Number string `form:"number" binding:"required"`
 }
 
@@ -119,7 +120,9 @@ type searchAccountByNumberQuery struct {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        number  query     string  true  "Account number"
-// @Success      200     {object}  successResponse{data=publicAccountResponse}
+// @Param        page    query     int  false  "Page number"     default(1)
+// @Param        limit   query     int  false  "Items per page"  default(10)
+// @Success      200     {object}  successResponse{data=[]accountuserResponse,meta=Meta}
 // @Failure      400     {object}  errorResponse
 // @Failure      401     {object}  errorResponse
 // @Failure      404     {object}  errorResponse
@@ -132,21 +135,27 @@ func (server *Server) searchAccountByNumber(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.FindAccountByNumber(ctx, sql.NullString{String: query.Number, Valid: true})
+	accountList, err := server.store.ListAccountsSearchByUserNumber(ctx, db.ListAccountsSearchByUserNumberParams{
+		Number:      sql.NullString{String: query.Number, Valid: true},
+		OffsetCount: query.offset(),
+		LimitCount:  query.Limit,
+	})
+
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
-			return
-		}
 		fail(ctx, InternalErr())
 		return
 	}
 
-	succeed(ctx, http.StatusOK, publicAccountResponse{
-		ID:     account.ID,
-		Name:   account.Name.String,
-		Number: account.Number.String,
-	}, "Account found")
+	total, err := server.store.CountAccountsSearchByUserNumber(ctx, sql.NullString{String: query.Number, Valid: true})
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	succeedWithMeta(ctx, http.StatusOK, toListAccountuserResponseFromSearch(accountList), "Accounts retrieved successfully", Meta{
+		Page: query.Page, Limit: query.Limit, Total: total,
+	})
+
 }
 
 type listRecentTransferDestinationsParams struct {
