@@ -65,7 +65,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="flex flex-col gap-1.5 rounded-lg border border-black/[.08] p-4 dark:border-white/[.145]"
+              className="flex flex-col gap-1.5 rounded-lg border border-black/80 p-4 dark:border-white/[.145]"
             >
               <h2 className="text-sm font-semibold text-black dark:text-zinc-50">
                 {feature.title}
@@ -86,7 +86,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
           </Link>
           <Link
             href="/login"
-            className="flex h-12 w-full items-center justify-center rounded-lg border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+            className="flex h-12 w-full items-center justify-center rounded-lg border border-solid border-black/80 px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
           >
             {tAuth("login")}
           </Link>
