@@ -1,8 +1,14 @@
 "use client";
 
+import { AlertCircle, Star, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { getApiErrorMessage } from "@/lib/api/error";
+
 import { useAccounts } from "../../feature/account/hooks/query";
+
+import { AccountListItem } from "./account-card";
+import { AccountCardSkeleton } from "./account-card-skeleton";
+import { AccountListMessage } from "./account-list-message";
 
 export function AccountList() {
   const t = useTranslations("Common");
@@ -13,40 +19,28 @@ export function AccountList() {
   } = useAccounts({ page: 1, limit: 10 });
 
   if (isPending) {
-    return (
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        {t("loadingAccounts")}
-      </p>
-    );
+    return <AccountCardSkeleton />;
   }
 
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <AccountListMessage icon={AlertCircle} className="text-destructive">
         {getApiErrorMessage(error, t("loadAccountsError"))}
-      </p>
+      </AccountListMessage>
     );
   }
 
   if (accounts.length === 0) {
     return (
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        {t("noAccounts")}
-      </p>
+      <AccountListMessage icon={Wallet}>{t("noAccounts")}</AccountListMessage>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-3">
       {accounts.map((account) => (
-        <li
-          key={account.id}
-          className="flex items-center justify-between rounded border border-black/[.08] px-4 py-3 dark:border-white/[.145]"
-        >
-          <span>{account.owner}</span>
-          <span className="font-mono">
-            {account.balance} {account.currency}
-          </span>
+        <li key={account.id}>
+          <AccountListItem account={account} />
         </li>
       ))}
     </ul>

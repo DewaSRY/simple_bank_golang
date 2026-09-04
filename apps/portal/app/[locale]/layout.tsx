@@ -7,7 +7,14 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { InlineScript } from "@/components/inline-script";
 import "../globals.css";
+
+// Runs during HTML parsing, before first paint, to apply the persisted
+// theme class ahead of hydration. See `preventing-flash-before-hydration`
+// in the Next.js docs — this app's Next.js version warns in dev when a
+// <script> tag skips the InlineScript type dance below.
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"system";var d=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;if(d==="dark"){e.classList.add("dark")}else{e.classList.remove("dark")}e.style.colorScheme=d}catch(e){}})()`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,8 +53,11 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <InlineScript html={THEME_SCRIPT} />
+      </head>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
             <QueryProvider>{children}</QueryProvider>
           </NextIntlClientProvider>

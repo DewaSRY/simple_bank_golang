@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   accountClient,
-  type Account,
+  type AccountWithUserName,
   type ListAccountsParams,
 } from "@/feature/account/client";
 
@@ -13,7 +13,7 @@ export const accountKeys = {
 
 export function fetchAccounts(
   params: ListAccountsParams = {},
-): Promise<Account[]> {
+): Promise<AccountWithUserName[]> {
   return accountClient
     .listAccounts(params)
     .then((response) => response.data.data);
