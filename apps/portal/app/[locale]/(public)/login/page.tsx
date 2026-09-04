@@ -21,7 +21,7 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto h-screen w-full flex items-center justify-center">
-      <Card className="py-16 px-4 w-full lg:min-w-150 xl:min-h-200  xl:w-125">
+      <Card className="pb-16 pt-12 px-4 w-full xl:max-w-150">
         <CardHeader className="mb-4">
           <h1 className="text-2xl font-semibold tracking-tight">
             {t("login")}

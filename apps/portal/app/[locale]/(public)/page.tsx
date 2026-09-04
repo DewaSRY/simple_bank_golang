@@ -29,6 +29,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     <main className="mx-auto h-screen flex items-center justify-center">
       <div className="flex gap-y-4 rounded-lg flex-1 w-full max-w-3xl flex-col items-center justify-between py-16 px-16 bg-white dark:bg-black sm:items-start">
         {/* header  */}
+
         <div className="flex w-full items-center justify-between mb-16">
           <span className="text-lg font-semibold text-black dark:text-zinc-50">
             {t("appName")}

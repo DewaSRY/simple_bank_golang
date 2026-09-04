@@ -26,7 +26,7 @@ export function LocaleSwitcher() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <span>{t("language")}</span>
+          <span className="cursor-pointer">{t("language")}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {routing.locales.map((loc) => (

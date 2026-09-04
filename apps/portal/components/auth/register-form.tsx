@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { InputField } from "@/components/form/input-field";
+import { PasswordField } from "@/components/form/password-field";
 import { Button } from "@/components/ui/button";
 import {
   useLoginMutation,
@@ -88,18 +89,16 @@ export function RegisterForm() {
           autoComplete="email"
         />
 
-        <InputField
+        <PasswordField
           control={form.control}
           name="password"
-          type="password"
           label={t("password")}
           autoComplete="new-password"
         />
 
-        <InputField
+        <PasswordField
           control={form.control}
           name="confirmPassword"
-          type="password"
           label={t("confirmPassword")}
           autoComplete="new-password"
         />
