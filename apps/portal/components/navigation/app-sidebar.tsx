@@ -159,7 +159,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton className="data-[slot=sidebar-menu-button]:px-1.5!">
               <a href="#" className="flex items-center gap-2">
                 <IconInnerShadowTop className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">SIMPLE BANK</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

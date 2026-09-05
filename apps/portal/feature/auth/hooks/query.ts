@@ -6,8 +6,7 @@ import type {
   ProfileResponse,
   RegisterRequest,
 } from "@/feature/auth/client";
-
-import type { ApiResponse } from "@/feature/common/type";
+import type { CommonSuccessResponse } from "@/feature/common/type";
 
 /**
  * Centralized query keys for the auth feature.
@@ -21,17 +20,25 @@ export const authQueryKeys = {
  * Login
  */
 export const useLoginMutation = () => {
-  return useMutation<ApiResponse<AuthResponse>, Error, LoginRequest>({
-    mutationFn: (body) => authClient.login(body),
-  });
+  return useMutation<CommonSuccessResponse<AuthResponse>, Error, LoginRequest>(
+    {
+      mutationFn: (body) =>
+        authClient.login(body).then((response) => response.data),
+    },
+  );
 };
 
 /**
  * Register
  */
 export const useRegisterMutation = () => {
-  return useMutation<ApiResponse<AuthResponse>, Error, RegisterRequest>({
-    mutationFn: (body) => authClient.register(body),
+  return useMutation<
+    CommonSuccessResponse<AuthResponse>,
+    Error,
+    RegisterRequest
+  >({
+    mutationFn: (body) =>
+      authClient.register(body).then((response) => response.data),
   });
 };
 
@@ -39,8 +46,8 @@ export const useRegisterMutation = () => {
  * Get current authenticated user's profile.
  */
 export const useProfileQuery = () => {
-  return useQuery<ApiResponse<ProfileResponse>, Error>({
+  return useQuery<CommonSuccessResponse<ProfileResponse>, Error>({
     queryKey: authQueryKeys.profile(),
-    queryFn: () => authClient.getProfile(),
+    queryFn: () => authClient.getProfile().then((response) => response.data),
   });
 };

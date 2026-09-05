@@ -1,13 +1,8 @@
 "use client";
 
-import { AlertCircle, Star, Wallet } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { getApiErrorMessage } from "@/lib/api/error";
-import { cn } from "@/lib/utils";
+import { Star } from "lucide-react";
 import { Card } from "../ui/card";
-import { Skeleton } from "../ui/skeleton";
 import type { AccountWithUserName } from "../../feature/account/client";
-import { useAccounts } from "../../feature/account/hooks/query";
 
 function formatBalance(balance: string) {
   const value = Number(balance);
@@ -24,14 +19,15 @@ function initials(name: string) {
 
 export function AccountListItem({ account }: { account: AccountWithUserName }) {
   return (
-    <Card className="flex-row items-center justify-between px-4 transition-colors hover:bg-muted/40">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-          {initials(account.name || account.username)}
-        </div>
+    <Card className="flex-row items-start gap-2 px-4 transition-colors hover:bg-muted/40 py-2!">
+      <div className="flex size-10 h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-medium text-primary">
+        {initials(account.name || account.username)}
+      </div>
+
+      <div className="flex flex-col min-w-0 items-end gap-3 justify-between w-full">
         <div className="flex min-w-0 flex-col">
-          <span className="flex items-center gap-1.5 truncate font-medium">
-            {account.name || account.username}
+          <span className="flex items-center gap-1.5 truncate font-medium self-end">
+            {account.name}
             {account.is_main && (
               <Star
                 className="size-3.5 shrink-0 fill-amber-400 text-amber-400"
@@ -39,18 +35,19 @@ export function AccountListItem({ account }: { account: AccountWithUserName }) {
               />
             )}
           </span>
-          <span className="truncate text-xs text-muted-foreground">
-            {account.username} &middot; {account.number}
+          <span className="truncate text-xs text-muted-foreground self-end">
+            {account.number}
           </span>
         </div>
-      </div>
-      <div className="flex shrink-0 flex-col items-end">
-        <span className="font-mono font-medium">
-          {formatBalance(account.balance)}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {account.currency}
-        </span>
+
+        <div className="flex shrink-0 justify-end flex-row items-end gap-2 self-end">
+          <span className="font-mono font-medium">
+            {formatBalance(account.balance)}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {account.currency}
+          </span>
+        </div>
       </div>
     </Card>
   );

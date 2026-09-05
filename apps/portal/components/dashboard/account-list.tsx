@@ -1,4 +1,5 @@
 "use client";
+import { Fragment } from "react";
 
 import { AlertCircle, Star, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -37,12 +38,14 @@ export function AccountList() {
   }
 
   return (
-    <ul className="flex flex-col gap-3">
-      {accounts.map((account) => (
-        <li key={account.id}>
-          <AccountListItem account={account} />
-        </li>
-      ))}
-    </ul>
+    <div>
+      <div className="grid  grid-cols-4 gap-4">
+        {accounts.map((account) => (
+          <Fragment key={account.id}>
+            <AccountListItem account={account} />
+          </Fragment>
+        ))}
+      </div>
+    </div>
   );
 }

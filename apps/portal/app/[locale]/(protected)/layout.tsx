@@ -32,7 +32,7 @@ export default async function ProtectedLayout({
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader locale={locale} />
 
         {children}
       </SidebarInset>

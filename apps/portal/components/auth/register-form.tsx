@@ -48,10 +48,7 @@ export function RegisterForm() {
         },
         {
           onSuccess: ({ data }) => {
-            setClientSessionCookie(
-              data.data.access_token,
-              data.data.expires_in,
-            );
+            setClientSessionCookie(data.access_token, data.expires_in);
             router.push("/dashboard");
           },
         },

@@ -7,13 +7,14 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import { routing } from "@/i18n/routing";
-import { LogoutButton } from "@/components/auth/logout-button";
 import { AccountList } from "@/components/dashboard/account-list";
 import { accountKeys, fetchAccounts } from "@/feature/account/hooks/query";
 
-export default async function DashboardPage({
-  params,
-}: PageProps<"/[locale]/dashboard">) {
+interface props extends PageProps<"/[locale]/dashboard"> {
+  searchParams: Promise<{ search?: string }>;
+}
+
+export default async function DashboardPage({ params }: props) {
   const { locale } = await params;
 
   if (!hasLocale(routing.locales, locale)) {
@@ -32,17 +33,14 @@ export default async function DashboardPage({
   });
 
   return (
-    <div className="flex flex-1 flex-col gap-8 bg-zinc-50 px-6 py-16 font-sans dark:bg-black">
-      <div className="mx-auto flex w-full max-w-2xl items-center justify-between">
+    <div className="flex my-2 flex-1 flex-col bg-zinc-50 px-6 font-sans dark:bg-black">
+      <div className="mx-auto flex w-full  items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("dashboardTitle")}
         </h1>
-        <LogoutButton locale={locale} />
       </div>
 
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-        <h2 className="text-lg font-medium">{t("yourAccounts")}</h2>
-
+      <div className=" mt-4">
         <HydrationBoundary state={dehydrate(queryClient)}>
           <AccountList />
         </HydrationBoundary>

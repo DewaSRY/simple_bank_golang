@@ -29,7 +29,7 @@ export function LoginForm() {
   const onSubmit = form.handleSubmit((values) => {
     loginMutation.mutate(values, {
       onSuccess: ({ data }) => {
-        setClientSessionCookie(data.data.access_token, data.data.expires_in);
+        setClientSessionCookie(data.access_token, data.expires_in);
         router.push("/dashboard");
       },
       onError: (error) => {
