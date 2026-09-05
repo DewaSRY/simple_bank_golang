@@ -24,6 +24,7 @@ export default async function DashboardPage({ params }: props) {
 
   const accountParams = { page: 1, limit: 10 };
   const queryClient = new QueryClient();
+
   await queryClient.prefetchQuery({
     queryKey: accountKeys.list(accountParams),
     queryFn: () => fetchAccounts(accountParams),
@@ -39,7 +40,7 @@ export default async function DashboardPage({ params }: props) {
 
       <div className=" mt-4">
         <HydrationBoundary state={dehydrate(queryClient)}>
-          <AccountList />
+          {/* <AccountList /> */}
         </HydrationBoundary>
       </div>
     </div>
