@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import createMiddleware from "next-intl/middleware";
-import { routing, type AppLocale } from "./i18n/routing";
+import { locales, defaultLocale, type AppLocale } from "./i18n/settings";
 import { SESSION_COOKIE_NAME } from "./feature/auth/constants";
 
 export const PROTECTED_PATH_PREFIXES = ["/dashboard"];
 export const AUTH_ONLY_PATHS = ["/login", "/register"];
 
-const intlMiddleware = createMiddleware(routing);
-
 function splitLocale(pathname: string): {
   locale: AppLocale | null;
   path: string;
 } {
-  for (const locale of routing.locales) {
+  for (const locale of locales) {
     if (pathname === `/${locale}`) {
       return { locale, path: "/" };
     }
@@ -27,10 +24,17 @@ function splitLocale(pathname: string): {
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { locale, path } = splitLocale(pathname);
+  const activeLocale = locale ?? defaultLocale;
+
+  if (!locale) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${activeLocale}${path === "/" ? "" : path}`;
+    return NextResponse.redirect(url);
+  }
+
   const isAuthenticated = Boolean(
     request.cookies.get(SESSION_COOKIE_NAME)?.value,
   );
-  const activeLocale = locale ?? routing.defaultLocale;
 
   if (
     !isAuthenticated &&
@@ -47,7 +51,7 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return intlMiddleware(request);
+  return NextResponse.next();
 }
 
 export const config = {

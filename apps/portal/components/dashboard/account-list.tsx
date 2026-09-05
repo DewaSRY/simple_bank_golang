@@ -1,8 +1,8 @@
 "use client";
 import { Fragment } from "react";
 
-import { AlertCircle, Star, Wallet } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { AlertCircle, Wallet } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { getApiErrorMessage } from "@/lib/api/error";
 
 import { useAccounts } from "../../feature/account/hooks/query";
@@ -12,7 +12,7 @@ import { AccountCardSkeleton } from "./account-card-skeleton";
 import { AccountListMessage } from "./account-list-message";
 
 export function AccountList() {
-  const t = useTranslations("Common");
+  const { t } = useTranslation("common");
   const {
     data: accounts = [],
     error,

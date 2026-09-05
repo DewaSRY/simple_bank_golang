@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { hasLocale } from "next-intl";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
+import { locales, isAppLocale } from "@/i18n/settings";
+import { getMessages } from "@/i18n/server";
+import { TranslationsProvider } from "@/components/translations-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { InlineScript } from "@/components/inline-script";
@@ -32,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return locales.map((locale) => ({ locale }));
 }
 
 export default async function RootLayout({
@@ -41,11 +40,11 @@ export default async function RootLayout({
 }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
 
-  if (!hasLocale(routing.locales, locale)) {
+  if (!isAppLocale(locale)) {
     notFound();
   }
 
-  const messages = await getMessages();
+  const messages = await getMessages(locale);
 
   return (
     <html
@@ -58,9 +57,9 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <NextIntlClientProvider messages={messages}>
+          <TranslationsProvider locale={locale} messages={messages}>
             <QueryProvider>{children}</QueryProvider>
-          </NextIntlClientProvider>
+          </TranslationsProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,4 +1,4 @@
-import type { AppLocale } from "@/i18n/routing";
+import type { AppLocale } from "@/i18n/settings";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";

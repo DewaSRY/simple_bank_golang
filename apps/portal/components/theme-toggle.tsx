@@ -2,7 +2,7 @@
 
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/providers/theme-provider";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
-  const t = useTranslations("Common");
+  const { t } = useTranslation("common");
   const { theme, setTheme } = useTheme();
 
   return (

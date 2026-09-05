@@ -1,14 +1,20 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { isAppLocale } from "@/i18n/settings";
+import { getTranslation } from "@/i18n/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Tagline } from "@/components/tagline";
 import { Link } from "@/i18n/navigation";
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
-  setRequestLocale(locale);
 
-  const t = await getTranslations("Common");
-  const tAuth = await getTranslations("Auth");
+  if (!isAppLocale(locale)) {
+    notFound();
+  }
+
+  const { t } = await getTranslation(locale, "common");
+  const { t: tAuth } = await getTranslation(locale, "auth");
 
   const features = [
     {
@@ -48,13 +54,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
         <div className="flex flex-col items-center gap-2 text-center sm:items-start sm:text-left">
           <h1 className="max-w-md text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            {t.rich("tagline", {
-              brand: (chunks) => (
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {chunks}
-                </span>
-              ),
-            })}
+            <Tagline />
           </h1>
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
             {t("cta")}

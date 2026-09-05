@@ -1,296 +1,449 @@
-# Internationalization Setup
+# Internationalization (react-i18next) — As Implemented
 
-This app uses [`next-intl`](https://next-intl.dev) for i18n, with translations split **per feature** rather than one giant dictionary per language.
+Supported locales: `en` (default), `id`. Translations are split **per feature**
+(`common`, `auth`, `transfer`) rather than one giant dictionary per language.
 
-Supported locales: `en` (default), `id`.
+## Who this doc is for
 
-## Important: this repo runs a modified Next.js (16.3.3)
+Assumes comfort with React (hooks, context) and the Next.js App Router
+(Server vs. Client Components, layouts). Does **not** assume prior exposure to
+`i18next`/`react-i18next` — Section 0 below covers the parts of that library
+that this codebase actually leans on.
 
-Per `AGENTS.md`, this Next.js build has breaking changes vs. stock Next.js. The one that matters for i18n:
+This doc describes what the code does, verified against source
+(file:line citations throughout) — not an idealized design. Where the
+Server/Client split forces something slightly awkward (Section 2's two
+different-looking translation functions, the `<Trans>` workaround in
+Section 6), that's called out rather than smoothed over.
 
-> `middleware.ts` is **deprecated and renamed to `proxy.ts`** (Next.js 16). The exported function must be named `proxy` (or be the default export) — `middleware.ts` is not picked up.
+This replaces a previous `next-intl`-based setup. If you find references to
+`next-intl`, `i18n/routing.ts`, `i18n/request.ts`, or `NextIntlClientProvider`
+anywhere (old branches, other docs, muscle memory from a past session on this
+repo), they're stale — the library was fully swapped out.
 
-`next-intl`'s own docs still reference `middleware.ts`. We instead created `proxy.ts` at the project root and used the default export, which Next.js picks up as the proxy/middleware file. See [Step 4](#step-4-proxy-file-not-middleware).
+## Section 0 — Background primer: why two different "translation" APIs exist
 
-## File structure
+`next-intl` (the previous library) has first-class React Server Component
+support baked in — `getTranslations()` and `useTranslations()` feel like the
+same API whether you're on the server or the client. `react-i18next` doesn't:
+it's built around `i18next`, a framework-agnostic core, plus a thin React
+binding (`react-i18next`) that exposes translations through **React context**
+(`useTranslation`, `<Trans>`). Context requires hooks, and hooks require a
+Client Component — so `react-i18next`'s hook-based API cannot run inside a
+Server Component at all.
 
-```text
-i18n/
-├── routing.ts       # locales, default locale
-├── navigation.ts     # locale-aware Link, useRouter, usePathname, redirect
-└── request.ts        # loads + merges per-feature message files per request
+| Approach | Where it runs | How you read a string | Typical use in this repo |
+|---|---|---|---|
+| `i18next` core instance, no React binding | Anywhere (Server Components, Server Actions, plain `.ts`) | `instance.getFixedT(locale, ns)("key")` — a plain function, no context | `i18n/server.ts`'s `getTranslation()` |
+| `react-i18next` hooks (`useTranslation`, `<Trans>`) | Client Components only, must be inside an `<I18nextProvider>` | `const { t } = useTranslation(ns)` | Any `"use client"` component (`components/locale-switcher.tsx:16`, `components/theme-toggle.tsx`, form components) |
 
-messages/
-├── en/
-│   ├── common.json
-│   ├── auth.json
-│   └── transfer.json
-└── id/
-    ├── common.json
-    ├── auth.json
-    └── transfer.json
+Gotchas that aren't obvious from the API surface:
 
-proxy.ts               # locale detection + routing (replaces middleware.ts)
-next.config.ts          # wrapped with createNextIntlPlugin
+1. **`useTranslation`/`<Trans>` throw (or silently no-op) outside a Client
+   Component tree wrapped in `<I18nextProvider>`.** This is why
+   `components/tagline.tsx` exists as its own tiny Client Component instead of
+   calling `<Trans>` directly inside the (Server Component) home page — see
+   Section 6.
+2. **Server-side translation reads don't share a singleton instance.** Every
+   call to `getTranslation()` (`i18n/server.ts:26`) creates a *brand new*
+   `i18next` instance via `createInstance()`. This looks wasteful coming from
+   `next-intl`'s request-scoped cache, but it's cheap here: the "resources"
+   being loaded are just already-parsed JSON, and the instance is thrown away
+   at the end of the render. See Section 2.
+3. **The client instance is not recreated on locale navigation — it's
+   mutated.** Switching from `/en` to `/id` doesn't remount
+   `TranslationsProvider` or rebuild its `i18next` instance from scratch; an
+   effect patches the existing instance in place (`addResourceBundle` +
+   `changeLanguage`). See Section 3.
 
-app/
-├── globals.css
-├── favicon.ico
-└── [locale]/
-    ├── layout.tsx     # root layout now lives here, validates locale, provides messages
-    └── page.tsx
-```
+## Section 1 — Architecture at a glance
 
-Because routing is locale-prefixed (`/en/...`, `/id/...`), every route in `app/` had to move under a `[locale]` dynamic segment. There is no top-level `app/layout.tsx` anymore — `app/[locale]/layout.tsx` is the effective root layout (it's the first layout with no other layout above it, so it still owns `<html>`/`<body>`).
+The composition root is `app/[locale]/layout.tsx` (`app/[locale]/layout.tsx:37`).
+It validates the locale, loads that locale's messages, and hands them to
+`TranslationsProvider` — but it doesn't itself know how translation loading or
+the `i18next` instance lifecycle work; both are delegated.
 
-## Step 1: Dependency
+| Concern | Owner | Analogy |
+|---|---|---|
+| Locale/namespace config (source of truth for both) | `i18n/settings.ts` | The dictionary's table of contents |
+| Locale param validation | `isAppLocale()` in `i18n/settings.ts:6`, called from every page/layout | A type guard everyone repeats at the door |
+| Server-side translation reads | `i18n/server.ts` (`getTranslation`, `getMessages`) | A one-shot dictionary lookup, thrown away after the render |
+| Client-side translation runtime | `components/translations-provider.tsx` + `react-i18next`'s `useTranslation`/`<Trans>` | The live dictionary Client Components subscribe to |
+| Locale-aware navigation | `i18n/navigation.tsx` (`Link`, `usePathname`, `useRouter`), `i18n/redirect.ts` (`redirect`, `getPathname`) | `next/link`/`next/navigation`, but locale-prefix aware |
+| Locale detection + redirect | `proxy.ts` | The bouncer that rewrites `/` → `/en` before anything renders |
+| Translation content | `messages/{locale}/{common,auth,transfer}.json` | The actual dictionaries |
 
-Already present in `package.json`:
+The server/client split exists because, as covered in Section 0, RSC can't use
+the hook-based API at all — so server-side reads had to go around
+`react-i18next` entirely and talk to a plain `i18next` instance instead. One
+consequence worth flagging up front: this is why `getTranslation()` and
+`useTranslation()` look like they do the same job but come from completely
+different code paths (Section 2 vs. Section 3) — there's no single
+"the" translation function in this codebase, there are two, chosen by
+whether the calling component is a Server or Client Component.
 
-```bash
-yarn add next-intl
-```
+## Section 2 — `i18n/server.ts`: reading translations in Server Components
 
-## Step 2: Translation files, split per feature
+**The problem:** a Server Component (a page, a layout, `logout-button.tsx`)
+needs a translated string, but can't use `react-i18next`'s hooks.
 
-Each locale directory holds one JSON file per feature/namespace:
+**How it's implemented.** `loadMessages()` (`i18n/server.ts:11`) dynamically
+imports all three namespace JSON files for a locale in parallel:
 
-`messages/en/auth.json`
-```json
-{
-  "login": "Login",
-  "logout": "Logout",
-  "email": "Email address",
-  "password": "Password",
-  "forgotPassword": "Forgot password?",
-  "loginError": "Invalid email or password"
+```ts
+async function loadMessages(locale: AppLocale) {
+  const entries = await Promise.all(
+    namespaces.map(async (ns) => {
+      const mod = await import(`../messages/${locale}/${ns}.json`);
+      return [ns, mod.default] as const;
+    }),
+  );
+  return Object.fromEntries(entries);
 }
 ```
 
-`messages/id/auth.json`
-```json
-{
-  "login": "Masuk",
-  "logout": "Keluar",
-  "email": "Alamat email",
-  "password": "Kata sandi",
-  "forgotPassword": "Lupa kata sandi?",
-  "loginError": "Email atau kata sandi salah"
+`getMessages()` (`i18n/server.ts:22`) just re-exports that — it's what the
+root layout calls to get everything for the client provider (Section 3).
+
+`getTranslation(locale, ns)` (`i18n/server.ts:26`) is what pages/Server
+Components actually call for their own strings. It creates a fresh `i18next`
+instance, loads the same messages, initializes with `initReactI18next` (still
+required even though nothing here is a React hook — it's what makes the
+resulting `t` compatible with `<Trans>` if the caller passes it through, see
+Section 6), and returns a **fixed** translator bound to that locale/namespace:
+
+```ts
+export async function getTranslation(locale: AppLocale, ns: AppNamespace = "common") {
+  const instance = createInstance();
+  const resources = await loadMessages(locale);
+  await instance.use(initReactI18next).init({
+    ...getI18nOptions(locale, namespaces),
+    resources: { [locale]: resources },
+  });
+  return { t: instance.getFixedT(locale, ns), i18n: instance };
 }
 ```
 
-Same pattern for `common.json` (shared UI strings) and `transfer.json` (the transfer feature). Ownership stays clean: a feature team only touches its own file, in both locales.
+Every page follows the same shape (e.g. `app/[locale]/(public)/page.tsx:16`):
 
-Rich text (bold, links, etc. embedded in a translated sentence) uses `next-intl`'s tag syntax, **not** plain `{placeholder}` interpolation — a placeholder can only hold a value (string/number), not a function/JSX. This mistake fails at render with `Functions are not valid as a child of Client Components`, which is what happened during initial implementation until the messages were switched to tags:
-
-```json
-// messages/en/common.json
-"tagline": "To get started, edit the <file>page.tsx</file> file."
+```ts
+const { t } = await getTranslation(locale, "common");
+const { t: tAuth } = await getTranslation(locale, "auth");
 ```
+
+Two calls, two namespaces — `getTranslation` is namespace-scoped, not
+multi-namespace, so a page reading strings from both `common` and `auth`
+(the home page does) makes two calls rather than one.
+
+**Rough edge worth flagging:** `getTranslation` still loads *all three*
+namespaces into the instance's `resources` even though it only returns a `t`
+for one of them (`getI18nOptions(locale, namespaces)` at `i18n/server.ts:34`
+passes the full `namespaces` list, not just `ns`). It's harmless — the JSON is
+already in memory from `loadMessages()` — but it means the `ns` parameter only
+controls which namespace `getFixedT` defaults to, not what's loaded.
+
+## Section 3 — `components/translations-provider.tsx`: the client runtime
+
+**The problem:** Client Components (forms, the theme toggle, the locale
+switcher) need `useTranslation()`/`<Trans>` to work, which means they need to
+sit inside an `<I18nextProvider>` with a live `i18next` instance — one that
+stays in sync as the user navigates between `/en` and `/id`.
+
+**How it's implemented.** The root layout calls `getMessages(locale)`
+server-side and passes the result straight into `TranslationsProvider` as a
+prop (`app/[locale]/layout.tsx:60`):
 
 ```tsx
-t.rich("tagline", {
-  file: (chunks) => <code>{chunks}</code>,
-});
+const messages = await getMessages(locale);
+// ...
+<TranslationsProvider locale={locale} messages={messages}>
+  <QueryProvider>{children}</QueryProvider>
+</TranslationsProvider>
 ```
 
-## Step 3: `i18n/routing.ts` — define locales once
-
-```ts
-import { defineRouting } from "next-intl/routing";
-
-export const routing = defineRouting({
-  locales: ["en", "id"],
-  defaultLocale: "en",
-});
-
-export type AppLocale = (typeof routing.locales)[number];
-```
-
-`i18n/navigation.ts` wraps `next/link` and `next/navigation` so links and redirects automatically get the right locale prefix:
-
-```ts
-import { createNavigation } from "next-intl/navigation";
-import { routing } from "./routing";
-
-export const { Link, redirect, usePathname, useRouter, getPathname } =
-  createNavigation(routing);
-```
-
-Use these (`@/i18n/navigation`) instead of `next/link` / `next/navigation` anywhere a link should stay in the current locale.
-
-## Step 4: `i18n/request.ts` — load + merge per-feature files
-
-```ts
-import { hasLocale } from "next-intl";
-import { getRequestConfig } from "next-intl/server";
-import { routing } from "./routing";
-
-export default getRequestConfig(async ({ requestLocale }) => {
-  const requested = await requestLocale;
-  const locale = hasLocale(routing.locales, requested)
-    ? requested
-    : routing.defaultLocale;
-
-  const [common, auth, transfer] = await Promise.all([
-    import(`../messages/${locale}/common.json`),
-    import(`../messages/${locale}/auth.json`),
-    import(`../messages/${locale}/transfer.json`),
-  ]);
-
-  return {
-    locale,
-    messages: {
-      Common: common.default,
-      Auth: auth.default,
-      Transfer: transfer.default,
-    },
-  };
-});
-```
-
-Translation files stay split on disk, but `next-intl` receives one merged object per request, namespaced by feature (`Common`, `Auth`, `Transfer`).
-
-Adding a new feature = add `messages/{en,id}/<feature>.json` + one more entry here (see [Adding a new feature namespace](#adding-a-new-feature-namespace)).
-
-## Step 5: Proxy file (not `middleware.ts`)
-
-```ts
-// proxy.ts (project root)
-import createMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
-
-export default createMiddleware(routing);
-
-export const config = {
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
-};
-```
-
-`next-intl/middleware` is just the name of the package export — what matters to Next.js is the **file name** (`proxy.ts`) and that the middleware function is the **default export**, since Next 16 no longer recognizes a `middleware.ts` file convention. Confirmed in the build output:
-
-```text
-ƒ Proxy (Middleware)
-```
-
-This is what performs locale detection (`Accept-Language` header, `NEXT_LOCALE` cookie) and redirects `/` → `/en` (or `/id`), and rewrites `/en/...` internally so `app/[locale]` can render it.
-
-## Step 6: Wire the plugin in `next.config.ts`
-
-```ts
-import type { NextConfig } from "next";
-import createNextIntlPlugin from "next-intl/plugin";
-
-const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default withNextIntl(nextConfig);
-```
-
-## Step 7: `app/[locale]/layout.tsx` — validate locale, provide messages
+`TranslationsProvider` (`components/translations-provider.tsx:23`) builds the
+instance exactly once, via `useState(() => createI18nInstance(...))` — the
+lazy initializer form, so the (moderately expensive) `instance.init()` call
+only runs on first mount, not every render:
 
 ```tsx
-import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
-import "../globals.css";
+const [i18n] = useState(() => createI18nInstance(locale, messages));
+```
 
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
+The interesting part is what happens on a locale change. Because
+`app/[locale]/layout.tsx` occupies the same position in the tree for `/en/*`
+and `/id/*`, React doesn't remount it when the locale segment changes — it
+just re-renders with new `locale`/`messages` props, which means the `useState`
+initializer above does **not** re-run. An effect handles the sync explicitly
+(`components/translations-provider.tsx:30`):
 
-export default async function RootLayout({
-  children,
-  params,
-}: LayoutProps<"/[locale]">) {
-  const { locale } = await params;
-
-  if (!hasLocale(routing.locales, locale)) {
-    notFound();
+```tsx
+useEffect(() => {
+  for (const ns of namespaces) {
+    if (!i18n.hasResourceBundle(locale, ns)) {
+      i18n.addResourceBundle(locale, ns, messages[ns]);
+    }
   }
+  if (i18n.language !== locale) {
+    i18n.changeLanguage(locale);
+  }
+}, [i18n, locale, messages]);
+```
 
-  const messages = await getMessages();
+| Step | What actually happens |
+|---|---|
+| `hasResourceBundle` check | Skips re-adding a locale's messages if they're already loaded — matters because this effect re-runs on every render where `messages`'s reference changes, not just on an actual locale switch |
+| `addResourceBundle` | Grafts the newly-fetched locale's messages onto the *existing* instance rather than building a new one |
+| `changeLanguage` | Triggers `react-i18next`'s re-render of every subscribed `useTranslation()`/`<Trans>` consumer |
 
+**Divergence from what you'd expect:** there's no loading state here — the
+effect assumes `messages` for the new locale already arrived by the time it
+runs, which is true in practice because the Server Component re-render
+(fetching the new locale's JSON) has to complete before React can even give
+the client new props to diff against. If that ever stopped being true (e.g.
+someone made `getMessages` genuinely async over a network call instead of a
+local `import()`), this effect would need a pending-state guard it doesn't
+currently have.
+
+## Section 4 — `i18n/settings.ts`: the shared config
+
+The single source of truth both server and client code import from:
+
+```ts
+export const locales = ["en", "id"] as const;
+export const defaultLocale: AppLocale = "en";
+export type AppLocale = (typeof locales)[number];
+
+export const namespaces = ["common", "auth", "transfer"] as const;
+export type AppNamespace = (typeof namespaces)[number];
+```
+
+| Export | Used by | Purpose |
+|---|---|---|
+| `locales` | `proxy.ts`, `generateStaticParams` in the root layout, `LocaleSwitcher` | Enumerate every supported locale |
+| `defaultLocale` | `proxy.ts`, `i18n/redirect.ts` | Fallback when no locale is known |
+| `isAppLocale()` | Every page/layout (`if (!isAppLocale(locale)) notFound()`) | Narrow the `string` route param to `AppLocale` before it's trusted |
+| `namespaces` | `i18n/server.ts`, `components/translations-provider.tsx` | Drive the `Promise.all` / `addResourceBundle` loops so a new namespace only has to be added here |
+| `getI18nOptions()` | Both `i18n/server.ts` and `translations-provider.tsx` | One shared `i18next.init()` options object, so server and client instances stay configured identically |
+
+`interpolation: { escapeValue: false }` inside `getI18nOptions`
+(`i18n/settings.ts:26`) turns off `i18next`'s default HTML-escaping of
+interpolated values. React already escapes everything it renders, so
+`i18next`'s own escaping would be redundant defense-in-depth at best — this
+is the standard `react-i18next` recommendation, not something specific to
+this app.
+
+## Section 5 — `i18n/navigation.tsx` + `i18n/redirect.ts`: locale-aware navigation
+
+**The problem:** every internal link/redirect/router call needs the current
+locale prefixed onto it (`/login` → `/en/login`), without every call site
+re-deriving that prefix by hand.
+
+**Split into two files, for a boundary reason, not a style choice.**
+`i18n/navigation.tsx` is `"use client"` — `Link`, `usePathname`, and
+`useRouter` all read the active locale via `next/navigation`'s `useParams()`
+hook (`i18n/navigation.tsx:9`), so they can only run in Client Components.
+`i18n/redirect.ts` has no such restriction: `redirect()` and `getPathname()`
+are plain functions with no hook inside them, so they're safe to import from
+Server Actions and the DAL (`feature/auth/actions.ts:3`,
+`feature/auth/dal.ts:4`) as well as from the client module above, which
+imports `getPathname` from it internally (`i18n/navigation.tsx:7`) to build
+every locale-prefixed `href` it produces.
+
+```ts
+// i18n/redirect.ts:15
+export function redirect({ href, locale = defaultLocale }: { href: string; locale?: AppLocale }): never {
+  return nextRedirect(getPathname({ href, locale }));
+}
+```
+
+`verifySession()` in the DAL uses exactly this to bounce an unauthenticated
+request before render (`feature/auth/dal.ts:12-13`):
+
+```ts
+if (!token) {
+  redirect({ href: "/login", locale });
+}
+```
+
+On the client side, `useRouter()` (`i18n/navigation.tsx:39`) wraps
+`next/navigation`'s router rather than replacing it — it spreads the real
+router first, then overrides `push`/`replace` to run the target through
+`getPathname()`:
+
+```ts
+return {
+  ...router,
+  push(href: string, options?: { locale?: AppLocale }) {
+    router.push(getPathname({ href, locale: options?.locale ?? activeLocale }));
+  },
+  replace(href, options) { /* same pattern */ },
+};
+```
+
+`LocaleSwitcher` is the one place that actually passes an explicit `locale`
+override — every other call site lets it default to whatever locale is
+currently active:
+
+```ts
+// components/locale-switcher.tsx:20-22
+function handleLocaleChange(nextLocale: AppLocale) {
+  router.replace(pathname, { locale: nextLocale });
+}
+```
+
+| Export | Where | What it's for |
+|---|---|---|
+| `Link` | `i18n/navigation.tsx:19` | Drop-in `next/link` replacement; auto-prefixes `href` unless it looks like an absolute URL |
+| `usePathname` | `i18n/navigation.tsx:29` | Returns the **locale-stripped** pathname (`/en/dashboard` → `/dashboard`) |
+| `useRouter` | `i18n/navigation.tsx:39` | `push`/`replace` that accept `{ locale }` to switch locale while navigating |
+| `getPathname` | `i18n/redirect.ts:4` | Pure `{ href, locale } → "/locale/href"` — the one function everything else in this section is built on |
+| `redirect` | `i18n/redirect.ts:15` | Server-safe locale-prefixed redirect; throws (`never`), same contract as `next/navigation`'s `redirect` |
+
+## Section 6 — Rich text: why `<Trans>` needed its own component
+
+**The problem:** one string, `common.json`'s `"tagline"`
+(`"Banking made <brand>simple</brand>."`), needs part of it wrapped in a
+styled `<span>` — not just a plain interpolated value.
+
+`react-i18next`'s answer to this is `<Trans>`, which parses the tag syntax in
+the translation string and swaps `<brand>` for a real React element supplied
+via `components`. But the home page that renders this string is a **Server
+Component** (`app/[locale]/(public)/page.tsx`) — and per Section 0, `<Trans>`
+depends on `react-i18next`'s hook-based context, so it cannot be called
+there directly. Passing the server-obtained `t`/`i18n` down as props doesn't
+work either: an `i18next` instance is a stateful class instance with methods,
+which isn't something a Server Component can hand to a Client Component as a
+prop (RSC boundaries only serialize plain data).
+
+The fix, `components/tagline.tsx`, sidesteps both problems by being its own
+tiny Client Component that reads from context instead of props — context it
+can see because it renders somewhere under the root layout's
+`TranslationsProvider`:
+
+```tsx
+"use client";
+import { Trans } from "react-i18next";
+
+export function Tagline() {
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <Trans
+      i18nKey="tagline"
+      ns="common"
+      components={{ brand: <span className="text-zinc-500 dark:text-zinc-400" /> }}
+    />
   );
 }
 ```
 
-- `generateStaticParams` lets `/en` and `/id` be statically generated at build time.
-- `hasLocale` + `notFound()` guards against an invalid `[locale]` segment (e.g. someone hitting `/fr` directly without going through the proxy).
-- `NextIntlClientProvider` makes messages available to Client Components (`"use client"`) that call `useTranslations`. Server Components can just call `getTranslations` directly and don't need the provider.
+The home page just renders `<Tagline />` (`app/[locale]/(public)/page.tsx:57`)
+in place of what would otherwise have been an inline `<Trans>` call.
 
-## Step 8: Using translations
+**Worth knowing before you add more rich text:** this pattern — a
+one-off Client Component per rich-text string — doesn't scale gracefully if
+more strings need this treatment. There's no shared "RichText" abstraction
+yet; each one currently gets its own file like `Tagline`.
 
-**Server Component** (default — preferred, zero client JS cost):
+## Cross-feature coupling
 
-```tsx
-import { getTranslations, setRequestLocale } from "next-intl/server";
+- **Auth reaches into i18n routing, not the other way around.**
+  `feature/auth/dal.ts` and `feature/auth/actions.ts` both import `redirect`
+  from `i18n/redirect.ts` so that an auth-driven redirect (unauthenticated
+  DAL check, post-logout) still lands on the locale-prefixed URL instead of a
+  bare `/login`. If someone refactors `i18n/redirect.ts`'s signature, both
+  auth call sites break, even though neither file is "about" auth otherwise.
+- **`proxy.ts` does locale redirect and auth redirect in the same request
+  pass**, in that order (`proxy.ts:29` locale check first, then the
+  auth/`SESSION_COOKIE_NAME` checks at `proxy.ts:35` onward). A request with
+  no locale prefix redirects to add one *before* the auth check ever runs —
+  so an unauthenticated hit on `/dashboard` (no locale) first becomes
+  `/en/dashboard` via one redirect, then `/en/login` via a second one on the
+  next request, not a single combined redirect.
+- **`LogoutButton` and `SiteHeader` take `locale` as an explicit prop**
+  (`components/auth/logout-button.tsx:5`, `components/navigation/site-header.tsx`)
+  rather than reading it from route params themselves — worth knowing if you
+  move either component to a route that doesn't already have `locale` in
+  scope to pass down.
 
-export default async function Page({ params }: PageProps<"/[locale]">) {
-  const { locale } = await params;
-  setRequestLocale(locale);
+## Presentational layer
 
-  const t = await getTranslations("Common");
-  return <h1>{t("appName")}</h1>;
-}
+`components/locale-switcher.tsx` and `components/theme-toggle.tsx` are both
+plain Client Components that call `useTranslation("common")` purely for
+button/menu labels (`t("language")`, `t("toggleTheme")`, etc.) — neither owns
+any translation-loading logic of its own; they're consumers of the context
+`TranslationsProvider` sets up. `LocaleSwitcher` additionally calls
+`useRouter()`/`usePathname()` from `i18n/navigation.tsx` to actually perform
+the locale switch (Section 5) — that router/pathname logic is the only part
+of the component that isn't purely presentational.
+
+## Data flow
+
+**Initial request, no locale in the URL:**
+
+```
+GET /dashboard
+  → proxy.ts: splitLocale() finds no locale prefix
+  → redirect to /en/dashboard
+  → app/[locale]/layout.tsx: isAppLocale("en") ✓, getMessages("en") loads all 3 namespaces
+  → TranslationsProvider builds one i18next instance, seeded with those messages
+  → (protected)/layout.tsx: verifySession() — no session cookie → redirect({ href: "/login", locale: "en" })
+  → /en/login renders: getTranslation("en", "auth") for the page title (Server Component),
+    LoginForm's useTranslation("auth") for the form (Client Component, same context)
 ```
 
-**Client Component** (needed for interactivity, e.g. the locale switcher):
+**Switching locale via `LocaleSwitcher` while already on a page:**
 
-```tsx
-"use client";
-import { useTranslations, useLocale } from "next-intl";
-
-export function LocaleSwitcher() {
-  const t = useTranslations("Common");
-  const locale = useLocale();
-  // ...
-}
 ```
-
-A working example of both lives in `app/[locale]/page.tsx` (server) and `components/locale-switcher.tsx` (client, uses `@/i18n/navigation`'s `useRouter`/`usePathname` to switch locale while staying on the same page).
+User clicks "ID" in the dropdown
+  → handleLocaleChange("id") → router.replace(pathname, { locale: "id" })
+  → i18n/navigation.tsx's useRouter.replace → next/navigation router.replace("/id" + pathname)
+  → app/[locale]/layout.tsx re-renders server-side with locale="id", loads id/*.json
+  → TranslationsProvider receives new locale/messages props (same instance, not remounted)
+  → effect: addResourceBundle("id", ns, ...) for each namespace not already loaded, then changeLanguage("id")
+  → every useTranslation()/<Trans> consumer re-renders with Indonesian strings
+```
 
 ## Adding a new locale
 
-1. Add the locale code to `routing.ts`'s `locales` array.
-2. Create `messages/<locale>/{common,auth,transfer}.json` with translated values for every existing key (same keys as `en`).
-3. No other code changes needed — `request.ts`, the proxy, and `generateStaticParams` all read from `routing.locales`.
+1. Add the locale code to `locales` in `i18n/settings.ts:1`.
+2. Create `messages/<locale>/{common,auth,transfer}.json` with the same keys
+   as `messages/en/*.json`.
+3. No other code changes — `i18n/server.ts`, `TranslationsProvider`, `proxy.ts`,
+   and `generateStaticParams` in the root layout all read from `locales`.
 
 ## Adding a new feature namespace
 
 1. Create `messages/en/<feature>.json` and `messages/id/<feature>.json`.
-2. Add it to the `Promise.all` + `messages` object in `i18n/request.ts`, using a `PascalCase` namespace key (e.g. `Material`).
-3. Consume with `useTranslations("Material")` / `getTranslations("Material")`.
+2. Add `"<feature>"` to the `namespaces` tuple in `i18n/settings.ts:10`.
+3. Consume it with `useTranslation("<feature>")` (client) or
+   `getTranslation(locale, "<feature>")` (server).
 
-Naming convention: keep feature file names singular or plural consistently (we use singular: `auth.json`, `transfer.json`).
+Naming convention: lowercase, singular file/namespace names
+(`auth.json`/`"auth"`, not `Auth.json`/`"Auth"` — that PascalCase convention
+was specific to the old `next-intl` setup and was dropped along with it).
 
-## Troubleshooting: "Encountered a script tag while rendering React component"
+## Final reference table
 
-This console warning showed up while building the locale switcher, even though no code in this repo writes a literal `<script>` tag. It's a symptom of a hydration break elsewhere in the tree, not a script tag you wrote:
-
-1. `LocaleSwitcher` (`components/locale-switcher.tsx`) originally rendered a native `<select>`, but its options were `DropdownMenuItem`s from `@base-ui/react`'s `Menu` primitive — which render as `<div role="menuitem">`. A `<div>` is not valid inside `<select>`, so the browser logged `In HTML, <div> cannot be a child of <select>. This will cause a hydration error.`
-2. That invalid nesting broke hydration for the page, which made Next.js Fast Refresh fall back to a client-only "full reload" of the React tree (`⚠ Fast Refresh had to perform a full reload due to a runtime error`) instead of a real server round-trip.
-3. `providers/theme-provider.tsx` wraps `next-themes`, which always renders an inline `<script>` (`dangerouslySetInnerHTML`, no `type` attribute) as its no-flash-of-unstyled-theme mechanism. This is invisible during a normal hydration because it's part of the server-rendered HTML. But when React had to rebuild the tree purely on the client instead of hydrating server markup, it created that `<script>` node via `document.createElement` — and any `<script>` element created this way is inert (browsers only execute `<script>` tags present in the originally parsed HTML), so React's DOM renderer warns: "Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client."
-
-**Fix:** rewrite `LocaleSwitcher` to use the same `DropdownMenu`/`Button` primitives as `ThemeToggle` (`components/theme-toggle.tsx`) instead of a raw `<select>`. That removes the invalid `<select>` > `<div>` nesting, so hydration no longer breaks and Fast Refresh no longer has to force a client-only remount — which is what was surfacing the (otherwise harmless) `next-themes` script tag as a warning.
-
-The lesson generalizes: if you see this specific warning without having written a `<script>` tag yourself, look for a hydration mismatch upstream (invalid HTML nesting is a common cause) rather than trying to silence the warning at its source.
+| Symbol | File | Purpose |
+|---|---|---|
+| `locales`, `defaultLocale`, `isAppLocale`, `namespaces`, `getI18nOptions` | `i18n/settings.ts` | Shared locale/namespace config |
+| `getTranslation`, `getMessages` | `i18n/server.ts` | Server Component translation reads |
+| `TranslationsProvider` | `components/translations-provider.tsx` | Client-side `i18next` instance + `<I18nextProvider>` |
+| `Tagline` | `components/tagline.tsx` | `<Trans>`-based rich text, isolated as a Client Component |
+| `Link`, `usePathname`, `useRouter` | `i18n/navigation.tsx` | Locale-aware client navigation |
+| `redirect`, `getPathname` | `i18n/redirect.ts` | Locale-aware redirect/path building, server- and client-safe |
+| `proxy` (default export) | `proxy.ts` | Locale detection/redirect + auth-path redirect, runs before render |
+| `useTranslation`, `<Trans>` | `react-i18next` (library) | Client Component translation hooks |
 
 ## Verification performed
 
 - `yarn tsc --noEmit` — clean.
-- `yarn lint` — clean.
-- `yarn build` — succeeds, `proxy.ts` correctly recognized as `ƒ Proxy (Middleware)` in route output.
-- `yarn start` (production server) — `GET /` → `307` redirect to `/en`; `GET /en` and `GET /id` → `200` with correctly localized, rich-text-rendered content.
+- `yarn lint` — clean (aside from two pre-existing, unrelated warnings in
+  `hooks/use-mobile.ts` and `providers/theme-provider.tsx`).
+- `yarn build` — succeeds; `/en` and `/id` (home, login, register) prerender
+  via `generateStaticParams`, `/dashboard` stays dynamic (behind auth).
+- Manual browser pass (Playwright): home page renders in `en` and `id`
+  including the `<Trans>`-driven tagline; `LocaleSwitcher` updates the URL and
+  every visible string instantly without a full page reload; dark mode
+  toggle's labels stay translated; visiting `/en/dashboard` signed out
+  redirects to `/en/login` (proxy + DAL both verified).

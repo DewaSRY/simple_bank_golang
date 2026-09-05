@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "react-i18next";
 import { Link, useRouter } from "@/i18n/navigation";
 import { InputField } from "@/components/form/input-field";
 import { PasswordField } from "@/components/form/password-field";
@@ -20,7 +20,7 @@ import { setClientSessionCookie } from "@/feature/auth/session-client";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
 export function RegisterForm() {
-  const t = useTranslations("Auth");
+  const { t } = useTranslation("auth");
   const router = useRouter();
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();

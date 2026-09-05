@@ -1,7 +1,7 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
-import { routing } from "@/i18n/routing";
+import { useTranslation } from "react-i18next";
+import { locales, type AppLocale } from "@/i18n/settings";
 import { usePathname, useRouter } from "@/i18n/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function LocaleSwitcher() {
-  const t = useTranslations("Common");
-  const locale = useLocale();
+  const { t } = useTranslation("common");
   const router = useRouter();
   const pathname = usePathname();
 
-  function handleLocaleChange(nextLocale: string) {
+  function handleLocaleChange(nextLocale: AppLocale) {
     router.replace(pathname, { locale: nextLocale });
   }
 
@@ -29,7 +28,7 @@ export function LocaleSwitcher() {
           <span className="cursor-pointer">{t("language")}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {routing.locales.map((loc) => (
+          {locales.map((loc) => (
             <DropdownMenuItem key={loc}>
               <Button
                 variant="ghost"

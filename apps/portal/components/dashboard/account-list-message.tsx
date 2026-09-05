@@ -1,11 +1,8 @@
 "use client";
 
-import { AlertCircle, Star, Wallet } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { getApiErrorMessage } from "@/lib/api/error";
+import { Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "../ui/card";
-import { useAccounts } from "../../feature/account/hooks/query";
 
 export function AccountListMessage({
   icon: Icon,

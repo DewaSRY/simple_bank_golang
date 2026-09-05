@@ -1,7 +1,6 @@
-import { hasLocale } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
+import { isAppLocale } from "@/i18n/settings";
+import { getTranslation } from "@/i18n/server";
 import { LoginForm } from "@/components/auth/login-form";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -11,13 +10,11 @@ export default async function LoginPage({
 }: PageProps<"/[locale]/login">) {
   const { locale } = await params;
 
-  if (!hasLocale(routing.locales, locale)) {
+  if (!isAppLocale(locale)) {
     notFound();
   }
 
-  setRequestLocale(locale);
-
-  const t = await getTranslations("Auth");
+  const { t } = await getTranslation(locale, "auth");
 
   return (
     <main className="mx-auto h-screen w-full flex items-center justify-center">

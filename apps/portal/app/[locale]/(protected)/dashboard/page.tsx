@@ -1,12 +1,11 @@
-import { hasLocale } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import {
   QueryClient,
   HydrationBoundary,
   dehydrate,
 } from "@tanstack/react-query";
-import { routing } from "@/i18n/routing";
+import { isAppLocale } from "@/i18n/settings";
+import { getTranslation } from "@/i18n/server";
 import { AccountList } from "@/components/dashboard/account-list";
 import { accountKeys, fetchAccounts } from "@/feature/account/hooks/query";
 
@@ -17,13 +16,11 @@ interface props extends PageProps<"/[locale]/dashboard"> {
 export default async function DashboardPage({ params }: props) {
   const { locale } = await params;
 
-  if (!hasLocale(routing.locales, locale)) {
+  if (!isAppLocale(locale)) {
     notFound();
   }
 
-  setRequestLocale(locale);
-
-  const t = await getTranslations("Common");
+  const { t } = await getTranslation(locale, "common");
 
   const accountParams = { page: 1, limit: 10 };
   const queryClient = new QueryClient();

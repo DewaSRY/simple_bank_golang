@@ -1,7 +1,5 @@
-import { hasLocale } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
+import { isAppLocale } from "@/i18n/settings";
 import { verifySession } from "@/feature/auth/dal";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -14,11 +12,10 @@ export default async function ProtectedLayout({
 }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
 
-  if (!hasLocale(routing.locales, locale)) {
+  if (!isAppLocale(locale)) {
     notFound();
   }
 
-  setRequestLocale(locale);
   await verifySession(locale);
 
   return (
