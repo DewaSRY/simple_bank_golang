@@ -1,18 +1,31 @@
 "use client";
-
+import { useState } from "react";
 import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
 
 import { formatBalance } from "@/lib/number";
 import { useAccounts } from "@/feature/account/hooks/query";
+import { Button } from "@/components/ui/button";
+
+import { CreateAccountDialog } from "@/components/navigation/create-account-dialog";
+import { Plus } from "lucide-react";
 
 export function NavAccountList() {
   const { data: accounts, isLoading } = useAccounts();
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
     <SidebarGroup>
+      <CreateAccountDialog open={isDialogOpen} setOpen={setIsDialogOpen} />
+
       <SidebarGroupContent className="flex flex-col gap-2">
-        <div>
+        <div className="mb-2 flex justify-between">
           <h2 className="text-lg font-bold">Accounts</h2>
+          <div>
+            <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
+              <Plus />
+            </Button>
+          </div>
         </div>
 
         <div>
