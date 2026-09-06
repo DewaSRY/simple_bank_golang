@@ -703,6 +703,20 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -998,7 +1012,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/store.TransferTxResult"
+                                            "$ref": "#/definitions/api.accountEntriesViewResponse"
                                         }
                                     }
                                 }
@@ -1320,6 +1334,12 @@ const docTemplate = `{
                 },
                 "number": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
@@ -1365,126 +1385,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "db.Account": {
-            "type": "object",
-            "properties": {
-                "balance": {
-                    "description": "Balance cannot be negative, it is the amount of money in the account",
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "description": "Soft-delete marker; NULL means active",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/sql.NullTime"
-                        }
-                    ]
-                },
-                "description": {
-                    "$ref": "#/definitions/sql.NullString"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_main": {
-                    "description": "True for the single auto-created account a user gets at registration; cannot be deleted",
-                    "type": "boolean"
-                },
-                "name": {
-                    "$ref": "#/definitions/sql.NullString"
-                },
-                "number": {
-                    "$ref": "#/definitions/sql.NullString"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "$ref": "#/definitions/sql.NullInt64"
-                }
-            }
-        },
-        "db.Transfer": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "description": "Amount cannot be negative, it is the amount of money transferred from one account to another",
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "$ref": "#/definitions/sql.NullString"
-                },
-                "from_account_id": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "to_account_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "sql.NullInt64": {
-            "type": "object",
-            "properties": {
-                "int64": {
-                    "type": "integer",
-                    "format": "int64"
-                },
-                "valid": {
-                    "description": "Valid is true if Int64 is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "sql.NullString": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if String is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "sql.NullTime": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "store.TransferTxResult": {
-            "type": "object",
-            "properties": {
-                "from_account": {
-                    "$ref": "#/definitions/db.Account"
-                },
-                "to_account": {
-                    "$ref": "#/definitions/db.Account"
-                },
-                "transfer": {
-                    "$ref": "#/definitions/db.Transfer"
                 }
             }
         }

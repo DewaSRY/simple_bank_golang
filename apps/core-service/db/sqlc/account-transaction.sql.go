@@ -350,19 +350,35 @@ func (q *Queries) ListAccountEntriesByAccountId(ctx context.Context, arg ListAcc
 }
 
 const listRecentTransferDestinations = `-- name: ListRecentTransferDestinations :many
-SELECT id, name, number, last_used_at FROM (
-    SELECT DISTINCT ON (a.id) a.id, a.name, a.number, t.created_at AS last_used_at
+SELECT 
+    id, 
+    name, 
+    number, 
+    username, 
+    user_id,
+    last_used_at 
+FROM (
+    SELECT 
+    	DISTINCT ON (a.id) a.id,
+         a.name, 
+         a.number, 
+         t.created_at AS last_used_at, 
+         u.username as username,
+         u.id as user_id
     FROM transfers t
     JOIN accounts a ON a.id = t.to_account_id
+    join users u on u.id = a.user_id
     WHERE t.from_account_id = $1 AND a.deleted_at IS NULL
     ORDER BY a.id, t.created_at DESC
 ) recent_destinations
-ORDER BY last_used_at DESC
-LIMIT $2
+ORDER BY last_used_at desc
+LIMIT $3
+OFFSET $2
 `
 
 type ListRecentTransferDestinationsParams struct {
 	FromAccountID int64 `json:"from_account_id"`
+	OffsetCount   int32 `json:"offset_count"`
 	LimitCount    int32 `json:"limit_count"`
 }
 
@@ -370,11 +386,13 @@ type ListRecentTransferDestinationsRow struct {
 	ID         int64          `json:"id"`
 	Name       sql.NullString `json:"name"`
 	Number     sql.NullString `json:"number"`
+	Username   string         `json:"username"`
+	UserID     int64          `json:"user_id"`
 	LastUsedAt time.Time      `json:"last_used_at"`
 }
 
 func (q *Queries) ListRecentTransferDestinations(ctx context.Context, arg ListRecentTransferDestinationsParams) ([]ListRecentTransferDestinationsRow, error) {
-	rows, err := q.query(ctx, q.listRecentTransferDestinationsStmt, listRecentTransferDestinations, arg.FromAccountID, arg.LimitCount)
+	rows, err := q.query(ctx, q.listRecentTransferDestinationsStmt, listRecentTransferDestinations, arg.FromAccountID, arg.OffsetCount, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}
@@ -386,6 +404,8 @@ func (q *Queries) ListRecentTransferDestinations(ctx context.Context, arg ListRe
 			&i.ID,
 			&i.Name,
 			&i.Number,
+			&i.Username,
+			&i.UserID,
 			&i.LastUsedAt,
 		); err != nil {
 			return nil, err

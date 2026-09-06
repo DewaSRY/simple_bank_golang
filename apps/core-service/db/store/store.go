@@ -48,9 +48,3 @@ func (store *_store) execTx(ctx context.Context, fn func(sqlc.Querier) error) er
 
 	return tx.Commit()
 }
-
-type TransferTxResult struct {
-	Transfer    sqlc.Transfer `json:"transfer"`
-	FromAccount sqlc.Account  `json:"from_account"`
-	ToAccount   sqlc.Account  `json:"to_account"`
-}

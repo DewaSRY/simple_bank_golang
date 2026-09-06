@@ -11,6 +11,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type TransferTxResult struct {
+	Transfer    sqlc.Transfer `json:"transfer"`
+	FromAccount sqlc.Account  `json:"from_account"`
+	ToAccount   sqlc.Account  `json:"to_account"`
+	FromEntry   sqlc.Entry    `json:"from_entry"`
+	ToEntry     sqlc.Entry    `json:"to_entry"`
+}
+
 func (store *_store) TransferTx(ctx context.Context, arg sqlc.CreateTransferParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
@@ -91,7 +99,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 
 	negativeAmount := "-" + arg.Amount
 	// Create entries for sending
-	_, err = q.CreateEntries(ctx, sqlc.CreateEntriesParams{
+	fromEntry, err := q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 		AccountID:   arg.FromAccountID,
 		Type:        constant.ENTRY_TYPE_SEND,
 		Amount:      negativeAmount,
@@ -102,6 +110,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	if err != nil {
 		return result, err
 	}
+	result.FromEntry = mapper.CreateEntriesRowToEntry(fromEntry)
 
 	//record for sending transaction
 	debitedFromAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
@@ -114,7 +123,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	}
 	result.FromAccount = mapper.UpdateBalanceAccountToAccount(debitedFromAccount)
 
-	_, err = q.CreateEntries(ctx, sqlc.CreateEntriesParams{
+	toEntry, err := q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 		AccountID:   arg.ToAccountID,
 		Type:        constant.ENTRY_TYPE_RECEIVED,
 		Amount:      arg.Amount,
@@ -125,6 +134,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	if err != nil {
 		return result, err
 	}
+	result.ToEntry = mapper.CreateEntriesRowToEntry(toEntry)
 
 	//record for receiving transaction
 	creditedToAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{

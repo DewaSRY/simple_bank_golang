@@ -93,9 +93,29 @@ func toListAccountuserResponseFromSearch(accounts []db.ListAccountsSearchByUserN
 // destination search, recent destinations) — it never exposes balance or
 // user_id.
 type publicAccountResponse struct {
-	ID     int64  `json:"id"`
-	Name   string `json:"name"`
-	Number string `json:"number"`
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Number   string `json:"number"`
+	Username string `json:"username"`
+	UserID   int64  `json:"user_id"`
+}
+
+func RecentTransferDestinationToPublicAccountResponse(account db.ListRecentTransferDestinationsRow) publicAccountResponse {
+	return publicAccountResponse{
+		ID:       account.ID,
+		Name:     account.Name.String,
+		Number:   account.Number.String,
+		Username: account.Username,
+		UserID:   account.UserID,
+	}
+}
+
+func ListRecentTransferDestinationsToPublicAccountResponse(accounts []db.ListRecentTransferDestinationsRow) []publicAccountResponse {
+	responses := make([]publicAccountResponse, len(accounts))
+	for i, account := range accounts {
+		responses[i] = RecentTransferDestinationToPublicAccountResponse(account)
+	}
+	return responses
 }
 
 type accountEntriesViewResponse struct {

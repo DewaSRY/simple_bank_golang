@@ -26,7 +26,7 @@ type createTransactionTransferRequest struct {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request  body      createTransactionTransferRequest  true  "Transfer payload"
-// @Success      200      {object}  successResponse{data=store.TransferTxResult}
+// @Success      200      {object}  successResponse{data=accountEntriesViewResponse}
 // @Failure      400      {object}  errorResponse
 // @Failure      401      {object}  errorResponse
 // @Failure      403      {object}  errorResponse
@@ -75,5 +75,11 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 		return
 	}
 
-	succeed(ctx, http.StatusOK, result, "Transfer completed successfully")
+	accountEntries, err := server.store.AccountEntriesByAccountId(ctx, result.FromEntry.ID)
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries), "Transfer completed successfully")
 }

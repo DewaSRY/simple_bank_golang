@@ -1,13 +1,28 @@
 -- name: ListRecentTransferDestinations :many
-SELECT id, name, number, last_used_at FROM (
-    SELECT DISTINCT ON (a.id) a.id, a.name, a.number, t.created_at AS last_used_at
+SELECT 
+    id, 
+    name, 
+    number, 
+    username, 
+    user_id,
+    last_used_at 
+FROM (
+    SELECT 
+    	DISTINCT ON (a.id) a.id,
+         a.name, 
+         a.number, 
+         t.created_at AS last_used_at, 
+         u.username as username,
+         u.id as user_id
     FROM transfers t
     JOIN accounts a ON a.id = t.to_account_id
+    join users u on u.id = a.user_id
     WHERE t.from_account_id = sqlc.arg(from_account_id) AND a.deleted_at IS NULL
     ORDER BY a.id, t.created_at DESC
 ) recent_destinations
-ORDER BY last_used_at DESC
-LIMIT sqlc.arg(limit_count);
+ORDER BY last_used_at desc
+LIMIT sqlc.arg(limit_count)
+OFFSET sqlc.arg(offset_count);
 
 -- name: GetAccountViewById :one
 SELECT 

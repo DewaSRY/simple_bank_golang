@@ -87,7 +87,7 @@ func (server *Server) deposit(ctx *gin.Context) {
 	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries), "Deposit completed successfully")
 }
 
-type listAccountTransactionHistoryQuery struct {
+type listAccountEntriesQuery struct {
 	paginationQuery
 	Month int32 `form:"month" binding:"omitempty,min=1,max=12"`
 	Year  int32 `form:"year" binding:"omitempty,min=1"`
@@ -118,7 +118,7 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 		return
 	}
 
-	var query listAccountTransactionHistoryQuery
+	var query listAccountEntriesQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
 		return
@@ -174,6 +174,8 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int  true  "Source account ID"
+// @Param        page   query     int  false  "Page number"     default(1)
+// @Param        limit  query     int  false  "Items per page"  default(10)
 // @Success      200  {object}  successResponse{data=[]publicAccountResponse}
 // @Failure      401  {object}  errorResponse
 // @Failure      403  {object}  errorResponse
@@ -183,6 +185,11 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 func (server *Server) listRecentTransferDestinations(ctx *gin.Context) {
 	var params manageAccountParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		return
+	}
+	var query paginationQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
 		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
 		return
 	}
@@ -203,20 +210,17 @@ func (server *Server) listRecentTransferDestinations(ctx *gin.Context) {
 		return
 	}
 
-	const recentDestinationsLimit = 5
 	destinations, err := server.store.ListRecentTransferDestinations(ctx, db.ListRecentTransferDestinationsParams{
 		FromAccountID: params.ID,
-		LimitCount:    recentDestinationsLimit,
+		LimitCount:    query.Limit,
+		OffsetCount:   query.offset(),
 	})
 	if err != nil {
 		fail(ctx, InternalErr())
 		return
 	}
 
-	responses := make([]publicAccountResponse, len(destinations))
-	for i, d := range destinations {
-		responses[i] = publicAccountResponse{ID: d.ID, Name: d.Name.String, Number: d.Number.String}
-	}
+	responses := ListRecentTransferDestinationsToPublicAccountResponse(destinations)
 
 	succeed(ctx, http.StatusOK, responses, "Recent transfer destinations retrieved successfully")
 }
