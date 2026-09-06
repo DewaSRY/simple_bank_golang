@@ -1,5 +1,8 @@
 import { BaseClient } from "../../lib/api/base-client";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+import type {
+  CommonSuccessResponse,
+  PaginationParams,
+} from "@/feature/common/type";
 
 export type AccountResponse = {
   balance: string;
@@ -48,6 +51,20 @@ export interface ListAccountsParams {
   limit?: number;
 }
 
+export interface AccountEntriesResponse {
+  account_id: number;
+  account_name: string;
+  account_number: string;
+  amount: string;
+  id: number;
+  is_main: boolean;
+  to_account_id: number;
+  to_account_name: string;
+  to_account_number: string;
+  type: string;
+  user_id: number;
+}
+
 export class AccountClient extends BaseClient {
   listAccounts({ page = 1, limit = 10 }: ListAccountsParams = {}) {
     return this.get<CommonSuccessResponse<AccountWithUserName[]>>({
@@ -82,6 +99,19 @@ export class AccountClient extends BaseClient {
   }
 
   // /accounts/{id}/deposit
+
+  getAccountEntries(
+    accountId: number,
+    { page = 1, limit = 10 }: Partial<PaginationParams>,
+  ) {
+    return this.get<CommonSuccessResponse<AccountEntriesResponse[]>>({
+      endpoint: `/accounts/${accountId}/entries`,
+      params: {
+        page,
+        limit,
+      },
+    });
+  }
 }
 
 export const accountClient = new AccountClient();

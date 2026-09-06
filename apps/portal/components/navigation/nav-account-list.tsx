@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 
 import { CreateAccountDialog } from "@/components/navigation/create-account-dialog";
 import { Plus } from "lucide-react";
+import Link from "next/link";
 
 export function NavAccountList() {
   const { data: accounts, isLoading } = useAccounts();
@@ -30,7 +31,12 @@ export function NavAccountList() {
 
         <div>
           {accounts?.map((account) => (
-            <div key={account.id} className="min-h-min! py-2 ">
+            <Link
+              key={account.id}
+              className="min-h-min! py-2 "
+              role="button"
+              href={`/account/${account.id}`}
+            >
               <div className="flex flex-col justify-between ">
                 <h2 className="text-sm ">{account.name || account.username}</h2>
                 <div>
@@ -44,7 +50,7 @@ export function NavAccountList() {
                 <span>{formatBalance(account.balance)}</span>
                 <span className="ml-0.5">{account.currency}</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </SidebarGroupContent>

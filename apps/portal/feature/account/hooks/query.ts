@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   accountClient,
+  AccountEntriesResponse,
   type AccountResponse,
   type AccountWithUserName,
   type ListAccountsParams,
   type RequestAccountbody,
 } from "@/feature/account/client";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+import type {
+  CommonSuccessResponse,
+  PaginationParams,
+} from "@/feature/common/type";
 
 /**
  * Centralized query keys for the account feature.
@@ -15,6 +19,10 @@ export const accountKeys = {
   all: ["accounts"] as const,
   list: (params: ListAccountsParams) =>
     [...accountKeys.all, "list", params] as const,
+  searchByNumber: (params: ListAccountsParams) =>
+    [...accountKeys.all, "search-by-number", params] as const,
+  entries: (accountId: number, params: ListAccountsParams) =>
+    [...accountKeys.all, "entries", accountId, params] as const,
 };
 
 export function fetchAccounts(
@@ -68,3 +76,28 @@ export const useUpdateAccountMutation = () => {
       accountClient.updateAccount(id, body).then((response) => response.data),
   });
 };
+
+/**
+ * Fetch account entries for a specific account.
+ */
+export function fetchAccountEntries(
+  accountId: number,
+  params: Partial<PaginationParams> = { page: 1, limit: 10 },
+): Promise<AccountEntriesResponse[]> {
+  return accountClient
+    .getAccountEntries(accountId, params)
+    .then((response) => response.data.data);
+}
+
+/**
+ * Hook to fetch account entries for a specific account.
+ */
+export function useAccountEntries(
+  accountId: number,
+  params: Partial<PaginationParams> = { page: 1, limit: 10 },
+) {
+  return useQuery({
+    queryKey: accountKeys.entries(accountId, params),
+    queryFn: () => fetchAccountEntries(accountId, params),
+  });
+}

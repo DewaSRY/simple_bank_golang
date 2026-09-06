@@ -27,3 +27,8 @@ export interface ErrorResponse {
 export type ApiResponse<T = unknown> = AxiosResponse<CommonSuccessResponse<T>>;
 
 export type Translate = (key: string) => string;
+
+export type PaginationParams = {
+  page: number;
+  limit: number;
+};
