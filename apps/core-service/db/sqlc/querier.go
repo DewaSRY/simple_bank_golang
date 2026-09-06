@@ -10,9 +10,10 @@ import (
 )
 
 type Querier interface {
+	AccountEntriesByAccountId(ctx context.Context, id int64) (AccountEntriesByAccountIdRow, error)
 	CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error)
 	CheckIsUsernameExist(ctx context.Context, username string) (bool, error)
-	CountAccountEntriesByAccountId(ctx context.Context, accountID int64) (int64, error)
+	CountAccountEntriesByAccountId(ctx context.Context, arg CountAccountEntriesByAccountIdParams) (int64, error)
 	CountAccountTransactionHistory(ctx context.Context, arg CountAccountTransactionHistoryParams) (int64, error)
 	CountAccountsByUserId(ctx context.Context, userID sql.NullInt64) (int64, error)
 	CountAccountsSearchByUserNumber(ctx context.Context, number sql.NullString) (int64, error)
@@ -28,7 +29,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserById(ctx context.Context, id int64) (GetUserByIdRow, error)
 	IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error)
-	ListAccountEntriesByAccountId(ctx context.Context, arg ListAccountEntriesByAccountIdParams) ([]AccountEntriesView, error)
+	ListAccountEntriesByAccountId(ctx context.Context, arg ListAccountEntriesByAccountIdParams) ([]ListAccountEntriesByAccountIdRow, error)
 	ListAccountTransactionHistory(ctx context.Context, arg ListAccountTransactionHistoryParams) ([]ListAccountTransactionHistoryRow, error)
 	ListAccountsByUserId(ctx context.Context, arg ListAccountsByUserIdParams) ([]ListAccountsByUserIdRow, error)
 	ListAccountsSearchByUserNumber(ctx context.Context, arg ListAccountsSearchByUserNumberParams) ([]ListAccountsSearchByUserNumberRow, error)

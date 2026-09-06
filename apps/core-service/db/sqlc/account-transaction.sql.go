@@ -11,6 +11,62 @@ import (
 	"time"
 )
 
+const accountEntriesByAccountId = `-- name: AccountEntriesByAccountId :one
+SELECT
+    account_name,
+    account_number,
+    is_main,
+    to_account_name,
+    to_account_number,
+    id,
+    created_at,
+    user_id,
+    account_id,
+    to_account_id,
+    type,
+    amount,
+    description
+FROM account_entries_view
+WHERE id = $1
+`
+
+type AccountEntriesByAccountIdRow struct {
+	AccountName     sql.NullString `json:"account_name"`
+	AccountNumber   sql.NullString `json:"account_number"`
+	IsMain          sql.NullBool   `json:"is_main"`
+	ToAccountName   sql.NullString `json:"to_account_name"`
+	ToAccountNumber sql.NullString `json:"to_account_number"`
+	ID              int64          `json:"id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UserID          sql.NullInt64  `json:"user_id"`
+	AccountID       int64          `json:"account_id"`
+	ToAccountID     sql.NullInt64  `json:"to_account_id"`
+	Type            string         `json:"type"`
+	Amount          string         `json:"amount"`
+	Description     sql.NullString `json:"description"`
+}
+
+func (q *Queries) AccountEntriesByAccountId(ctx context.Context, id int64) (AccountEntriesByAccountIdRow, error) {
+	row := q.queryRow(ctx, q.accountEntriesByAccountIdStmt, accountEntriesByAccountId, id)
+	var i AccountEntriesByAccountIdRow
+	err := row.Scan(
+		&i.AccountName,
+		&i.AccountNumber,
+		&i.IsMain,
+		&i.ToAccountName,
+		&i.ToAccountNumber,
+		&i.ID,
+		&i.CreatedAt,
+		&i.UserID,
+		&i.AccountID,
+		&i.ToAccountID,
+		&i.Type,
+		&i.Amount,
+		&i.Description,
+	)
+	return i, err
+}
+
 const checkIsAccountWithIdExist = `-- name: CheckIsAccountWithIdExist :one
 SELECT EXISTS (
     SELECT 1
@@ -24,6 +80,43 @@ func (q *Queries) CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const countAccountEntriesByAccountId = `-- name: CountAccountEntriesByAccountId :one
+SELECT COUNT(*)
+FROM account_entries_view
+WHERE account_id = $1
+  AND (
+      $2::timestamptz IS NULL
+      OR created_at >= $2::timestamptz
+  )
+  AND (
+      $3::timestamptz IS NULL
+      OR created_at < $3::timestamptz
+  )
+  AND (
+      $4::varchar IS NULL
+      OR type = $4::varchar
+  )
+`
+
+type CountAccountEntriesByAccountIdParams struct {
+	AccountID   int64          `json:"account_id"`
+	PeriodStart sql.NullTime   `json:"period_start"`
+	PeriodEnd   sql.NullTime   `json:"period_end"`
+	EntryType   sql.NullString `json:"entry_type"`
+}
+
+func (q *Queries) CountAccountEntriesByAccountId(ctx context.Context, arg CountAccountEntriesByAccountIdParams) (int64, error) {
+	row := q.queryRow(ctx, q.countAccountEntriesByAccountIdStmt, countAccountEntriesByAccountId,
+		arg.AccountID,
+		arg.PeriodStart,
+		arg.PeriodEnd,
+		arg.EntryType,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getAccountByIdForUpdate = `-- name: GetAccountByIdForUpdate :one
@@ -151,6 +244,109 @@ func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAcco
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listAccountEntriesByAccountId = `-- name: ListAccountEntriesByAccountId :many
+SELECT
+    account_name,
+    account_number,
+    is_main,
+    to_account_name,
+    to_account_number,
+    id,
+    created_at,
+    user_id,
+    account_id,
+    to_account_id,
+    type,
+    amount,
+    description
+FROM account_entries_view
+WHERE account_id = $1
+  AND (
+      $2::timestamptz IS NULL
+      OR created_at >= $2::timestamptz
+  )
+  AND (
+      $3::timestamptz IS NULL
+      OR created_at < $3::timestamptz
+  )
+  AND (
+      $4::varchar IS NULL
+      OR type = $4::varchar
+  )
+ORDER BY created_at DESC, id DESC
+LIMIT $6
+OFFSET $5
+`
+
+type ListAccountEntriesByAccountIdParams struct {
+	AccountID   int64          `json:"account_id"`
+	PeriodStart sql.NullTime   `json:"period_start"`
+	PeriodEnd   sql.NullTime   `json:"period_end"`
+	EntryType   sql.NullString `json:"entry_type"`
+	OffsetCount int32          `json:"offset_count"`
+	LimitCount  int32          `json:"limit_count"`
+}
+
+type ListAccountEntriesByAccountIdRow struct {
+	AccountName     sql.NullString `json:"account_name"`
+	AccountNumber   sql.NullString `json:"account_number"`
+	IsMain          sql.NullBool   `json:"is_main"`
+	ToAccountName   sql.NullString `json:"to_account_name"`
+	ToAccountNumber sql.NullString `json:"to_account_number"`
+	ID              int64          `json:"id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UserID          sql.NullInt64  `json:"user_id"`
+	AccountID       int64          `json:"account_id"`
+	ToAccountID     sql.NullInt64  `json:"to_account_id"`
+	Type            string         `json:"type"`
+	Amount          string         `json:"amount"`
+	Description     sql.NullString `json:"description"`
+}
+
+func (q *Queries) ListAccountEntriesByAccountId(ctx context.Context, arg ListAccountEntriesByAccountIdParams) ([]ListAccountEntriesByAccountIdRow, error) {
+	rows, err := q.query(ctx, q.listAccountEntriesByAccountIdStmt, listAccountEntriesByAccountId,
+		arg.AccountID,
+		arg.PeriodStart,
+		arg.PeriodEnd,
+		arg.EntryType,
+		arg.OffsetCount,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAccountEntriesByAccountIdRow{}
+	for rows.Next() {
+		var i ListAccountEntriesByAccountIdRow
+		if err := rows.Scan(
+			&i.AccountName,
+			&i.AccountNumber,
+			&i.IsMain,
+			&i.ToAccountName,
+			&i.ToAccountNumber,
+			&i.ID,
+			&i.CreatedAt,
+			&i.UserID,
+			&i.AccountID,
+			&i.ToAccountID,
+			&i.Type,
+			&i.Amount,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listRecentTransferDestinations = `-- name: ListRecentTransferDestinations :many

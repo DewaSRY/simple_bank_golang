@@ -1,5 +1,3 @@
-
-
 -- name: ListRecentTransferDestinations :many
 SELECT id, name, number, last_used_at FROM (
     SELECT DISTINCT ON (a.id) a.id, a.name, a.number, t.created_at AS last_used_at
@@ -45,3 +43,71 @@ SELECT EXISTS (
     FROM accounts
     WHERE id = $1 AND deleted_at IS NULL
 );
+
+-- name: ListAccountEntriesByAccountId :many
+SELECT
+    account_name,
+    account_number,
+    is_main,
+    to_account_name,
+    to_account_number,
+    id,
+    created_at,
+    user_id,
+    account_id,
+    to_account_id,
+    type,
+    amount,
+    description
+FROM account_entries_view
+WHERE account_id = sqlc.arg(account_id)
+  AND (
+      sqlc.narg(period_start)::timestamptz IS NULL
+      OR created_at >= sqlc.narg(period_start)::timestamptz
+  )
+  AND (
+      sqlc.narg(period_end)::timestamptz IS NULL
+      OR created_at < sqlc.narg(period_end)::timestamptz
+  )
+  AND (
+      sqlc.narg(entry_type)::varchar IS NULL
+      OR type = sqlc.narg(entry_type)::varchar
+  )
+ORDER BY created_at DESC, id DESC
+LIMIT sqlc.arg(limit_count)
+OFFSET sqlc.arg(offset_count);
+
+-- name: CountAccountEntriesByAccountId :one
+SELECT COUNT(*)
+FROM account_entries_view
+WHERE account_id = sqlc.arg(account_id)
+  AND (
+      sqlc.narg(period_start)::timestamptz IS NULL
+      OR created_at >= sqlc.narg(period_start)::timestamptz
+  )
+  AND (
+      sqlc.narg(period_end)::timestamptz IS NULL
+      OR created_at < sqlc.narg(period_end)::timestamptz
+  )
+  AND (
+      sqlc.narg(entry_type)::varchar IS NULL
+      OR type = sqlc.narg(entry_type)::varchar
+  );
+
+-- name: AccountEntriesByAccountId :one
+SELECT
+    account_name,
+    account_number,
+    is_main,
+    to_account_name,
+    to_account_number,
+    id,
+    created_at,
+    user_id,
+    account_id,
+    to_account_id,
+    type,
+    amount,
+    description
+FROM account_entries_view
+WHERE id = $1;

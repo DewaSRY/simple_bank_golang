@@ -533,7 +533,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/store.DepositTxResult"
+                                            "$ref": "#/definitions/api.accountEntriesViewResponse"
                                         }
                                     }
                                 }
@@ -595,6 +595,18 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Month (1-12), defaults to the current month",
+                        "name": "month",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Year, defaults to the current year",
+                        "name": "year",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
@@ -713,114 +725,6 @@ const docTemplate = `{
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/{id}/transactions": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "List an account's deposit and transfer entries for a given month, defaulting to the current month",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts-transaction"
-                ],
-                "summary": "List account transaction history",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Account ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Month (1-12), defaults to the current month",
-                        "name": "month",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Year, defaults to the current year",
-                        "name": "year",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.successResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/api.transactionHistoryItem"
-                                            }
-                                        },
-                                        "meta": {
-                                            "$ref": "#/definitions/api.Meta"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
                         }
                     },
                     "401": {
@@ -1453,46 +1357,6 @@ const docTemplate = `{
                 "meta": {}
             }
         },
-        "api.transactionHistoryCounterparty": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "number": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.transactionHistoryItem": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "string"
-                },
-                "counterparty": {
-                    "$ref": "#/definitions/api.transactionHistoryCounterparty"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "label": {
-                    "type": "string"
-                }
-            }
-        },
         "api.updateAccountRequest": {
             "type": "object",
             "properties": {
@@ -1546,32 +1410,6 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "$ref": "#/definitions/sql.NullInt64"
-                }
-            }
-        },
-        "db.CreateEntriesRow": {
-            "type": "object",
-            "properties": {
-                "account_id": {
-                    "type": "integer"
-                },
-                "amount": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "$ref": "#/definitions/sql.NullString"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "transfer_id": {
-                    "$ref": "#/definitions/sql.NullInt64"
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },
@@ -1633,17 +1471,6 @@ const docTemplate = `{
                 "valid": {
                     "description": "Valid is true if Time is not NULL",
                     "type": "boolean"
-                }
-            }
-        },
-        "store.DepositTxResult": {
-            "type": "object",
-            "properties": {
-                "account": {
-                    "$ref": "#/definitions/db.Account"
-                },
-                "entry": {
-                    "$ref": "#/definitions/db.CreateEntriesRow"
                 }
             }
         },

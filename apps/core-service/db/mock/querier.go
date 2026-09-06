@@ -42,6 +42,21 @@ func (m *MockQuerier) EXPECT() *MockQuerierMockRecorder {
 	return m.recorder
 }
 
+// AccountEntriesByAccountId mocks base method.
+func (m *MockQuerier) AccountEntriesByAccountId(ctx context.Context, id int64) (db.AccountEntriesByAccountIdRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AccountEntriesByAccountId", ctx, id)
+	ret0, _ := ret[0].(db.AccountEntriesByAccountIdRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AccountEntriesByAccountId indicates an expected call of AccountEntriesByAccountId.
+func (mr *MockQuerierMockRecorder) AccountEntriesByAccountId(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountEntriesByAccountId", reflect.TypeOf((*MockQuerier)(nil).AccountEntriesByAccountId), ctx, id)
+}
+
 // CheckIsAccountWithIdExist mocks base method.
 func (m *MockQuerier) CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error) {
 	m.ctrl.T.Helper()
@@ -73,18 +88,18 @@ func (mr *MockQuerierMockRecorder) CheckIsUsernameExist(ctx, username any) *gomo
 }
 
 // CountAccountEntriesByAccountId mocks base method.
-func (m *MockQuerier) CountAccountEntriesByAccountId(ctx context.Context, accountID int64) (int64, error) {
+func (m *MockQuerier) CountAccountEntriesByAccountId(ctx context.Context, arg db.CountAccountEntriesByAccountIdParams) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountAccountEntriesByAccountId", ctx, accountID)
+	ret := m.ctrl.Call(m, "CountAccountEntriesByAccountId", ctx, arg)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountAccountEntriesByAccountId indicates an expected call of CountAccountEntriesByAccountId.
-func (mr *MockQuerierMockRecorder) CountAccountEntriesByAccountId(ctx, accountID any) *gomock.Call {
+func (mr *MockQuerierMockRecorder) CountAccountEntriesByAccountId(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountEntriesByAccountId", reflect.TypeOf((*MockQuerier)(nil).CountAccountEntriesByAccountId), ctx, accountID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountEntriesByAccountId", reflect.TypeOf((*MockQuerier)(nil).CountAccountEntriesByAccountId), ctx, arg)
 }
 
 // CountAccountTransactionHistory mocks base method.
@@ -313,10 +328,10 @@ func (mr *MockQuerierMockRecorder) IncrementAccountBalance(ctx, arg any) *gomock
 }
 
 // ListAccountEntriesByAccountId mocks base method.
-func (m *MockQuerier) ListAccountEntriesByAccountId(ctx context.Context, arg db.ListAccountEntriesByAccountIdParams) ([]db.AccountEntriesView, error) {
+func (m *MockQuerier) ListAccountEntriesByAccountId(ctx context.Context, arg db.ListAccountEntriesByAccountIdParams) ([]db.ListAccountEntriesByAccountIdRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAccountEntriesByAccountId", ctx, arg)
-	ret0, _ := ret[0].([]db.AccountEntriesView)
+	ret0, _ := ret[0].([]db.ListAccountEntriesByAccountIdRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

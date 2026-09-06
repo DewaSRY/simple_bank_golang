@@ -36,6 +36,7 @@ type AccountEntriesView struct {
 	ID              int64          `json:"id"`
 	UserID          sql.NullInt64  `json:"user_id"`
 	AccountID       int64          `json:"account_id"`
+	CreatedAt       time.Time      `json:"created_at"`
 	ToAccountID     sql.NullInt64  `json:"to_account_id"`
 	Type            string         `json:"type"`
 	Amount          string         `json:"amount"`

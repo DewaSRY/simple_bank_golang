@@ -24,6 +24,9 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.accountEntriesByAccountIdStmt, err = db.PrepareContext(ctx, accountEntriesByAccountId); err != nil {
+		return nil, fmt.Errorf("error preparing query AccountEntriesByAccountId: %w", err)
+	}
 	if q.checkIsAccountWithIdExistStmt, err = db.PrepareContext(ctx, checkIsAccountWithIdExist); err != nil {
 		return nil, fmt.Errorf("error preparing query CheckIsAccountWithIdExist: %w", err)
 	}
@@ -107,6 +110,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.accountEntriesByAccountIdStmt != nil {
+		if cerr := q.accountEntriesByAccountIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing accountEntriesByAccountIdStmt: %w", cerr)
+		}
+	}
 	if q.checkIsAccountWithIdExistStmt != nil {
 		if cerr := q.checkIsAccountWithIdExistStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing checkIsAccountWithIdExistStmt: %w", cerr)
@@ -276,6 +284,7 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                                  DBTX
 	tx                                  *sql.Tx
+	accountEntriesByAccountIdStmt       *sql.Stmt
 	checkIsAccountWithIdExistStmt       *sql.Stmt
 	checkIsUsernameExistStmt            *sql.Stmt
 	countAccountEntriesByAccountIdStmt  *sql.Stmt
@@ -308,6 +317,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                                  tx,
 		tx:                                  tx,
+		accountEntriesByAccountIdStmt:       q.accountEntriesByAccountIdStmt,
 		checkIsAccountWithIdExistStmt:       q.checkIsAccountWithIdExistStmt,
 		checkIsUsernameExistStmt:            q.checkIsUsernameExistStmt,
 		countAccountEntriesByAccountIdStmt:  q.countAccountEntriesByAccountIdStmt,

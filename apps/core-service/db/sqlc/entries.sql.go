@@ -11,19 +11,6 @@ import (
 	"time"
 )
 
-const countAccountEntriesByAccountId = `-- name: CountAccountEntriesByAccountId :one
-SELECT COUNT(*)
-FROM account_entries_view
-WHERE account_id = $1
-`
-
-func (q *Queries) CountAccountEntriesByAccountId(ctx context.Context, accountID int64) (int64, error) {
-	row := q.queryRow(ctx, q.countAccountEntriesByAccountIdStmt, countAccountEntriesByAccountId, accountID)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
 const countAccountTransactionHistory = `-- name: CountAccountTransactionHistory :one
 SELECT COUNT(*) FROM entries
 WHERE account_id = $1
@@ -94,68 +81,6 @@ func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (C
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const listAccountEntriesByAccountId = `-- name: ListAccountEntriesByAccountId :many
-SELECT
-    account_name,
-    account_number,
-    is_main,
-    to_account_name,
-    to_account_number,
-    id,
-    user_id,
-    account_id,
-    to_account_id,
-    type,
-    amount,
-    description
-FROM account_entries_view
-WHERE account_id = $1
-ORDER BY id DESC
-LIMIT $2 OFFSET $3
-`
-
-type ListAccountEntriesByAccountIdParams struct {
-	AccountID int64 `json:"account_id"`
-	Limit     int32 `json:"limit"`
-	Offset    int32 `json:"offset"`
-}
-
-func (q *Queries) ListAccountEntriesByAccountId(ctx context.Context, arg ListAccountEntriesByAccountIdParams) ([]AccountEntriesView, error) {
-	rows, err := q.query(ctx, q.listAccountEntriesByAccountIdStmt, listAccountEntriesByAccountId, arg.AccountID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []AccountEntriesView{}
-	for rows.Next() {
-		var i AccountEntriesView
-		if err := rows.Scan(
-			&i.AccountName,
-			&i.AccountNumber,
-			&i.IsMain,
-			&i.ToAccountName,
-			&i.ToAccountNumber,
-			&i.ID,
-			&i.UserID,
-			&i.AccountID,
-			&i.ToAccountID,
-			&i.Type,
-			&i.Amount,
-			&i.Description,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listAccountTransactionHistory = `-- name: ListAccountTransactionHistory :many

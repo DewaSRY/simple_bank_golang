@@ -12,6 +12,7 @@ SELECT
     e.id, 
     e.user_id,
     e.account_id,
+    e.created_at,
     at.id as to_account_id,
     e.type,
     e.amount,
