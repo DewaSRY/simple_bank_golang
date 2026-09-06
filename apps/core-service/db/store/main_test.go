@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func newTestStore(t *testing.T) *Store {
+func newTestStore(t *testing.T) Storer {
 	t.Helper()
 	return NewStore(testDB)
 }

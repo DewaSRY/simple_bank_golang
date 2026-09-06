@@ -4,24 +4,33 @@ import (
 	"context"
 	"fmt"
 
+	db "github.com/DewaSRY/core-service/db/sqlc"
 	sqlc "github.com/DewaSRY/core-service/db/sqlc"
 
 	"database/sql"
 )
 
-type Store struct {
+type Storer interface {
+	db.Querier
+	TransferTx(ctx context.Context, arg db.CreateTransferParams) (TransferTxResult, error)
+	CreateAccountTx(ctx context.Context, arg CreateAccountTxParams) (db.Account, error)
+	DepositTx(ctx context.Context, arg DepositTxParams) (DepositTxResult, error)
+	DeleteAccountTx(ctx context.Context, arg DeleteAccountTxParams) (DeleteAccountTxResult, error)
+}
+
+type _store struct {
 	*sqlc.Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Storer {
+	return &_store{
 		db:      db,
 		Queries: sqlc.New(db),
 	}
 }
 
-func (store *Store) execTx(ctx context.Context, fn func(sqlc.Querier) error) error {
+func (store *_store) execTx(ctx context.Context, fn func(sqlc.Querier) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

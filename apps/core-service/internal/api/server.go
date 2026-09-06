@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 
-	db "github.com/DewaSRY/core-service/db/sqlc"
 	store "github.com/DewaSRY/core-service/db/store"
 	config "github.com/DewaSRY/core-service/internal/config"
 	"github.com/DewaSRY/core-service/internal/token"
@@ -21,23 +19,16 @@ import (
 // Storer is everything a Server needs from the persistence layer: every
 // sqlc query plus the store's hand-written transactions. *store.Store
 // satisfies this automatically, and tests can swap in a mock instead.
-type Storer interface {
-	db.Querier
-	TransferTx(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error)
-	CreateAccountTx(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
-	DepositTx(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error)
-	DeleteAccountTx(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error)
-}
 
 // Server wires HTTP handlers to the underlying store.
 type Server struct {
-	store      Storer
+	store      store.Storer
 	config     config.Config
 	tokenMaker token.Maker
 	router     *gin.Engine
 }
 
-func NewServer(store Storer, cfg config.Config) (*Server, error) {
+func NewServer(store store.Storer, cfg config.Config) (*Server, error) {
 	registerValidatorFieldNames()
 
 	tokenMaker, err := token.NewJWTMaker(cfg.JWTSecretKey)

@@ -63,7 +63,7 @@ func (m *mockStorer) DeleteAccountTx(ctx context.Context, arg store.DeleteAccoun
 	return store.DeleteAccountTxResult{}, nil
 }
 
-func newTestServerWithStorer(t *testing.T, storer Storer) *Server {
+func newTestServerWithStorer(t *testing.T, storer store.Storer) *Server {
 	gin.SetMode(gin.TestMode)
 
 	cfg := config.Config{

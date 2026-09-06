@@ -11,7 +11,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func (store *Store) TransferTx(ctx context.Context, arg sqlc.CreateTransferParams) (TransferTxResult, error) {
+func (store *_store) TransferTx(ctx context.Context, arg sqlc.CreateTransferParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q sqlc.Querier) error {
