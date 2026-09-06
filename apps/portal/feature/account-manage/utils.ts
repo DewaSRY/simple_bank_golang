@@ -1,4 +1,4 @@
-import type { AccountEntriesResponse } from "./type";
+import type { AccountEntriesResponse } from "@/feature/account/client";
 
 export function formatAccountAmount(
   amount: string,

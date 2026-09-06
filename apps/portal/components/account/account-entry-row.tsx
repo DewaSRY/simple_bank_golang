@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import type { AccountEntriesResponse } from "@/feature/account/client";
+import type { AccountEntriesResponse } from "@/feature/account-transaction/type";
 import {
   formatAccountAmount,
   getEntryLabel,
