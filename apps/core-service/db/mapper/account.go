@@ -60,20 +60,6 @@ func SoftDeleteAccountRowToAccount(row sqlc.SoftDeleteAccountRow) sqlc.Account {
 	}
 }
 
-func GetMainAccountByUserIdRowToAccount(row sqlc.GetMainAccountByUserIdRow) sqlc.Account {
-	return sqlc.Account{
-		ID:          row.ID,
-		Balance:     row.Balance,
-		Currency:    row.Currency,
-		UserID:      row.UserID,
-		Number:      row.Number,
-		Name:        row.Name,
-		Description: row.Description,
-		IsMain:      row.IsMain,
-		CreatedAt:   row.CreatedAt,
-	}
-}
-
 func GetAccountByIdRowToAccount(row sqlc.GetAccountByIdRow) sqlc.Account {
 	return sqlc.Account{
 		ID:          row.ID,
