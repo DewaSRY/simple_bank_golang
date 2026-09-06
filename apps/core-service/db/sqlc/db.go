@@ -60,6 +60,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getAccountByIdForUpdateStmt, err = db.PrepareContext(ctx, getAccountByIdForUpdate); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccountByIdForUpdate: %w", err)
 	}
+	if q.getAccountViewByIdStmt, err = db.PrepareContext(ctx, getAccountViewById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAccountViewById: %w", err)
+	}
 	if q.getMainAccountByUserIdStmt, err = db.PrepareContext(ctx, getMainAccountByUserId); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMainAccountByUserId: %w", err)
 	}
@@ -162,6 +165,11 @@ func (q *Queries) Close() error {
 	if q.getAccountByIdForUpdateStmt != nil {
 		if cerr := q.getAccountByIdForUpdateStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAccountByIdForUpdateStmt: %w", cerr)
+		}
+	}
+	if q.getAccountViewByIdStmt != nil {
+		if cerr := q.getAccountViewByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAccountViewByIdStmt: %w", cerr)
 		}
 	}
 	if q.getMainAccountByUserIdStmt != nil {
@@ -280,6 +288,7 @@ type Queries struct {
 	createUserStmt                      *sql.Stmt
 	getAccountByIdStmt                  *sql.Stmt
 	getAccountByIdForUpdateStmt         *sql.Stmt
+	getAccountViewByIdStmt              *sql.Stmt
 	getMainAccountByUserIdStmt          *sql.Stmt
 	getTransferByIdStmt                 *sql.Stmt
 	getUserByEmailStmt                  *sql.Stmt
@@ -311,6 +320,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createUserStmt:                      q.createUserStmt,
 		getAccountByIdStmt:                  q.getAccountByIdStmt,
 		getAccountByIdForUpdateStmt:         q.getAccountByIdForUpdateStmt,
+		getAccountViewByIdStmt:              q.getAccountViewByIdStmt,
 		getMainAccountByUserIdStmt:          q.getMainAccountByUserIdStmt,
 		getTransferByIdStmt:                 q.getTransferByIdStmt,
 		getUserByEmailStmt:                  q.getUserByEmailStmt,

@@ -1,10 +1,13 @@
 package api
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 
+	"github.com/DewaSRY/core-service/db/store"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 // AppError is the one error type handlers report through fail(ctx, err).
@@ -101,5 +104,32 @@ func errorHandlerMiddleware() gin.HandlerFunc {
 			Code:    errCodeInternal,
 			Message: "internal server error",
 		}})
+	}
+}
+
+// transferAppError maps a transferTx/depositTx failure to an AppError. This
+// is the only piece of these endpoints that's specific to money movement —
+// the actual response rendering is shared with every other endpoint via
+// fail/AppError.
+func transferAppError(err error) *AppError {
+	var pqErr *pq.Error
+
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return NotFoundErr("account not found")
+	case errors.Is(err, store.ErrSameAccount):
+		return BadRequestErr(errCodeValidation, err.Error())
+	case errors.Is(err, store.ErrInvalidAmount):
+		return ValidationErr(FieldError{Field: "amount", Message: err.Error()})
+	case errors.Is(err, store.ErrCurrencyMismatch):
+		return BadRequestErr(errCodeCurrencyMismatch, err.Error())
+	case errors.Is(err, store.ErrInsufficientFunds):
+		return ConflictErr(errCodeInsufficientFunds, err.Error())
+	case errors.As(err, &pqErr) && pqErr.Code.Name() == "check_violation":
+		return ConflictErr(errCodeInsufficientFunds, "insufficient funds")
+	case errors.As(err, &pqErr) && pqErr.Code.Name() == "foreign_key_violation":
+		return BadRequestErr(errCodeNotFound, "account not found")
+	default:
+		return InternalErr()
 	}
 }

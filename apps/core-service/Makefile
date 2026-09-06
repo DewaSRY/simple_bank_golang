@@ -10,7 +10,6 @@ migrate-create:
 migrate-up:
 	go run ./cmd/migration/main.go up
 
-
 migrate-down:
 	go run ./cmd/migration/main.go down
 

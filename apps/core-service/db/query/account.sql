@@ -37,6 +37,22 @@ SELECT id, balance, currency, user_id, number, name, description, is_main, creat
 FROM accounts
 WHERE id = $1 AND deleted_at IS NULL;
 
+-- name: GetAccountViewById :one
+SELECT 
+    id,
+    balance,
+    currency,
+    created_at,
+    updated_at,
+    user_id,
+    name,
+    description,
+    is_main,
+    username,
+    number
+FROM account_user_details_view
+WHERE id = $1;
+
 -- name: GetAccountByIdForUpdate :one
 SELECT id, balance, currency, user_id, number, name, description, is_main, created_at
 FROM accounts

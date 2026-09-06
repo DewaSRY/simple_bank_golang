@@ -22,6 +22,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error)
 	GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAccountByIdForUpdateRow, error)
+	GetAccountViewById(ctx context.Context, id int64) (GetAccountViewByIdRow, error)
 	GetMainAccountByUserId(ctx context.Context, userID sql.NullInt64) (GetMainAccountByUserIdRow, error)
 	GetTransferById(ctx context.Context, id int64) (Transfer, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)

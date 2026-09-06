@@ -35,6 +35,8 @@ definitions:
         type: string
       amount:
         type: string
+      description:
+        type: string
       id:
         type: integer
       is_main:
@@ -481,7 +483,52 @@ paths:
       - BearerAuth: []
       summary: Delete an account
       tags:
-      - accounts
+      - accounts-manage
+    get:
+      description: Retrieve the details of an account owned by the authenticated user
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.accountuserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get account details
+      tags:
+      - accounts-manage
     put:
       consumes:
       - application/json
@@ -535,7 +582,7 @@ paths:
       - BearerAuth: []
       summary: Update an account
       tags:
-      - accounts
+      - accounts-manage
   /accounts/{id}/deposit:
     post:
       consumes:
@@ -589,7 +636,7 @@ paths:
       - BearerAuth: []
       summary: Deposit into an account
       tags:
-      - accounts
+      - accounts-transaction
   /accounts/{id}/entries:
     get:
       description: List ledger entries for an account owned by the authenticated user,
@@ -620,7 +667,9 @@ paths:
             - $ref: '#/definitions/api.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.accountEntriesViewResponse'
+                  items:
+                    $ref: '#/definitions/api.accountEntriesViewResponse'
+                  type: array
                 meta:
                   $ref: '#/definitions/api.Meta'
               type: object
@@ -648,7 +697,7 @@ paths:
       - BearerAuth: []
       summary: List account entries
       tags:
-      - accounts
+      - accounts-transaction
   /accounts/{id}/recent-destinations:
     get:
       description: List accounts recently transferred to from an account owned by
@@ -693,7 +742,7 @@ paths:
       - BearerAuth: []
       summary: List recent transfer destinations
       tags:
-      - accounts
+      - accounts-transaction
   /accounts/{id}/transactions:
     get:
       description: List an account's deposit and transfer entries for a given month,
@@ -762,7 +811,7 @@ paths:
       - BearerAuth: []
       summary: List account transaction history
       tags:
-      - accounts
+      - accounts-transaction
   /accounts/search-by-number:
     get:
       description: Look up a destination account by its account number, for picking

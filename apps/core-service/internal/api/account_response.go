@@ -111,6 +111,7 @@ type accountEntriesViewResponse struct {
 	UserID          int64  `json:"user_id"`
 	ToAccountID     int64  `json:"to_account_id"`
 	Type            string `json:"type"`
+	Description     string `json:"description"`
 }
 
 func toAccountEntriesViewResponse(entry db.AccountEntriesView) accountEntriesViewResponse {
@@ -126,6 +127,7 @@ func toAccountEntriesViewResponse(entry db.AccountEntriesView) accountEntriesVie
 		UserID:          entry.UserID.Int64,
 		ToAccountID:     entry.ToAccountID.Int64,
 		Type:            entry.Type,
+		Description:     entry.Description.String,
 	}
 }
 
@@ -135,4 +137,35 @@ func toListAccountEntriesViewResponse(entries []db.AccountEntriesView) []account
 		accountEntriesViewResponses[i] = toAccountEntriesViewResponse(entry)
 	}
 	return accountEntriesViewResponses
+}
+
+func toPublicAccountResponse(account db.GetAccountViewByIdRow) accountuserResponse {
+	return accountuserResponse{
+		ID:          account.ID,
+		Balance:     account.Balance,
+		Currency:    account.Currency,
+		UserID:      account.UserID.Int64,
+		Number:      account.Number.String,
+		Name:        account.Name.String,
+		Description: account.Description.String,
+		IsMain:      account.IsMain,
+		CreatedAt:   account.CreatedAt.Format("2006-01-02 15:04:05"),
+		Username:    account.Username.String,
+	}
+}
+
+type transactionHistoryCounterparty struct {
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	Number string `json:"number"`
+}
+
+type transactionHistoryItem struct {
+	ID           int64                           `json:"id"`
+	Label        string                          `json:"label"`
+	Amount       string                          `json:"amount"`
+	Currency     string                          `json:"currency"`
+	Description  string                          `json:"description"`
+	CreatedAt    string                          `json:"created_at"`
+	Counterparty *transactionHistoryCounterparty `json:"counterparty"`
 }

@@ -185,6 +185,56 @@ func (q *Queries) GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAcc
 	return i, err
 }
 
+const getAccountViewById = `-- name: GetAccountViewById :one
+SELECT 
+    id,
+    balance,
+    currency,
+    created_at,
+    updated_at,
+    user_id,
+    name,
+    description,
+    is_main,
+    username,
+    number
+FROM account_user_details_view
+WHERE id = $1
+`
+
+type GetAccountViewByIdRow struct {
+	ID          int64          `json:"id"`
+	Balance     string         `json:"balance"`
+	Currency    string         `json:"currency"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	UserID      sql.NullInt64  `json:"user_id"`
+	Name        sql.NullString `json:"name"`
+	Description sql.NullString `json:"description"`
+	IsMain      bool           `json:"is_main"`
+	Username    sql.NullString `json:"username"`
+	Number      sql.NullString `json:"number"`
+}
+
+func (q *Queries) GetAccountViewById(ctx context.Context, id int64) (GetAccountViewByIdRow, error) {
+	row := q.queryRow(ctx, q.getAccountViewByIdStmt, getAccountViewById, id)
+	var i GetAccountViewByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.Name,
+		&i.Description,
+		&i.IsMain,
+		&i.Username,
+		&i.Number,
+	)
+	return i, err
+}
+
 const getMainAccountByUserId = `-- name: GetMainAccountByUserId :one
 SELECT id, balance, currency, user_id, number, name, description, is_main, created_at
 FROM accounts
