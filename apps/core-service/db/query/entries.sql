@@ -12,17 +12,6 @@ INSERT INTO entries (
 )
 RETURNING id, account_id, type, amount, description, transfer_id, created_at;
 
--- name: ListEntriesByAccount :many
-SELECT id, account_id, type, amount, description, transfer_id, created_at
-FROM entries
-WHERE account_id = sqlc.arg(account_id)
-ORDER BY id DESC
-LIMIT sqlc.arg(limit_count) OFFSET sqlc.arg(offset_count);
-
--- name: CountEntriesByAccount :one
-SELECT COUNT(*) FROM entries
-WHERE account_id = $1;
-
 -- name: ListAccountTransactionHistory :many
 SELECT
     e.id,
@@ -51,3 +40,29 @@ SELECT COUNT(*) FROM entries
 WHERE account_id = sqlc.arg(account_id)
   AND created_at >= sqlc.arg(period_start)
   AND created_at < sqlc.arg(period_end);
+
+
+
+-- name: ListAccountEntriesByAccountId :many
+SELECT
+    account_name,
+    account_number,
+    is_main,
+    to_account_name,
+    to_account_number,
+    id,
+    user_id,
+    account_id,
+    to_account_id,
+    type,
+    amount,
+    description
+FROM account_entries_view
+WHERE account_id = $1
+ORDER BY id DESC
+LIMIT $2 OFFSET $3;
+
+-- name: CountAccountEntriesByAccountId :one
+SELECT COUNT(*)
+FROM account_entries_view
+WHERE account_id = $1;

@@ -10,8 +10,15 @@ migrate-create:
 migrate-up:
 	go run ./cmd/migration/main.go up
 
+
 migrate-down:
 	go run ./cmd/migration/main.go down
+
+migrate-force:
+	go run ./cmd/migration/main.go force $(version)
+
+migrate-goto:
+	go run ./cmd/migration/main.go goto $(version)
 
 generate-mock:
 	go run go.uber.org/mock/mockgen@latest -package mockdb -destination db/mock/querier.go github.com/DewaSRY/core-service/db/sqlc Querier
@@ -35,4 +42,4 @@ docker-stop:
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
 
-.PHONY: test server migrate-create migrate-up migrate-down sqlc generate-mock docker-build docker-run docker-stop swag-gen
+.PHONY: test server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop swag-gen

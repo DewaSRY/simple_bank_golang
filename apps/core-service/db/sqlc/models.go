@@ -27,6 +27,21 @@ type Account struct {
 	DeletedAt sql.NullTime `json:"deleted_at"`
 }
 
+type AccountEntriesView struct {
+	AccountName     sql.NullString `json:"account_name"`
+	AccountNumber   sql.NullString `json:"account_number"`
+	IsMain          sql.NullBool   `json:"is_main"`
+	ToAccountName   sql.NullString `json:"to_account_name"`
+	ToAccountNumber sql.NullString `json:"to_account_number"`
+	ID              int64          `json:"id"`
+	UserID          sql.NullInt64  `json:"user_id"`
+	AccountID       int64          `json:"account_id"`
+	ToAccountID     sql.NullInt64  `json:"to_account_id"`
+	Type            string         `json:"type"`
+	Amount          string         `json:"amount"`
+	Description     sql.NullString `json:"description"`
+}
+
 type AccountUserDetailsView struct {
 	ID          int64          `json:"id"`
 	Balance     string         `json:"balance"`

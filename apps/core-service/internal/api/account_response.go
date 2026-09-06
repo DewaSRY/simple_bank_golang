@@ -97,3 +97,42 @@ type publicAccountResponse struct {
 	Name   string `json:"name"`
 	Number string `json:"number"`
 }
+
+type accountEntriesViewResponse struct {
+	ID        int64  `json:"id"`
+	AccountID int64  `json:"account_id"`
+	Amount    string `json:"amount"`
+
+	AccountName     string `json:"account_name"`
+	AccountNumber   string `json:"account_number"`
+	IsMain          bool   `json:"is_main"`
+	ToAccountName   string `json:"to_account_name"`
+	ToAccountNumber string `json:"to_account_number"`
+	UserID          int64  `json:"user_id"`
+	ToAccountID     int64  `json:"to_account_id"`
+	Type            string `json:"type"`
+}
+
+func toAccountEntriesViewResponse(entry db.AccountEntriesView) accountEntriesViewResponse {
+	return accountEntriesViewResponse{
+		ID:              entry.ID,
+		AccountID:       entry.AccountID,
+		Amount:          entry.Amount,
+		AccountName:     entry.AccountName.String,
+		AccountNumber:   entry.AccountNumber.String,
+		IsMain:          entry.IsMain.Bool,
+		ToAccountName:   entry.ToAccountName.String,
+		ToAccountNumber: entry.ToAccountNumber.String,
+		UserID:          entry.UserID.Int64,
+		ToAccountID:     entry.ToAccountID.Int64,
+		Type:            entry.Type,
+	}
+}
+
+func toListAccountEntriesViewResponse(entries []db.AccountEntriesView) []accountEntriesViewResponse {
+	accountEntriesViewResponses := make([]accountEntriesViewResponse, len(entries))
+	for i, entry := range entries {
+		accountEntriesViewResponses[i] = toAccountEntriesViewResponse(entry)
+	}
+	return accountEntriesViewResponses
+}

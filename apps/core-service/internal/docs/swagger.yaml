@@ -25,6 +25,31 @@ definitions:
       total:
         type: integer
     type: object
+  api.accountEntriesViewResponse:
+    properties:
+      account_id:
+        type: integer
+      account_name:
+        type: string
+      account_number:
+        type: string
+      amount:
+        type: string
+      id:
+        type: integer
+      is_main:
+        type: boolean
+      to_account_id:
+        type: integer
+      to_account_name:
+        type: string
+      to_account_number:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: integer
+    type: object
   api.accountResponse:
     properties:
       balance:
@@ -595,9 +620,7 @@ paths:
             - $ref: '#/definitions/api.successResponse'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/api.accountResponse'
-                  type: array
+                  $ref: '#/definitions/api.accountEntriesViewResponse'
                 meta:
                   $ref: '#/definitions/api.Meta'
               type: object

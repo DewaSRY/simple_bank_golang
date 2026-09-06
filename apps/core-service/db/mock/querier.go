@@ -72,6 +72,21 @@ func (mr *MockQuerierMockRecorder) CheckIsUsernameExist(ctx, username any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIsUsernameExist", reflect.TypeOf((*MockQuerier)(nil).CheckIsUsernameExist), ctx, username)
 }
 
+// CountAccountEntriesByAccountId mocks base method.
+func (m *MockQuerier) CountAccountEntriesByAccountId(ctx context.Context, accountID int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountAccountEntriesByAccountId", ctx, accountID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountAccountEntriesByAccountId indicates an expected call of CountAccountEntriesByAccountId.
+func (mr *MockQuerierMockRecorder) CountAccountEntriesByAccountId(ctx, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountEntriesByAccountId", reflect.TypeOf((*MockQuerier)(nil).CountAccountEntriesByAccountId), ctx, accountID)
+}
+
 // CountAccountTransactionHistory mocks base method.
 func (m *MockQuerier) CountAccountTransactionHistory(ctx context.Context, arg db.CountAccountTransactionHistoryParams) (int64, error) {
 	m.ctrl.T.Helper()
@@ -115,21 +130,6 @@ func (m *MockQuerier) CountAccountsSearchByUserNumber(ctx context.Context, numbe
 func (mr *MockQuerierMockRecorder) CountAccountsSearchByUserNumber(ctx, number any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountAccountsSearchByUserNumber", reflect.TypeOf((*MockQuerier)(nil).CountAccountsSearchByUserNumber), ctx, number)
-}
-
-// CountEntriesByAccount mocks base method.
-func (m *MockQuerier) CountEntriesByAccount(ctx context.Context, accountID int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountEntriesByAccount", ctx, accountID)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountEntriesByAccount indicates an expected call of CountEntriesByAccount.
-func (mr *MockQuerierMockRecorder) CountEntriesByAccount(ctx, accountID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountEntriesByAccount", reflect.TypeOf((*MockQuerier)(nil).CountEntriesByAccount), ctx, accountID)
 }
 
 // CreateAccount mocks base method.
@@ -297,6 +297,21 @@ func (mr *MockQuerierMockRecorder) IncrementAccountBalance(ctx, arg any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementAccountBalance", reflect.TypeOf((*MockQuerier)(nil).IncrementAccountBalance), ctx, arg)
 }
 
+// ListAccountEntriesByAccountId mocks base method.
+func (m *MockQuerier) ListAccountEntriesByAccountId(ctx context.Context, arg db.ListAccountEntriesByAccountIdParams) ([]db.AccountEntriesView, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAccountEntriesByAccountId", ctx, arg)
+	ret0, _ := ret[0].([]db.AccountEntriesView)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAccountEntriesByAccountId indicates an expected call of ListAccountEntriesByAccountId.
+func (mr *MockQuerierMockRecorder) ListAccountEntriesByAccountId(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountEntriesByAccountId", reflect.TypeOf((*MockQuerier)(nil).ListAccountEntriesByAccountId), ctx, arg)
+}
+
 // ListAccountTransactionHistory mocks base method.
 func (m *MockQuerier) ListAccountTransactionHistory(ctx context.Context, arg db.ListAccountTransactionHistoryParams) ([]db.ListAccountTransactionHistoryRow, error) {
 	m.ctrl.T.Helper()
@@ -340,21 +355,6 @@ func (m *MockQuerier) ListAccountsSearchByUserNumber(ctx context.Context, arg db
 func (mr *MockQuerierMockRecorder) ListAccountsSearchByUserNumber(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsSearchByUserNumber", reflect.TypeOf((*MockQuerier)(nil).ListAccountsSearchByUserNumber), ctx, arg)
-}
-
-// ListEntriesByAccount mocks base method.
-func (m *MockQuerier) ListEntriesByAccount(ctx context.Context, arg db.ListEntriesByAccountParams) ([]db.ListEntriesByAccountRow, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListEntriesByAccount", ctx, arg)
-	ret0, _ := ret[0].([]db.ListEntriesByAccountRow)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListEntriesByAccount indicates an expected call of ListEntriesByAccount.
-func (mr *MockQuerierMockRecorder) ListEntriesByAccount(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEntriesByAccount", reflect.TypeOf((*MockQuerier)(nil).ListEntriesByAccount), ctx, arg)
 }
 
 // ListRecentTransferDestinations mocks base method.

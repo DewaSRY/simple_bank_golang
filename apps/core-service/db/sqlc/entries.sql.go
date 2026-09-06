@@ -11,6 +11,19 @@ import (
 	"time"
 )
 
+const countAccountEntriesByAccountId = `-- name: CountAccountEntriesByAccountId :one
+SELECT COUNT(*)
+FROM account_entries_view
+WHERE account_id = $1
+`
+
+func (q *Queries) CountAccountEntriesByAccountId(ctx context.Context, accountID int64) (int64, error) {
+	row := q.queryRow(ctx, q.countAccountEntriesByAccountIdStmt, countAccountEntriesByAccountId, accountID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countAccountTransactionHistory = `-- name: CountAccountTransactionHistory :one
 SELECT COUNT(*) FROM entries
 WHERE account_id = $1
@@ -26,18 +39,6 @@ type CountAccountTransactionHistoryParams struct {
 
 func (q *Queries) CountAccountTransactionHistory(ctx context.Context, arg CountAccountTransactionHistoryParams) (int64, error) {
 	row := q.queryRow(ctx, q.countAccountTransactionHistoryStmt, countAccountTransactionHistory, arg.AccountID, arg.PeriodStart, arg.PeriodEnd)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
-const countEntriesByAccount = `-- name: CountEntriesByAccount :one
-SELECT COUNT(*) FROM entries
-WHERE account_id = $1
-`
-
-func (q *Queries) CountEntriesByAccount(ctx context.Context, accountID int64) (int64, error) {
-	row := q.queryRow(ctx, q.countEntriesByAccountStmt, countEntriesByAccount, accountID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -93,6 +94,68 @@ func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (C
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listAccountEntriesByAccountId = `-- name: ListAccountEntriesByAccountId :many
+SELECT
+    account_name,
+    account_number,
+    is_main,
+    to_account_name,
+    to_account_number,
+    id,
+    user_id,
+    account_id,
+    to_account_id,
+    type,
+    amount,
+    description
+FROM account_entries_view
+WHERE account_id = $1
+ORDER BY id DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListAccountEntriesByAccountIdParams struct {
+	AccountID int64 `json:"account_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+}
+
+func (q *Queries) ListAccountEntriesByAccountId(ctx context.Context, arg ListAccountEntriesByAccountIdParams) ([]AccountEntriesView, error) {
+	rows, err := q.query(ctx, q.listAccountEntriesByAccountIdStmt, listAccountEntriesByAccountId, arg.AccountID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AccountEntriesView{}
+	for rows.Next() {
+		var i AccountEntriesView
+		if err := rows.Scan(
+			&i.AccountName,
+			&i.AccountNumber,
+			&i.IsMain,
+			&i.ToAccountName,
+			&i.ToAccountNumber,
+			&i.ID,
+			&i.UserID,
+			&i.AccountID,
+			&i.ToAccountID,
+			&i.Type,
+			&i.Amount,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAccountTransactionHistory = `-- name: ListAccountTransactionHistory :many
@@ -162,61 +225,6 @@ func (q *Queries) ListAccountTransactionHistory(ctx context.Context, arg ListAcc
 			&i.CounterpartyAccountID,
 			&i.CounterpartyAccountName,
 			&i.CounterpartyAccountNumber,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listEntriesByAccount = `-- name: ListEntriesByAccount :many
-SELECT id, account_id, type, amount, description, transfer_id, created_at
-FROM entries
-WHERE account_id = $1
-ORDER BY id DESC
-LIMIT $3 OFFSET $2
-`
-
-type ListEntriesByAccountParams struct {
-	AccountID   int64 `json:"account_id"`
-	OffsetCount int32 `json:"offset_count"`
-	LimitCount  int32 `json:"limit_count"`
-}
-
-type ListEntriesByAccountRow struct {
-	ID          int64          `json:"id"`
-	AccountID   int64          `json:"account_id"`
-	Type        string         `json:"type"`
-	Amount      string         `json:"amount"`
-	Description sql.NullString `json:"description"`
-	TransferID  sql.NullInt64  `json:"transfer_id"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]ListEntriesByAccountRow, error) {
-	rows, err := q.query(ctx, q.listEntriesByAccountStmt, listEntriesByAccount, arg.AccountID, arg.OffsetCount, arg.LimitCount)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListEntriesByAccountRow{}
-	for rows.Next() {
-		var i ListEntriesByAccountRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.AccountID,
-			&i.Type,
-			&i.Amount,
-			&i.Description,
-			&i.TransferID,
-			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
