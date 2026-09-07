@@ -17,13 +17,14 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
     isLoading: accountEntriesLoading,
     isError: accountEntriesError,
   } = useAccountEntries(accountId, { page: 1, limit: 25 });
+
   const {
     data: accountDetail,
     isLoading: accountDetailLoading,
     isError: accountDetailError,
   } = useAccountDetail(accountId);
 
-  const account = accountDetail;
+  const account = accountDetail?.data;
 
   if (accountEntriesLoading || accountDetailLoading) {
     return (

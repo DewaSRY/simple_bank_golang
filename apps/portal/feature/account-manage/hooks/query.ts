@@ -12,7 +12,7 @@ export function useAccountDetail(number: number) {
     queryFn: () =>
       accountManageClient
         .detailAccount(number)
-        .then((response) => response.data.data),
+        .then((response) => response.data),
   });
 }
 
@@ -23,7 +23,6 @@ export function useUpdateAccount(number: number) {
       accountManageClient
         .updateAccount(number, body)
         .then((response) => response.data),
-
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.manageAccount(number),
