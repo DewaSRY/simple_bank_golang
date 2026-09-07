@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { AccountWithUserName } from "@/feature/account/client";
-import { formatAccountAmount } from "@/feature/account/utils";
+import type { AccountWithUserName } from "@/feature/account/type";
+import { formatAccountAmount } from "@/feature/account-transaction/utils";
 
 export function AccountSummaryCard({
   account,

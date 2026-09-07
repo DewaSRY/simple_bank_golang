@@ -2,7 +2,7 @@
 
 import { Star } from "lucide-react";
 import { Card } from "../ui/card";
-import type { AccountWithUserName } from "../../feature/account/client";
+import type { AccountWithUserName } from "../../feature/account/type";
 
 function formatBalance(balance: string) {
   const value = Number(balance);

@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { AccountEntriesResponse } from "@/feature/account/client";
+import type { AccountEntriesResponse } from "@/feature/account-transaction/type";
 import { AccountEntryRow } from "@/components/account/account-entry-row";
 
 export function AccountEntriesCard({

@@ -5,10 +5,12 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import { isAppLocale } from "@/i18n/settings";
-import {
-  accountKeys,
-  fetchAccountEntries,
-} from "@/feature/account/hooks/query";
+
+import { queryKeys as accountQueryKeys } from "@/feature/account-manage/hooks/query";
+import { accountManageClient as accountApiClient } from "@/feature/account-manage/client";
+import { queryKeys as accountTransactionQueryKeys } from "@/feature/account-transaction/hooks/query";
+import { accountTransactionClient } from "@/feature/account-transaction/client";
+
 import { AccountDetailView } from "@/components/account/account-detail-view";
 import { ParamsSearchParams, parseIntParam } from "@/feature/common/params";
 
@@ -41,15 +43,23 @@ export default async function AccountDetailPage({
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
-    queryKey: accountKeys.entries(accountId, {
+    queryKey: accountTransactionQueryKeys.entries(accountId, {
       limit: limit,
       page: page,
     }),
     queryFn: () =>
-      fetchAccountEntries(accountId, {
-        limit: limit,
-        page: page,
-      }),
+      accountTransactionClient
+        .getAccountEntries(accountId, {
+          limit: limit,
+          page: page,
+        })
+        .then((res) => res.data),
+  });
+
+  await queryClient.prefetchQuery({
+    queryKey: accountQueryKeys.manageAccount(accountId),
+    queryFn: () =>
+      accountApiClient.detailAccount(accountId).then((res) => res.data),
   });
 
   return (

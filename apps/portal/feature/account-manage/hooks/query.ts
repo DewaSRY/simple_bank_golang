@@ -1,103 +1,48 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  accountClient,
-  AccountEntriesResponse,
-  type AccountResponse,
-  type AccountWithUserName,
-  type ListAccountsParams,
-  type RequestAccountbody,
-} from "@/feature/account/client";
-import type {
-  CommonSuccessResponse,
-  PaginationParams,
-} from "@/feature/common/type";
+import { accountManageClient } from "@/feature/account-manage/client";
+import type { RequestAccountbody } from "@/feature/account/type";
 
-/**
- * Centralized query keys for the account feature.
- */
-export const accountKeys = {
-  all: ["accounts"] as const,
-  list: (params: ListAccountsParams) =>
-    [...accountKeys.all, "list", params] as const,
-  searchByNumber: (params: ListAccountsParams) =>
-    [...accountKeys.all, "search-by-number", params] as const,
-  entries: (accountId: number, params: ListAccountsParams) =>
-    [...accountKeys.all, "entries", accountId, params] as const,
+export const queryKeys = {
+  manageAccount: (number: number) => ["manage-account", number] as const,
 };
 
-export function fetchAccounts(
-  params: ListAccountsParams = {},
-): Promise<AccountWithUserName[]> {
-  return accountClient
-    .listAccounts(params)
-    .then((response) => response.data.data);
-}
-
-/**
- * List accounts for the current user.
- */
-export function useAccounts(params: ListAccountsParams = {}) {
+export function useAccountDetail(number: number) {
   return useQuery({
-    queryKey: accountKeys.list(params),
-    queryFn: () => fetchAccounts(params),
+    queryKey: queryKeys.manageAccount(number),
+    queryFn: () =>
+      accountManageClient
+        .detailAccount(number)
+        .then((response) => response.data.data),
   });
 }
 
-/**
- * Create a new account.
- */
-export const useCreateAccountMutation = () => {
+export function useUpdateAccount(number: number) {
   const queryClient = useQueryClient();
-  return useMutation<
-    CommonSuccessResponse<AccountResponse>,
-    Error,
-    RequestAccountbody
-  >({
-    mutationFn: (body) =>
-      accountClient.createAccount(body).then((response) => response.data),
+  return useMutation({
+    mutationFn: (body: RequestAccountbody) =>
+      accountManageClient
+        .updateAccount(number, body)
+        .then((response) => response.data),
+
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: accountKeys.all,
+        queryKey: queryKeys.manageAccount(number),
+      });
+    },
+  });
+}
+
+export const useDeleteAccount = (number: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      accountManageClient
+        .deleteAccount(number)
+        .then((response) => response.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.manageAccount(number),
       });
     },
   });
 };
-
-/**
- * Update an existing account.
- */
-export const useUpdateAccountMutation = () => {
-  return useMutation<
-    CommonSuccessResponse<AccountResponse>,
-    Error,
-    { id: number; body: RequestAccountbody }
-  >({
-    mutationFn: ({ id, body }) =>
-      accountClient.updateAccount(id, body).then((response) => response.data),
-  });
-};
-
-/**
- * Fetch account entries for a specific account.
- */
-export function fetchAccountEntries(
-  accountId: number,
-  params: Partial<PaginationParams> = { page: 1, limit: 10 },
-): Promise<AccountEntriesResponse[]> {
-  return accountClient
-    .getAccountEntries(accountId, params)
-    .then((response) => response.data.data);
-}
-
-/**
- * Hook to fetch account entries for a specific account.
- */
-export function useAccountEntries(
-  accountId: number,
-  params: Partial<PaginationParams> = { page: 1, limit: 10 },
-) {
-  return useQuery({
-    queryKey: accountKeys.entries(accountId, params),
-    queryFn: () => fetchAccountEntries(accountId, params),
-  });
-}

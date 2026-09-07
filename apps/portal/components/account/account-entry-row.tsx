@@ -6,7 +6,7 @@ import {
   formatAccountAmount,
   getEntryLabel,
   isIncomingEntry,
-} from "@/feature/account/utils";
+} from "@/feature/account-transaction/utils";
 
 export function AccountEntryRow({
   entry,

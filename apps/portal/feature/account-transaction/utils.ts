@@ -1,8 +1,8 @@
-import type { AccountEntriesResponse } from "@/feature/account/client";
+import type { AccountEntriesResponse } from "../account/type";
 
 export function formatAccountAmount(
   amount: string,
-  currency: string,
+  currency: string = "IDR",
   signed = false,
 ) {
   const value = Number(amount);
