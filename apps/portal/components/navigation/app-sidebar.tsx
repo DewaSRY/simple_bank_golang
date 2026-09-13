@@ -13,6 +13,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { NavAccountList } from "./nav-account-list";
+import { Separator } from "@base-ui/react";
+import { CreateNewAccount } from "./create-new-account";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -30,6 +32,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <CreateNewAccount />
+        <Separator />
         <NavAccountList />
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
