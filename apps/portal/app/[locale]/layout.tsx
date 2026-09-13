@@ -7,6 +7,7 @@ import { TranslationsProvider } from "@/components/translations-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { InlineScript } from "@/components/inline-script";
+import { TopProgressBar } from "@/components/common/top-progress-bar";
 import "../globals.css";
 
 // Runs during HTML parsing, before first paint, to apply the persisted
@@ -58,7 +59,10 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <TranslationsProvider locale={locale} messages={messages}>
-            <QueryProvider>{children}</QueryProvider>
+            <QueryProvider>
+              <TopProgressBar />
+              {children}
+            </QueryProvider>
           </TranslationsProvider>
         </ThemeProvider>
       </body>
