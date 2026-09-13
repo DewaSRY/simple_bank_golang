@@ -16,7 +16,9 @@ import { NavAccountList } from "./nav-account-list";
 import { Separator } from "@base-ui/react";
 
 import { CreateNewAccount } from "../create-account-model/create-new-account";
+import { DepositeSideModel } from "@/components/deposite-model/deposite-side-model";
 import { TransferSideModel } from "@/components/transfer-modal/transfer-side-model";
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -33,9 +35,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <Separator />
         <CreateNewAccount />
+        <DepositeSideModel />
         <TransferSideModel />
-        <Separator className="bg-gray-100 h-1 rounded-sm" />
+
+        <Separator />
         <NavAccountList />
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
