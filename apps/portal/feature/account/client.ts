@@ -1,13 +1,12 @@
 import { BaseClient } from "../../lib/api/base-client";
 import type { CommonSuccessResponse } from "@/feature/common/type";
+import type { PaginationParams } from "@/feature/common/type";
 import type {
   AccountResponse,
   AccountWithUserName,
   RequestAccountbody,
   SearchAccountsParams,
 } from "./type";
-import type { PaginationParams } from "@/feature/common/type";
-
 export class AccountClient extends BaseClient {
   listAccounts({ page = 1, limit = 10 }: Partial<PaginationParams> = {}) {
     return this.get<CommonSuccessResponse<AccountWithUserName[]>>({

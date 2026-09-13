@@ -63,6 +63,7 @@ function TextareaField<T extends FieldValues>({
             ) : null}
             <div className="relative w-full">
               <Textarea
+                id={name}
                 {...textareaProps}
                 {...field}
                 value={value ?? ""}

@@ -43,7 +43,7 @@ function InputField<T extends FieldValues>({
           className={className}
         >
           {label ? <FieldLabel>{label}</FieldLabel> : null}
-          <Input {...inputProps} {...field} value={value ?? ""} />
+          <Input id={name} {...inputProps} {...field} value={value ?? ""} />
           {description ? <FieldDescription>{description}</FieldDescription> : null}
           <FieldError match={!!error}>{error?.message}</FieldError>
         </Field>

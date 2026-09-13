@@ -14,8 +14,10 @@ import {
   createAccountSchema,
   CreateAccountFormValues,
 } from "@/feature/account/schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo } from "react";
+import {
+  scrollToFirstError,
+  zodResolverTranslate,
+} from "@/feature/account/form";
 import { useTranslation } from "react-i18next";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
@@ -36,36 +38,39 @@ export function CreateAccountDialog({ open, setOpen }: props) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(useMemo(() => createAccountSchema(t), [t])),
+    resolver: zodResolverTranslate(createAccountSchema, t),
     defaultValues: {
       name: "",
       description: "",
     },
   });
 
-  const onSubmit = form.handleSubmit(async (data) => {
-    try {
-      setIsLoading(true);
-      await mutateAsync(data, {
-        onSuccess: () => {
-          setOpen?.(false);
-        },
-      });
-      setIsLoading(false);
-    } catch (error) {
-      setIsLoading(false);
-      const fieldErrors = getApiFieldErrors(error);
-      if (fieldErrors) {
-        for (const [field, message] of Object.entries(fieldErrors)) {
-          form.setError(field as keyof CreateAccountFormValues, { message });
+  const onSubmit = form.handleSubmit(
+    async (data) => {
+      try {
+        setIsLoading(true);
+        await mutateAsync(data, {
+          onSuccess: () => {
+            setOpen?.(false);
+          },
+        });
+        setIsLoading(false);
+      } catch (error) {
+        setIsLoading(false);
+        const fieldErrors = getApiFieldErrors(error);
+        if (fieldErrors) {
+          for (const [field, message] of Object.entries(fieldErrors)) {
+            form.setError(field as keyof CreateAccountFormValues, { message });
+          }
+          return;
         }
-        return;
+        form.setError("root", {
+          message: getApiErrorMessage(error, t("registerError")),
+        });
       }
-      form.setError("root", {
-        message: getApiErrorMessage(error, t("registerError")),
-      });
-    }
-  });
+    },
+    (errors) => scrollToFirstError(errors),
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
