@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 interface Props {
   name: string;
@@ -18,12 +18,17 @@ export function AccountCard({
     <button
       onClick={onClick}
       className={cn(
-        "w-full! p-2 rounded-lg flex flex-col items-start border",
-        selected && "border-blue-500 bg-blue-100",
+        "flex w-full! items-center justify-between gap-2 rounded-lg border px-3 py-2.5 text-left transition-colors hover:bg-muted/50",
+        selected
+          ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20"
+          : "border-border",
       )}
     >
-      <h3 className="text-gray-900 font-semibold">{name}</h3>
-      <p className="text-sm text-gray-500">{number}</p>
+      <div className="flex flex-col">
+        <h3 className="font-medium">{name}</h3>
+        <p className="text-sm text-muted-foreground">{number}</p>
+      </div>
+      {selected && <Check className="size-4 shrink-0 text-primary" aria-hidden />}
     </button>
   );
 }

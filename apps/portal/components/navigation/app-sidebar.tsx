@@ -25,20 +25,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:px-1.5!">
-              <a href="#" className="flex items-center gap-2">
-                <IconInnerShadowTop className="size-5!" />
-                <span className="text-base font-semibold">SIMPLE BANK</span>
-              </a>
+            <SidebarMenuButton
+              className="data-[slot=sidebar-menu-button]:px-1.5!"
+              render={<a href="#" />}
+            >
+              <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <IconInnerShadowTop className="size-4!" />
+              </span>
+              <span className="text-base font-semibold tracking-tight">
+                Simple Bank
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="gap-4">
         <Separator />
-        <CreateNewAccount />
-        <DepositeSideModel />
-        <TransferSideModel />
+        <div className="flex flex-col gap-1 px-2">
+          <CreateNewAccount />
+          <DepositeSideModel />
+          <TransferSideModel />
+        </div>
 
         <Separator />
         <NavAccountList />

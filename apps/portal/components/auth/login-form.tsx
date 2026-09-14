@@ -66,21 +66,23 @@ export function LoginForm() {
       </div>
 
       {form.formState.errors.root?.message && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-destructive">
           {form.formState.errors.root.message}
         </p>
       )}
 
-      <Button type="submit" disabled={loginMutation.isPending}>
+      <Button
+        type="submit"
+        size="lg"
+        className="h-10"
+        disabled={loginMutation.isPending}
+      >
         {loginMutation.isPending ? t("loggingIn") : t("login")}
       </Button>
 
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="text-center text-sm text-muted-foreground">
         {t("noAccount")}{" "}
-        <Link
-          href="/register"
-          className="font-medium text-zinc-950 dark:text-zinc-50"
-        >
+        <Link href="/register" className="font-medium text-foreground hover:underline">
           {t("createAccount")}
         </Link>
       </p>

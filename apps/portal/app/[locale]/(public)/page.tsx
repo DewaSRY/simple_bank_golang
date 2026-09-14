@@ -1,10 +1,13 @@
 import { notFound } from "next/navigation";
+import { Wallet, ArrowLeftRight, ShieldCheck } from "lucide-react";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Tagline } from "@/components/tagline";
 import { Link } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
@@ -18,32 +21,37 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
   const features = [
     {
+      icon: Wallet,
       title: t("featureAccountsTitle"),
       description: t("featureAccountsDesc"),
     },
     {
+      icon: ArrowLeftRight,
       title: t("featureTransfersTitle"),
       description: t("featureTransfersDesc"),
     },
     {
+      icon: ShieldCheck,
       title: t("featureSecurityTitle"),
       description: t("featureSecurityDesc"),
     },
   ];
 
   return (
-    <main className="mx-auto h-screen flex items-center justify-center">
-      <div className="flex gap-y-4 rounded-lg flex-1 w-full max-w-3xl flex-col items-center justify-between py-16 px-16 bg-white dark:bg-black sm:items-start">
+    <main className="mx-auto flex min-h-screen w-full items-center justify-center px-4 py-12 sm:px-6">
+      <div className="flex w-full max-w-3xl flex-col items-center gap-y-10 rounded-2xl bg-card px-6 py-12 text-card-foreground ring-1 ring-foreground/10 sm:items-start sm:px-16">
         {/* header  */}
-
-        <div className="flex w-full items-center justify-between mb-16">
-          <span className="text-lg font-semibold text-black dark:text-zinc-50">
+        <div className="flex w-full items-center justify-between">
+          <span className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Wallet className="size-4" aria-hidden />
+            </span>
             {t("appName")}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="text-sm font-medium text-zinc-950 dark:text-zinc-50"
+              className="text-sm font-medium text-foreground hover:text-foreground/80"
             >
               {tAuth("login")}
             </Link>
@@ -52,45 +60,49 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-2 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-md text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+        <div className="flex flex-col items-center gap-3 text-center sm:items-start sm:text-left">
+          <h1 className="max-w-md text-4xl font-semibold leading-tight tracking-tight text-balance">
             <Tagline />
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+          <p className="max-w-md text-lg leading-8 text-muted-foreground text-balance">
             {t("cta")}
           </p>
         </div>
 
         {/* features list  */}
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           {features.map((feature) => (
-            <div
+            <Card
               key={feature.title}
-              className="flex flex-col gap-1.5 rounded-lg border border-black/80 p-4 dark:border-white/[.145]"
+              className="gap-2 bg-muted/40 p-4 ring-1 ring-foreground/5"
             >
-              <h2 className="text-sm font-semibold text-black dark:text-zinc-50">
-                {feature.title}
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <feature.icon className="size-5 text-primary" aria-hidden />
+              <h2 className="text-sm font-semibold">{feature.title}</h2>
+              <p className="text-sm text-muted-foreground">
                 {feature.description}
               </p>
-            </div>
+            </Card>
           ))}
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <Link
-            href="/register"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+        <div className="flex w-full flex-col gap-3 sm:flex-row">
+          <Button
+            size="lg"
+            className="h-12 flex-1 text-base"
+            nativeButton={false}
+            render={<Link href="/register" />}
           >
             {t("getStarted")}
-          </Link>
-          <Link
-            href="/login"
-            className="flex h-12 w-full items-center justify-center rounded-lg border border-solid border-black/80 px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-12 flex-1 text-base"
+            nativeButton={false}
+            render={<Link href="/login" />}
           >
             {tAuth("login")}
-          </Link>
+          </Button>
         </div>
       </div>
     </main>

@@ -27,7 +27,9 @@ export function DepositeDialog({ open, setOpen }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <AccountList />
+        <div className="max-h-80 overflow-y-auto">
+          <AccountList />
+        </div>
 
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />

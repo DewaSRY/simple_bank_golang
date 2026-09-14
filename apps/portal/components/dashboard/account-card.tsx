@@ -1,6 +1,7 @@
 "use client";
 
 import { Star } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { Card } from "../ui/card";
 import type { AccountWithUserName } from "../../feature/account/type";
 
@@ -19,36 +20,39 @@ function initials(name: string) {
 
 export function AccountListItem({ account }: { account: AccountWithUserName }) {
   return (
-    <Card className="flex-row items-start gap-2 px-4 transition-colors hover:bg-muted/40 py-2!">
-      <div className="flex size-10 h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-medium text-primary">
-        {initials(account.name || account.username)}
-      </div>
-
-      <div className="flex flex-col min-w-0 items-end gap-3 justify-between w-full">
-        <div className="flex min-w-0 flex-col">
-          <span className="flex items-center gap-1.5 truncate font-medium self-end">
-            {account.name}
-            {account.is_main && (
-              <Star
-                className="size-3.5 shrink-0 fill-amber-400 text-amber-400"
-                aria-hidden
-              />
-            )}
-          </span>
-          <span className="truncate text-xs text-muted-foreground self-end">
-            {account.number}
-          </span>
+    <Link href={`/account/${account.id}`} className="block">
+      <Card className="gap-4 px-4 py-4! transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/20">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-semibold text-primary">
+              {initials(account.name || account.username)}
+            </span>
+            <div className="flex min-w-0 flex-col">
+              <span className="flex items-center gap-1.5 truncate font-medium">
+                {account.name}
+                {account.is_main && (
+                  <Star
+                    className="size-3.5 shrink-0 fill-amber-400 text-amber-400"
+                    aria-hidden
+                  />
+                )}
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                {account.number}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex shrink-0 justify-end flex-row items-end gap-2 self-end">
-          <span className="font-mono font-medium">
+        <div className="flex items-baseline gap-1.5 border-t pt-3">
+          <span className="font-mono text-lg font-semibold tracking-tight">
             {formatBalance(account.balance)}
           </span>
           <span className="text-xs text-muted-foreground">
             {account.currency}
           </span>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </Link>
   );
 }
