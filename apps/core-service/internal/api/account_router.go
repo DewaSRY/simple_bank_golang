@@ -56,7 +56,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 }
 
 type listmeAccountsQuery struct {
-	*paginationQuery
+	paginationQuery
 	Name string `form:"name" binding:"omitempty"`
 }
 
@@ -119,7 +119,7 @@ func (server *Server) listmeAccounts(ctx *gin.Context) {
 }
 
 type searchAccountByNumberQuery struct {
-	*paginationQuery
+	paginationQuery
 	Number string `form:"number" binding:"required"`
 }
 
