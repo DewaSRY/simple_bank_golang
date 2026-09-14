@@ -1,4 +1,11 @@
-test:
+db-up:
+	docker compose up -d postgres
+	docker compose run --rm migrate
+
+db-down:
+	docker compose down
+
+test: db-up
 	go test -v ./...
 
 server:
@@ -41,4 +48,4 @@ docker-stop:
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
 
-.PHONY: test server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop swag-gen
+.PHONY: db-up db-down test server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop swag-gen

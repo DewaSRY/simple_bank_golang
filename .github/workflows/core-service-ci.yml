@@ -1,0 +1,61 @@
+name: core-service CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/core-service/**"
+      - ".github/workflows/core-service-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/core-service/**"
+      - ".github/workflows/core-service-ci.yml"
+
+defaults:
+  run:
+    working-directory: apps/core-service
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: simple_bank
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: simple_bank
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U simple_bank -d simple_bank"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/core-service/go.mod
+          cache-dependency-path: apps/core-service/go.sum
+
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+
+      - name: Run migrations
+        run: migrate -path db/migrations -database "postgresql://simple_bank:password@localhost:5433/simple_bank?sslmode=disable" up
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...

@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
 	store "github.com/DewaSRY/core-service/db/store"
@@ -23,6 +25,12 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and the JWT access token.
 func main() {
+	// Run in Gin's release mode by default so production doesn't pay for the
+	// debug logger/warnings. Set GIN_MODE=debug locally to opt back in.
+	if os.Getenv("GIN_MODE") == "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	cfg, err := config.LoadConfig(".")
 	if err != nil {
 		log.Fatal("cannot load config:", err)

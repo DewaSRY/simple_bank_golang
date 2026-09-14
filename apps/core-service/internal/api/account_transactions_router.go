@@ -147,7 +147,7 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fail(ctx, InternalErr())
 		return
 	}
 
