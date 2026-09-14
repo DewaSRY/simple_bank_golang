@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { accountTransactionClient } from "@/feature/account-transaction/client";
+import { queryKeys as accountQueryKeys } from "@/feature/account/hooks/query";
 import type { PaginationParams } from "@/feature/common/type";
 import { DepositRequestBody } from "../type";
 
@@ -40,10 +41,11 @@ export function useRecentTransactions(
   });
 }
 
-export function useDeposit(accountId: number, body: DepositRequestBody) {
+export function useDeposit(accountId: number) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => accountTransactionClient.deposit(accountId, body),
+    mutationFn: (body: DepositRequestBody) =>
+      accountTransactionClient.deposit(accountId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.entries(accountId, {
@@ -51,6 +53,7 @@ export function useDeposit(accountId: number, body: DepositRequestBody) {
           limit: 10,
         }),
       });
+      queryClient.invalidateQueries({ queryKey: accountQueryKeys.all });
     },
   });
 }

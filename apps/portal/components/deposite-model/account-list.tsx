@@ -4,19 +4,26 @@ import { SearchInput } from "@/components/common/search-input";
 import { AccountCard } from "./account-card";
 
 import { useDepositeStore } from "./store";
+import { useState } from "react";
 
 export function AccountList() {
   const { setSelectedAccount, selectedAccount } = useDepositeStore();
-  const { data: accounts, refetch } = useAccounts();
+
+  const [name, setName] = useState("");
+
+  const { data: accounts } = useAccounts({
+    name: name,
+    page: 1,
+    limit: 10,
+  });
 
   function handleSearch(value: string) {
-    console.log(value);
-    refetch();
+    setName(value);
   }
 
   return (
     <div>
-      <SearchInput search="" onSearch={handleSearch} />
+      <SearchInput search={name} onSearch={handleSearch} />
 
       <div className="space-y-2 py-2">
         {accounts &&
