@@ -1,29 +1,16 @@
-import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import {
-  createAccountSchema,
-  CreateAccountFormValues,
-} from "@/feature/account/schema";
-import {
-  scrollToFirstError,
-  zodResolverTranslate,
-} from "@/feature/account/form";
-import { useTranslation } from "react-i18next";
-import { InputField } from "@/components/form/input-field";
-import { TextareaField } from "@/components/form/textarea-field";
 
-import { useCreateAccountMutation } from "@/feature/account/hooks/query";
-import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
+import { FormStep } from "./form-step";
+import { PreviewStep } from "./preview-step";
+import { useCreateAccountStore } from "./store";
 
 export interface props {
   open?: boolean;
@@ -32,83 +19,38 @@ export interface props {
 
 export function CreateAccountDialog({ open, setOpen }: props) {
   const { t } = useTranslation("account");
+  const { step, reset } = useCreateAccountStore();
 
-  const { t: tCommon } = useTranslation("common");
-  const { mutateAsync } = useCreateAccountMutation();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm({
-    resolver: zodResolverTranslate(createAccountSchema, t),
-    defaultValues: {
-      name: "",
-      description: "",
+  const STEP_COPY = {
+    form: {
+      title: t("createAccountTitle"),
+      description: t("createAccountDescription"),
     },
-  });
-
-  const onSubmit = form.handleSubmit(
-    async (data) => {
-      try {
-        setIsLoading(true);
-        await mutateAsync(data, {
-          onSuccess: () => {
-            setOpen?.(false);
-          },
-        });
-        setIsLoading(false);
-      } catch (error) {
-        setIsLoading(false);
-        const fieldErrors = getApiFieldErrors(error);
-        if (fieldErrors) {
-          for (const [field, message] of Object.entries(fieldErrors)) {
-            form.setError(field as keyof CreateAccountFormValues, { message });
-          }
-          return;
-        }
-        form.setError("root", {
-          message: getApiErrorMessage(error, t("registerError")),
-        });
-      }
+    preview: {
+      title: "Review Account",
+      description: "Confirm the details before submitting.",
     },
-    (errors) => scrollToFirstError(errors),
-  );
+  } as const;
+
+  const { title, description } = STEP_COPY[step];
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen?.(nextOpen);
+    if (nextOpen) reset();
+  }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-sm px-4">
         <DialogHeader>
-          <DialogTitle>{t("createAccountTitle")}</DialogTitle>
-          <DialogDescription>{t("createAccountDescription")}</DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={onSubmit}>
-          <div className="space-y-4 mb-6">
-            <InputField
-              name="name"
-              label={t("name")}
-              control={form.control}
-              autoComplete="name"
-              disabled={isLoading}
-            />
-            <TextareaField
-              name="description"
-              label={t("description")}
-              control={form.control}
-              cols={40}
-              maxLength={400}
-              autoComplete="description"
-              counter
-              counterPosition="bottom"
-              disabled={isLoading}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline">Cancel</Button>} />
-            <Button type="submit" disabled={isLoading}>
-              Save changes
-            </Button>
-          </DialogFooter>
-        </form>
+        {step === "form" && <FormStep />}
+        {step === "preview" && (
+          <PreviewStep onSuccess={() => handleOpenChange(false)} />
+        )}
       </DialogContent>
     </Dialog>
   );
