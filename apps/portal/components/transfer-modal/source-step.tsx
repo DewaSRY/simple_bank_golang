@@ -1,0 +1,50 @@
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { DialogClose, DialogFooter } from "@/components/ui/dialog";
+import { SearchInput } from "@/components/common/search-input";
+import { useAccounts } from "@/feature/account/hooks/query";
+
+import { AccountCard } from "./account-card";
+import { useTransferStore } from "./store";
+import type { SourceAccount } from "./type";
+
+export function SourceStep() {
+  const { sourceAccount, setSourceAccount, setStep } = useTransferStore();
+  const [name, setName] = useState("");
+
+  const { data: accounts } = useAccounts({ name, page: 1, limit: 10 });
+
+  function handleSelect(account: SourceAccount) {
+    setSourceAccount(account);
+    setStep("destination");
+  }
+
+  return (
+    <div>
+      <SearchInput
+        search={name}
+        onSearch={setName}
+        placeholder="Search your accounts..."
+      />
+
+      <div className="max-h-80 space-y-2 overflow-y-auto py-2">
+        {accounts &&
+          accounts.length > 0 &&
+          accounts.map((account, idx) => (
+            <AccountCard
+              key={`source-${account.id}-${idx}`}
+              name={account.name}
+              number={account.number}
+              selected={sourceAccount?.id === account.id}
+              onClick={() => handleSelect(account)}
+            />
+          ))}
+      </div>
+
+      <DialogFooter>
+        <DialogClose render={<Button variant="outline">Cancel</Button>} />
+      </DialogFooter>
+    </div>
+  );
+}

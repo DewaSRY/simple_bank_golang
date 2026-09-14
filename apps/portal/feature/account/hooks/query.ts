@@ -49,12 +49,16 @@ export const useCreateAccountMutation = () => {
   });
 };
 
-export function useSearchAccountByNumber(params: SearchAccountsParams) {
+export function useSearchAccountByNumber(
+  params: SearchAccountsParams,
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: queryKeys.searchByNumber(params),
     queryFn: () =>
       accountClient
         .searchAccountByNumber(params)
         .then((response) => response.data.data),
+    enabled: options.enabled ?? true,
   });
 }

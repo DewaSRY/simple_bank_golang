@@ -26,14 +26,12 @@ export function SearchInput({
   className,
   icon,
 }: Props) {
-  const debouncedOnSearch = debounce(onSearch, 300);
-
   return (
     <InputGroup className={cn(className)}>
       <InputGroupInput
         placeholder={placeholder ?? "Search..."}
         value={search}
-        onChange={(e) => debouncedOnSearch(e.target.value)}
+        onChange={(e) => onSearch(e.target.value)}
       />
       <InputGroupAddon>{icon ?? <Search />}</InputGroupAddon>
       {addon && (
