@@ -4,6 +4,7 @@ import type {
   AccountResponse,
   RequestAccountbody,
   SearchAccountsParams,
+  SearchMeAccountsParams,
 } from "@/feature/account/type";
 import type {
   CommonSuccessResponse,
@@ -21,11 +22,13 @@ export const queryKeys = {
     [...queryKeys.all, "search-by-number", params] as const,
 };
 
-export function useAccounts(params: Partial<PaginationParams> = {}) {
+export function useAccounts(params: SearchMeAccountsParams) {
   return useQuery({
     queryKey: queryKeys.list(params),
     queryFn: () =>
-      accountClient.listAccounts(params).then((response) => response.data.data),
+      accountClient
+        .listMeAccounts(params)
+        .then((response) => response.data.data),
   });
 }
 

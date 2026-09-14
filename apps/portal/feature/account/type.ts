@@ -30,6 +30,9 @@ export interface RequestAccountbody {
   description: string;
   name: string;
 }
+export interface SearchMeAccountsParams extends Partial<PaginationParams> {
+  name: string;
+}
 
 export interface SearchAccountsParams extends Partial<PaginationParams> {
   number: string;

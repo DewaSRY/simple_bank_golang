@@ -30,7 +30,7 @@ export default async function ProtectedLayout({
   };
   await queryClient.prefetchQuery({
     queryKey: queryKeys.list(query),
-    queryFn: () => accountClient.listAccounts(query).then((res) => res.data),
+    queryFn: () => accountClient.listMeAccounts(query).then((res) => res.data),
   });
 
   return (
