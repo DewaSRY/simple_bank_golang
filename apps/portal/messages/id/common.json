@@ -18,5 +18,76 @@
   "toggleTheme": "Ubah tema",
   "themeLight": "Terang",
   "themeDark": "Gelap",
-  "themeSystem": "Sistem"
+  "themeSystem": "Sistem",
+  "landing": {
+    "metaTitle": "Simple Bank — Perbankan jadi sederhana",
+    "metaDescription": "Buka rekening multi-mata uang, setor dana, dan transfer uang secara instan, semua dalam satu tempat bersama Simple Bank.",
+    "nav": {
+      "product": "Produk",
+      "productDescription": "Semua yang Anda butuhkan untuk mengelola uang dalam satu tempat.",
+      "login": "Masuk",
+      "getStarted": "Mulai sekarang",
+      "menuToggle": "Buka menu"
+    },
+    "hero": {
+      "eyebrow": "Simple Bank",
+      "ctaHint": "Tanpa dokumen. Tanpa antre di cabang. Rekening Anda, di genggaman Anda."
+    },
+    "problem": {
+      "eyebrow": "Masalahnya",
+      "title": "Uang yang tersebar di banyak rekening sulit dipantau.",
+      "description": "Mengelola berbagai mata uang, mengecek saldo di tempat berbeda, dan menunggu transfer selesai membuat pengelolaan uang jadi merepotkan.",
+      "points": [
+        {
+          "title": "Saldo tersebar",
+          "description": "Banyak rekening dan mata uang, tanpa satu tampilan yang jelas."
+        },
+        {
+          "title": "Transfer lambat",
+          "description": "Menunggu uang berpindah antar rekening mengacaukan rencana Anda."
+        },
+        {
+          "title": "Khawatir soal keamanan",
+          "description": "Menitipkan uang berarti harus percaya bahwa uang itu benar-benar aman."
+        }
+      ]
+    },
+    "solution": {
+      "eyebrow": "Solusinya",
+      "title": "Satu tempat untuk semua rekening Anda.",
+      "description": "Simple Bank menyatukan rekening, saldo, dan transfer Anda, sehingga Anda selalu tahu persis posisi uang Anda."
+    },
+    "features": {
+      "eyebrow": "Fitur utama",
+      "title": "Dibangun sesuai cara Anda bertransaksi."
+    },
+    "howItWorks": {
+      "eyebrow": "Cara kerja",
+      "title": "Siap digunakan dalam tiga langkah.",
+      "steps": [
+        {
+          "title": "Buat rekening",
+          "description": "Daftar dan buka rekening pertama Anda dalam mata uang yang diinginkan."
+        },
+        {
+          "title": "Isi saldo",
+          "description": "Setor uang ke rekening mana pun kapan saja Anda perlu menambah saldo."
+        },
+        {
+          "title": "Transfer instan",
+          "description": "Pindahkan uang antar rekening Anda dengan aman, kapan pun dibutuhkan."
+        }
+      ]
+    },
+    "finalCta": {
+      "title": "Siap membuat perbankan Anda lebih sederhana?",
+      "description": "Buat rekening Anda dalam hitungan menit dan kendalikan saldo Anda mulai hari ini."
+    },
+    "footer": {
+      "tagline": "Perbankan jadi sederhana.",
+      "product": "Produk",
+      "account": "Akun",
+      "rights": "Hak cipta dilindungi."
+    }
+  }
 }
