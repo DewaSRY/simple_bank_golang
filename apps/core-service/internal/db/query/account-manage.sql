@@ -1,21 +1,18 @@
--- name: ListAccountsByUserId :many
+-- name: ListMeAccountsByUserId :many
+SELECT sqlc.embed(v)
+FROM account_user_details_view v
+WHERE v.user_id = sqlc.arg(user_id)
+    AND v.name LIKE '%' || sqlc.arg(name) || '%'
+ORDER BY v.created_at DESC
+LIMIT  sqlc.arg(limit_count) OFFSET  sqlc.arg(offset_count);
+
+-- name: ListMeAccountsByUserIdCount :one
 SELECT
-    id,
-    balance,
-    currency,
-    created_at,
-    updated_at,
-    user_id,
-    name,
-    description,
-    is_main,
-    username,
-    number
+    COUNT(*)
 FROM account_user_details_view
-WHERE user_id = $1
-ORDER BY created_at DESC
-LIMIT $2 OFFSET $3;;
+WHERE user_id = sqlc.arg(user_id)
+    AND name LIKE '%' || sqlc.arg(name) || '%';
 
 -- name: CountAccountsByUserId :one
 SELECT COUNT(*) FROM accounts
-WHERE user_id = $1 AND deleted_at IS NULL;
+WHERE user_id = sqlc.arg(user_id) AND deleted_at IS NULL;

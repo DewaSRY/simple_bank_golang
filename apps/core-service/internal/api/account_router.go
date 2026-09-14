@@ -8,6 +8,7 @@ import (
 
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	"github.com/DewaSRY/core-service/internal/db/store"
+	"github.com/DewaSRY/core-service/internal/util"
 )
 
 type createAccountRequest struct {
@@ -54,21 +55,27 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	succeed(ctx, http.StatusOK, toAccountResponse(account), "Account created successfully")
 }
 
-// listAccounts godoc
+type listmeAccountsQuery struct {
+	*paginationQuery
+	Name string `form:"name" binding:"omitempty"`
+}
+
+// listmeAccounts godoc
 // @Summary      List accounts
 // @Description  List accounts owned by the authenticated user, paginated
 // @Tags         accounts
 // @Produce      json
 // @Security     BearerAuth
+// @Param        name    query     string  false  "Account name"
 // @Param        page   query     int  false  "Page number"     default(1)
 // @Param        limit  query     int  false  "Items per page"  default(10)
 // @Success      200    {object}  successResponse{data=[]accountuserResponse,meta=Meta}
 // @Failure      400    {object}  errorResponse
 // @Failure      401    {object}  errorResponse
 // @Failure      500    {object}  errorResponse
-// @Router       /accounts [get]
-func (server *Server) listAccounts(ctx *gin.Context) {
-	var query paginationQuery
+// @Router       /accounts/me [get]
+func (server *Server) listmeAccounts(ctx *gin.Context) {
+	var query listmeAccountsQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
 		return
@@ -76,29 +83,37 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 
 	authPayload := getAuthPayload(ctx)
 
-	accounts, err := server.store.ListAccountsByUserId(ctx, db.ListAccountsByUserIdParams{
+	accounts, err := server.store.ListMeAccountsByUserId(ctx, db.ListMeAccountsByUserIdParams{
+		Name: sql.NullString{String: query.Name, Valid: true},
 		UserID: sql.NullInt64{
 			Int64: authPayload.ID,
 			Valid: true,
 		},
-		Limit:  query.Limit,
-		Offset: query.offset(),
+		LimitCount:  query.Limit,
+		OffsetCount: query.offset(),
 	})
 	if err != nil {
 		fail(ctx, InternalErr())
 		return
 	}
 
-	total, err := server.store.CountAccountsByUserId(ctx, sql.NullInt64{
-		Int64: authPayload.ID,
-		Valid: true,
+	total, err := server.store.ListMeAccountsByUserIdCount(ctx, db.ListMeAccountsByUserIdCountParams{
+		Name: sql.NullString{String: query.Name, Valid: true},
+		UserID: sql.NullInt64{
+			Int64: authPayload.ID,
+			Valid: true,
+		},
 	})
 	if err != nil {
 		fail(ctx, InternalErr())
 		return
 	}
 
-	succeedWithMeta(ctx, http.StatusOK, toListAccountuserResponse(accounts), "Accounts retrieved successfully", Meta{
+	responses := util.MapSlice(accounts, func(row db.ListMeAccountsByUserIdRow) accountuserResponse {
+		return toAccountuserResponse(row.AccountUserDetailsView)
+	})
+
+	succeedWithMeta(ctx, http.StatusOK, responses, "Accounts retrieved successfully", Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 }
@@ -147,7 +162,11 @@ func (server *Server) searchAccountByNumber(ctx *gin.Context) {
 		return
 	}
 
-	succeedWithMeta(ctx, http.StatusOK, toListAccountuserResponseFromSearch(accountList), "Accounts retrieved successfully", Meta{
+	responses := util.MapSlice(accountList, func(row db.ListAccountsSearchByUserNumberRow) accountuserResponse {
+		return toAccountuserResponse(row.AccountUserDetailsView)
+	})
+
+	succeedWithMeta(ctx, http.StatusOK, responses, "Accounts retrieved successfully", Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 

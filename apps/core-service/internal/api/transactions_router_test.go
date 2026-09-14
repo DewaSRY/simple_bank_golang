@@ -20,7 +20,7 @@ import (
 func TestTransactionTransfer(t *testing.T) {
 	const fromAccountID = int64(1)
 	const toAccountID = int64(2)
-	fromAccount := db.GetAccountByIdRow{ID: fromAccountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}, Currency: "IDR"}
+	fromAccount := db.Account{ID: fromAccountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}, Currency: "IDR"}
 
 	testCases := []struct {
 		name          string
@@ -64,7 +64,7 @@ func TestTransactionTransfer(t *testing.T) {
 			body: createTransactionTransferRequest{FromAccountID: fromAccountID, ToAccountID: toAccountID, Amount: mustDecimal(t, "100")},
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), fromAccountID).Return(
-					db.GetAccountByIdRow{ID: fromAccountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
+					db.Account{ID: fromAccountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -122,7 +122,7 @@ func TestTransactionTransfer(t *testing.T) {
 
 func TestListRecentTransferDestinations(t *testing.T) {
 	const accountID = int64(1)
-	ownedAccount := db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
+	ownedAccount := db.Account{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
 
 	testCases := []struct {
 		name          string
@@ -154,7 +154,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 			name: "rejects listing destinations for an account owned by another user",
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
-					db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
+					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -179,7 +179,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 
 func TestListAccountTransactionHistory(t *testing.T) {
 	const accountID = int64(1)
-	ownedAccount := db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
+	ownedAccount := db.Account{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
 	now := time.Now().UTC()
 
 	testCases := []struct {
@@ -234,7 +234,7 @@ func TestListAccountTransactionHistory(t *testing.T) {
 			path: "/api/v1/accounts/" + itoa(accountID) + "/transactions",
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
-					db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
+					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {

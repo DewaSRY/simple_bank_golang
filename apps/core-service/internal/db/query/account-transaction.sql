@@ -25,23 +25,12 @@ LIMIT sqlc.arg(limit_count)
 OFFSET sqlc.arg(offset_count);
 
 -- name: GetAccountViewById :one
-SELECT 
-    id,
-    balance,
-    currency,
-    created_at,
-    updated_at,
-    user_id,
-    name,
-    description,
-    is_main,
-    username,
-    number
-FROM account_user_details_view
-WHERE id = $1;
+SELECT sqlc.embed(v)
+FROM account_user_details_view v
+WHERE v.id = $1;
 
 -- name: GetAccountByIdForUpdate :one
-SELECT id, balance, currency, user_id, number, name, description, is_main, created_at
+SELECT *
 FROM accounts
 WHERE id = $1 AND deleted_at IS NULL
 FOR UPDATE;
@@ -50,7 +39,7 @@ FOR UPDATE;
 UPDATE accounts
 SET balance =  balance + $2, updated_at = now()
 WHERE id = $1
-RETURNING id, balance, currency, user_id, number, name, description, is_main, created_at;
+RETURNING *;
 
 -- name: CheckIsAccountWithIdExist :one
 SELECT EXISTS (
@@ -60,35 +49,22 @@ SELECT EXISTS (
 );
 
 -- name: ListAccountEntriesByAccountId :many
-SELECT
-    account_name,
-    account_number,
-    is_main,
-    to_account_name,
-    to_account_number,
-    id,
-    created_at,
-    user_id,
-    account_id,
-    to_account_id,
-    type,
-    amount,
-    description
-FROM account_entries_view
-WHERE account_id = sqlc.arg(account_id)
+SELECT sqlc.embed(v)
+FROM account_entries_view v
+WHERE v.account_id = sqlc.arg(account_id)
   AND (
       sqlc.narg(period_start)::timestamptz IS NULL
-      OR created_at >= sqlc.narg(period_start)::timestamptz
+      OR v.created_at >= sqlc.narg(period_start)::timestamptz
   )
   AND (
       sqlc.narg(period_end)::timestamptz IS NULL
-      OR created_at < sqlc.narg(period_end)::timestamptz
+      OR v.created_at < sqlc.narg(period_end)::timestamptz
   )
   AND (
       sqlc.narg(entry_type)::varchar IS NULL
-      OR type = sqlc.narg(entry_type)::varchar
+      OR v.type = sqlc.narg(entry_type)::varchar
   )
-ORDER BY created_at DESC, id DESC
+ORDER BY v.created_at DESC, v.id DESC
 LIMIT sqlc.arg(limit_count)
 OFFSET sqlc.arg(offset_count);
 
@@ -110,19 +86,6 @@ WHERE account_id = sqlc.arg(account_id)
   );
 
 -- name: AccountEntriesByAccountId :one
-SELECT
-    account_name,
-    account_number,
-    is_main,
-    to_account_name,
-    to_account_number,
-    id,
-    created_at,
-    user_id,
-    account_id,
-    to_account_id,
-    type,
-    amount,
-    description
-FROM account_entries_view
-WHERE id = $1;
+SELECT sqlc.embed(v)
+FROM account_entries_view v
+WHERE v.id = $1;

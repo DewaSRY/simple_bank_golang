@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	mapper "github.com/DewaSRY/core-service/internal/db/mapper"
 	sqlc "github.com/DewaSRY/core-service/internal/db/sqlc"
 	constant "github.com/DewaSRY/core-service/internal/domain/constant"
 	"github.com/shopspring/decimal"
@@ -19,7 +18,7 @@ type DepositTxParams struct {
 
 type DepositTxResult struct {
 	Account sqlc.Account
-	Entry   sqlc.CreateEntriesRow
+	Entry   sqlc.Entry
 }
 
 // DepositTx increases an account's balance and records a DEPOSIT entry.
@@ -70,7 +69,7 @@ func depositTx(ctx context.Context, q sqlc.Querier, arg DepositTxParams) (Deposi
 	if err != nil {
 		return result, err
 	}
-	result.Account = mapper.UpdateBalanceAccountToAccount(updated)
+	result.Account = updated
 
 	return result, nil
 }

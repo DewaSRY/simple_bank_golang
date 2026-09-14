@@ -4,6 +4,8 @@
 
 Anyone touching `db/`, `internal/api/`, or adding a new query — whether you've used sqlc before or never heard of it. It assumes you're comfortable with Go and basic SQL but not necessarily with sqlc's code-generation model. This doc is verified line-by-line against the current source, not against the original design intent — where the code does something surprising (a stale doc reference, a migration `down` that doesn't run `.down.sql`, a params field whose name undersells what it does), that's called out explicitly rather than smoothed over. Read the callouts before you copy a pattern from an existing query.
 
+> **Superseded content ahead.** Gotcha #1 below and Section 5 ("`db/mapper`") describe a package that has since been deleted. See [SQLC_ROW_MAPPING.md](SQLC_ROW_MAPPING.md) for what replaced it (`SELECT *`/`RETURNING *` reuse and `sqlc.embed()`) and why. The rest of this file predates a larger restructuring (paths under `db/` rather than `internal/db/`, an `Account.Owner` field that no longer exists) that is out of scope for that doc.
+
 ---
 
 ## Section 0 — Background Primer: why sqlc, not the alternatives
@@ -24,7 +26,7 @@ This service talks to Postgres through [sqlc](https://sqlc.dev). sqlc reads the 
 
 **Gotchas that surprise newcomers** (each connects forward to a section below):
 
-1. A query that doesn't `SELECT *` or match a table exactly gets its **own** `<QueryName>Row` struct instead of reusing the table's model type — this is why [db/mapper](../db/mapper) exists (Section 5).
+1. A query that doesn't `SELECT *` or match a table exactly gets its **own** `<QueryName>Row` struct instead of reusing the table's model type — this used to be why `db/mapper` existed (Section 5); that package is gone now, see [SQLC_ROW_MAPPING.md](SQLC_ROW_MAPPING.md).
 2. Generated params struct fields are ordered by **first appearance in the SQL text**, not by your intuition of argument order — this bites the first time you read a generated call site (Section 3).
 3. A method signature on `Store` looks identical whether you're inside a transaction or not — because the same generated `Queries` type is constructed against either a `*sql.DB` or a `*sql.Tx` (Section 6).
 
@@ -175,7 +177,9 @@ Business logic that needs to be tested without Postgres — `transferTx` in [db/
 
 ---
 
-## Section 5 — `db/mapper`: Bridging Row Types Back to Models
+## Section 5 — `db/mapper`: Bridging Row Types Back to Models *(deleted — see [SQLC_ROW_MAPPING.md](SQLC_ROW_MAPPING.md))*
+
+**This package no longer exists.** The narrative below describes the state of the codebase before a later change removed `db/mapper` entirely by fixing query shapes at the source (`SELECT *`/`RETURNING *`, `sqlc.embed()`) instead of hand-translating row types after the fact. Left here for historical context only.
 
 **The problem this piece solves.** `transferTx` needs to hand back `sqlc.Account` values (the type `TransferTxResult` is declared with), but `IncrementAccountBalance` returns `IncrementAccountBalanceRow`, a distinct type, because its `RETURNING` list doesn't include every column `Account` has.
 

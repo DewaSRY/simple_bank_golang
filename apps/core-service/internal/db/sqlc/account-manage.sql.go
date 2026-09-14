@@ -8,7 +8,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const countAccountsByUserId = `-- name: CountAccountsByUserId :one
@@ -23,66 +22,52 @@ func (q *Queries) CountAccountsByUserId(ctx context.Context, userID sql.NullInt6
 	return count, err
 }
 
-const listAccountsByUserId = `-- name: ListAccountsByUserId :many
-SELECT
-    id,
-    balance,
-    currency,
-    created_at,
-    updated_at,
-    user_id,
-    name,
-    description,
-    is_main,
-    username,
-    number
-FROM account_user_details_view
-WHERE user_id = $1
-ORDER BY created_at DESC
-LIMIT $2 OFFSET $3
+const listMeAccountsByUserId = `-- name: ListMeAccountsByUserId :many
+SELECT v.id, v.balance, v.currency, v.created_at, v.updated_at, v.user_id, v.name, v.description, v.is_main, v.number, v.username
+FROM account_user_details_view v
+WHERE v.user_id = $1
+    AND v.name LIKE '%' || $2 || '%'
+ORDER BY v.created_at DESC
+LIMIT  $4 OFFSET  $3
 `
 
-type ListAccountsByUserIdParams struct {
-	UserID sql.NullInt64 `json:"user_id"`
-	Limit  int32         `json:"limit"`
-	Offset int32         `json:"offset"`
-}
-
-type ListAccountsByUserIdRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+type ListMeAccountsByUserIdParams struct {
 	UserID      sql.NullInt64  `json:"user_id"`
 	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	Username    sql.NullString `json:"username"`
-	Number      sql.NullString `json:"number"`
+	OffsetCount int32          `json:"offset_count"`
+	LimitCount  int32          `json:"limit_count"`
 }
 
-func (q *Queries) ListAccountsByUserId(ctx context.Context, arg ListAccountsByUserIdParams) ([]ListAccountsByUserIdRow, error) {
-	rows, err := q.query(ctx, q.listAccountsByUserIdStmt, listAccountsByUserId, arg.UserID, arg.Limit, arg.Offset)
+type ListMeAccountsByUserIdRow struct {
+	AccountUserDetailsView AccountUserDetailsView `json:"account_user_details_view"`
+}
+
+func (q *Queries) ListMeAccountsByUserId(ctx context.Context, arg ListMeAccountsByUserIdParams) ([]ListMeAccountsByUserIdRow, error) {
+	rows, err := q.query(ctx, q.listMeAccountsByUserIdStmt, listMeAccountsByUserId,
+		arg.UserID,
+		arg.Name,
+		arg.OffsetCount,
+		arg.LimitCount,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListAccountsByUserIdRow{}
+	items := []ListMeAccountsByUserIdRow{}
 	for rows.Next() {
-		var i ListAccountsByUserIdRow
+		var i ListMeAccountsByUserIdRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Balance,
-			&i.Currency,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.UserID,
-			&i.Name,
-			&i.Description,
-			&i.IsMain,
-			&i.Username,
-			&i.Number,
+			&i.AccountUserDetailsView.ID,
+			&i.AccountUserDetailsView.Balance,
+			&i.AccountUserDetailsView.Currency,
+			&i.AccountUserDetailsView.CreatedAt,
+			&i.AccountUserDetailsView.UpdatedAt,
+			&i.AccountUserDetailsView.UserID,
+			&i.AccountUserDetailsView.Name,
+			&i.AccountUserDetailsView.Description,
+			&i.AccountUserDetailsView.IsMain,
+			&i.AccountUserDetailsView.Number,
+			&i.AccountUserDetailsView.Username,
 		); err != nil {
 			return nil, err
 		}
@@ -95,4 +80,24 @@ func (q *Queries) ListAccountsByUserId(ctx context.Context, arg ListAccountsByUs
 		return nil, err
 	}
 	return items, nil
+}
+
+const listMeAccountsByUserIdCount = `-- name: ListMeAccountsByUserIdCount :one
+SELECT
+    COUNT(*)
+FROM account_user_details_view
+WHERE user_id = $1
+    AND name LIKE '%' || $2 || '%'
+`
+
+type ListMeAccountsByUserIdCountParams struct {
+	UserID sql.NullInt64  `json:"user_id"`
+	Name   sql.NullString `json:"name"`
+}
+
+func (q *Queries) ListMeAccountsByUserIdCount(ctx context.Context, arg ListMeAccountsByUserIdCountParams) (int64, error) {
+	row := q.queryRow(ctx, q.listMeAccountsByUserIdCountStmt, listMeAccountsByUserIdCount, arg.UserID, arg.Name)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }

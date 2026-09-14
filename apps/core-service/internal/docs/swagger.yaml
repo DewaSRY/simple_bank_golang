@@ -223,52 +223,6 @@ info:
   version: "1.0"
 paths:
   /accounts:
-    get:
-      description: List accounts owned by the authenticated user, paginated
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api.successResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/api.accountuserResponse'
-                  type: array
-                meta:
-                  $ref: '#/definitions/api.Meta'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.errorResponse'
-      security:
-      - BearerAuth: []
-      summary: List accounts
-      tags:
-      - accounts
     post:
       consumes:
       - application/json
@@ -633,6 +587,57 @@ paths:
       summary: List recent transfer destinations
       tags:
       - accounts-transaction
+  /accounts/me:
+    get:
+      description: List accounts owned by the authenticated user, paginated
+      parameters:
+      - description: Account name
+        in: query
+        name: name
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.successResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/api.accountuserResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/api.Meta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: List accounts
+      tags:
+      - accounts
   /accounts/search-by-number:
     get:
       description: Look up a destination account by its account number, for picking

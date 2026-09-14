@@ -8,14 +8,12 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const countAccountsSearchByUserNumber = `-- name: CountAccountsSearchByUserNumber :one
 SELECT COUNT(*)
 FROM account_user_details_view
 WHERE number LIKE '%' || $1 || '%'
-  AND deleted_at IS NULL
 `
 
 func (q *Queries) CountAccountsSearchByUserNumber(ctx context.Context, number sql.NullString) (int64, error) {
@@ -37,7 +35,7 @@ INSERT INTO accounts (
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, balance, currency, user_id, number, name, description, is_main, created_at
+RETURNING id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 `
 
 type CreateAccountParams struct {
@@ -50,19 +48,7 @@ type CreateAccountParams struct {
 	IsMain      bool           `json:"is_main"`
 }
 
-type CreateAccountRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (CreateAccountRow, error) {
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
 	row := q.queryRow(ctx, q.createAccountStmt, createAccount,
 		arg.Number,
 		arg.Name,
@@ -72,108 +58,78 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (C
 		arg.UserID,
 		arg.IsMain,
 	)
-	var i CreateAccountRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.UserID,
 		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getAccountById = `-- name: GetAccountById :one
-SELECT id, balance, currency, user_id, number, name, description, is_main, created_at
+SELECT id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 FROM accounts
 WHERE id = $1 AND deleted_at IS NULL
 `
 
-type GetAccountByIdRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error) {
+func (q *Queries) GetAccountById(ctx context.Context, id int64) (Account, error) {
 	row := q.queryRow(ctx, q.getAccountByIdStmt, getAccountById, id)
-	var i GetAccountByIdRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.UserID,
 		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getMainAccountByUserId = `-- name: GetMainAccountByUserId :one
-SELECT id, balance, currency, user_id, number, name, description, is_main, created_at
+SELECT id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 FROM accounts
 WHERE user_id = $1 AND is_main = true AND deleted_at IS NULL
 `
 
-type GetMainAccountByUserIdRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) GetMainAccountByUserId(ctx context.Context, userID sql.NullInt64) (GetMainAccountByUserIdRow, error) {
+func (q *Queries) GetMainAccountByUserId(ctx context.Context, userID sql.NullInt64) (Account, error) {
 	row := q.queryRow(ctx, q.getMainAccountByUserIdStmt, getMainAccountByUserId, userID)
-	var i GetMainAccountByUserIdRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.UserID,
 		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const listAccountsSearchByUserNumber = `-- name: ListAccountsSearchByUserNumber :many
-SELECT
-    id,
-    balance,
-    currency,
-    created_at,
-    updated_at,
-    user_id,
-    name,
-    description,
-    is_main,
-    username,
-    number
-FROM account_user_details_view
-WHERE number LIKE '%' || $1 || '%'
-  AND deleted_at IS NULL
-ORDER BY created_at DESC
+SELECT v.id, v.balance, v.currency, v.created_at, v.updated_at, v.user_id, v.name, v.description, v.is_main, v.number, v.username
+FROM account_user_details_view v
+WHERE v.number LIKE '%' || $1 || '%'
+ORDER BY v.created_at DESC
 LIMIT $3
 OFFSET $2
 `
@@ -185,17 +141,7 @@ type ListAccountsSearchByUserNumberParams struct {
 }
 
 type ListAccountsSearchByUserNumberRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	Username    sql.NullString `json:"username"`
-	Number      sql.NullString `json:"number"`
+	AccountUserDetailsView AccountUserDetailsView `json:"account_user_details_view"`
 }
 
 func (q *Queries) ListAccountsSearchByUserNumber(ctx context.Context, arg ListAccountsSearchByUserNumberParams) ([]ListAccountsSearchByUserNumberRow, error) {
@@ -208,17 +154,17 @@ func (q *Queries) ListAccountsSearchByUserNumber(ctx context.Context, arg ListAc
 	for rows.Next() {
 		var i ListAccountsSearchByUserNumberRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Balance,
-			&i.Currency,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.UserID,
-			&i.Name,
-			&i.Description,
-			&i.IsMain,
-			&i.Username,
-			&i.Number,
+			&i.AccountUserDetailsView.ID,
+			&i.AccountUserDetailsView.Balance,
+			&i.AccountUserDetailsView.Currency,
+			&i.AccountUserDetailsView.CreatedAt,
+			&i.AccountUserDetailsView.UpdatedAt,
+			&i.AccountUserDetailsView.UserID,
+			&i.AccountUserDetailsView.Name,
+			&i.AccountUserDetailsView.Description,
+			&i.AccountUserDetailsView.IsMain,
+			&i.AccountUserDetailsView.Number,
+			&i.AccountUserDetailsView.Username,
 		); err != nil {
 			return nil, err
 		}
@@ -237,34 +183,24 @@ const softDeleteAccount = `-- name: SoftDeleteAccount :one
 UPDATE accounts
 SET deleted_at = now(), updated_at = now()
 WHERE id = $1 AND deleted_at IS NULL
-RETURNING id, balance, currency, user_id, number, name, description, is_main, created_at
+RETURNING id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 `
 
-type SoftDeleteAccountRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) SoftDeleteAccount(ctx context.Context, id int64) (SoftDeleteAccountRow, error) {
+func (q *Queries) SoftDeleteAccount(ctx context.Context, id int64) (Account, error) {
 	row := q.queryRow(ctx, q.softDeleteAccountStmt, softDeleteAccount, id)
-	var i SoftDeleteAccountRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.UserID,
 		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -273,7 +209,7 @@ const updateAccount = `-- name: UpdateAccount :one
 UPDATE accounts
 SET name = $2, description = $3, updated_at = now()
 WHERE id = $1 AND deleted_at IS NULL
-RETURNING id, balance, currency, user_id, number, name, description, is_main, created_at
+RETURNING id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 `
 
 type UpdateAccountParams struct {
@@ -282,31 +218,21 @@ type UpdateAccountParams struct {
 	Description sql.NullString `json:"description"`
 }
 
-type UpdateAccountRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (UpdateAccountRow, error) {
+func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
 	row := q.queryRow(ctx, q.updateAccountStmt, updateAccount, arg.ID, arg.Name, arg.Description)
-	var i UpdateAccountRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.UserID,
 		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -315,7 +241,7 @@ const updateAccountNumber = `-- name: UpdateAccountNumber :one
 UPDATE accounts
 SET number = $2, updated_at = now()
 WHERE id = $1
-RETURNING id, balance, currency, user_id, number, name, description, is_main, created_at
+RETURNING id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 `
 
 type UpdateAccountNumberParams struct {
@@ -323,31 +249,21 @@ type UpdateAccountNumberParams struct {
 	Number sql.NullString `json:"number"`
 }
 
-type UpdateAccountNumberRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) UpdateAccountNumber(ctx context.Context, arg UpdateAccountNumberParams) (UpdateAccountNumberRow, error) {
+func (q *Queries) UpdateAccountNumber(ctx context.Context, arg UpdateAccountNumberParams) (Account, error) {
 	row := q.queryRow(ctx, q.updateAccountNumberStmt, updateAccountNumber, arg.ID, arg.Number)
-	var i UpdateAccountNumberRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.UserID,
 		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

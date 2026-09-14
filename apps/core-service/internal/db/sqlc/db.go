@@ -87,11 +87,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listAccountTransactionHistoryStmt, err = db.PrepareContext(ctx, listAccountTransactionHistory); err != nil {
 		return nil, fmt.Errorf("error preparing query ListAccountTransactionHistory: %w", err)
 	}
-	if q.listAccountsByUserIdStmt, err = db.PrepareContext(ctx, listAccountsByUserId); err != nil {
-		return nil, fmt.Errorf("error preparing query ListAccountsByUserId: %w", err)
-	}
 	if q.listAccountsSearchByUserNumberStmt, err = db.PrepareContext(ctx, listAccountsSearchByUserNumber); err != nil {
 		return nil, fmt.Errorf("error preparing query ListAccountsSearchByUserNumber: %w", err)
+	}
+	if q.listMeAccountsByUserIdStmt, err = db.PrepareContext(ctx, listMeAccountsByUserId); err != nil {
+		return nil, fmt.Errorf("error preparing query ListMeAccountsByUserId: %w", err)
+	}
+	if q.listMeAccountsByUserIdCountStmt, err = db.PrepareContext(ctx, listMeAccountsByUserIdCount); err != nil {
+		return nil, fmt.Errorf("error preparing query ListMeAccountsByUserIdCount: %w", err)
 	}
 	if q.listRecentTransferDestinationsStmt, err = db.PrepareContext(ctx, listRecentTransferDestinations); err != nil {
 		return nil, fmt.Errorf("error preparing query ListRecentTransferDestinations: %w", err)
@@ -215,14 +218,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listAccountTransactionHistoryStmt: %w", cerr)
 		}
 	}
-	if q.listAccountsByUserIdStmt != nil {
-		if cerr := q.listAccountsByUserIdStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listAccountsByUserIdStmt: %w", cerr)
-		}
-	}
 	if q.listAccountsSearchByUserNumberStmt != nil {
 		if cerr := q.listAccountsSearchByUserNumberStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listAccountsSearchByUserNumberStmt: %w", cerr)
+		}
+	}
+	if q.listMeAccountsByUserIdStmt != nil {
+		if cerr := q.listMeAccountsByUserIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listMeAccountsByUserIdStmt: %w", cerr)
+		}
+	}
+	if q.listMeAccountsByUserIdCountStmt != nil {
+		if cerr := q.listMeAccountsByUserIdCountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listMeAccountsByUserIdCountStmt: %w", cerr)
 		}
 	}
 	if q.listRecentTransferDestinationsStmt != nil {
@@ -305,8 +313,9 @@ type Queries struct {
 	incrementAccountBalanceStmt         *sql.Stmt
 	listAccountEntriesByAccountIdStmt   *sql.Stmt
 	listAccountTransactionHistoryStmt   *sql.Stmt
-	listAccountsByUserIdStmt            *sql.Stmt
 	listAccountsSearchByUserNumberStmt  *sql.Stmt
+	listMeAccountsByUserIdStmt          *sql.Stmt
+	listMeAccountsByUserIdCountStmt     *sql.Stmt
 	listRecentTransferDestinationsStmt  *sql.Stmt
 	softDeleteAccountStmt               *sql.Stmt
 	updateAccountStmt                   *sql.Stmt
@@ -338,8 +347,9 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		incrementAccountBalanceStmt:         q.incrementAccountBalanceStmt,
 		listAccountEntriesByAccountIdStmt:   q.listAccountEntriesByAccountIdStmt,
 		listAccountTransactionHistoryStmt:   q.listAccountTransactionHistoryStmt,
-		listAccountsByUserIdStmt:            q.listAccountsByUserIdStmt,
 		listAccountsSearchByUserNumberStmt:  q.listAccountsSearchByUserNumberStmt,
+		listMeAccountsByUserIdStmt:          q.listMeAccountsByUserIdStmt,
+		listMeAccountsByUserIdCountStmt:     q.listMeAccountsByUserIdCountStmt,
 		listRecentTransferDestinationsStmt:  q.listRecentTransferDestinationsStmt,
 		softDeleteAccountStmt:               q.softDeleteAccountStmt,
 		updateAccountStmt:                   q.updateAccountStmt,

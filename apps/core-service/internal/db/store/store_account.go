@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	mapper "github.com/DewaSRY/core-service/internal/db/mapper"
 	sqlc "github.com/DewaSRY/core-service/internal/db/sqlc"
 	constant "github.com/DewaSRY/core-service/internal/domain/constant"
 	"github.com/shopspring/decimal"
@@ -140,7 +139,7 @@ func deleteAccountTx(ctx context.Context, q sqlc.Querier, arg DeleteAccountTxPar
 		return result, err
 	}
 
-	result.Account = mapper.SoftDeleteAccountRowToAccount(deleted)
+	result.Account = deleted
 	result.SweepTransfer = sweepTransfer
 
 	return result, nil

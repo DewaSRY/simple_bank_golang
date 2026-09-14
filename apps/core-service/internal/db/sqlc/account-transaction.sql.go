@@ -12,57 +12,32 @@ import (
 )
 
 const accountEntriesByAccountId = `-- name: AccountEntriesByAccountId :one
-SELECT
-    account_name,
-    account_number,
-    is_main,
-    to_account_name,
-    to_account_number,
-    id,
-    created_at,
-    user_id,
-    account_id,
-    to_account_id,
-    type,
-    amount,
-    description
-FROM account_entries_view
-WHERE id = $1
+SELECT v.account_name, v.account_number, v.is_main, v.to_account_name, v.to_account_number, v.id, v.user_id, v.account_id, v.created_at, v.to_account_id, v.type, v.amount, v.description
+FROM account_entries_view v
+WHERE v.id = $1
 `
 
 type AccountEntriesByAccountIdRow struct {
-	AccountName     sql.NullString `json:"account_name"`
-	AccountNumber   sql.NullString `json:"account_number"`
-	IsMain          sql.NullBool   `json:"is_main"`
-	ToAccountName   sql.NullString `json:"to_account_name"`
-	ToAccountNumber sql.NullString `json:"to_account_number"`
-	ID              int64          `json:"id"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UserID          sql.NullInt64  `json:"user_id"`
-	AccountID       int64          `json:"account_id"`
-	ToAccountID     sql.NullInt64  `json:"to_account_id"`
-	Type            string         `json:"type"`
-	Amount          string         `json:"amount"`
-	Description     sql.NullString `json:"description"`
+	AccountEntriesView AccountEntriesView `json:"account_entries_view"`
 }
 
 func (q *Queries) AccountEntriesByAccountId(ctx context.Context, id int64) (AccountEntriesByAccountIdRow, error) {
 	row := q.queryRow(ctx, q.accountEntriesByAccountIdStmt, accountEntriesByAccountId, id)
 	var i AccountEntriesByAccountIdRow
 	err := row.Scan(
-		&i.AccountName,
-		&i.AccountNumber,
-		&i.IsMain,
-		&i.ToAccountName,
-		&i.ToAccountNumber,
-		&i.ID,
-		&i.CreatedAt,
-		&i.UserID,
-		&i.AccountID,
-		&i.ToAccountID,
-		&i.Type,
-		&i.Amount,
-		&i.Description,
+		&i.AccountEntriesView.AccountName,
+		&i.AccountEntriesView.AccountNumber,
+		&i.AccountEntriesView.IsMain,
+		&i.AccountEntriesView.ToAccountName,
+		&i.AccountEntriesView.ToAccountNumber,
+		&i.AccountEntriesView.ID,
+		&i.AccountEntriesView.UserID,
+		&i.AccountEntriesView.AccountID,
+		&i.AccountEntriesView.CreatedAt,
+		&i.AccountEntriesView.ToAccountID,
+		&i.AccountEntriesView.Type,
+		&i.AccountEntriesView.Amount,
+		&i.AccountEntriesView.Description,
 	)
 	return i, err
 }
@@ -120,75 +95,15 @@ func (q *Queries) CountAccountEntriesByAccountId(ctx context.Context, arg CountA
 }
 
 const getAccountByIdForUpdate = `-- name: GetAccountByIdForUpdate :one
-SELECT id, balance, currency, user_id, number, name, description, is_main, created_at
+SELECT id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 FROM accounts
 WHERE id = $1 AND deleted_at IS NULL
 FOR UPDATE
 `
 
-type GetAccountByIdForUpdateRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) GetAccountByIdForUpdate(ctx context.Context, id int64) (GetAccountByIdForUpdateRow, error) {
+func (q *Queries) GetAccountByIdForUpdate(ctx context.Context, id int64) (Account, error) {
 	row := q.queryRow(ctx, q.getAccountByIdForUpdateStmt, getAccountByIdForUpdate, id)
-	var i GetAccountByIdForUpdateRow
-	err := row.Scan(
-		&i.ID,
-		&i.Balance,
-		&i.Currency,
-		&i.UserID,
-		&i.Number,
-		&i.Name,
-		&i.Description,
-		&i.IsMain,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getAccountViewById = `-- name: GetAccountViewById :one
-SELECT 
-    id,
-    balance,
-    currency,
-    created_at,
-    updated_at,
-    user_id,
-    name,
-    description,
-    is_main,
-    username,
-    number
-FROM account_user_details_view
-WHERE id = $1
-`
-
-type GetAccountViewByIdRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	Username    sql.NullString `json:"username"`
-	Number      sql.NullString `json:"number"`
-}
-
-func (q *Queries) GetAccountViewById(ctx context.Context, id int64) (GetAccountViewByIdRow, error) {
-	row := q.queryRow(ctx, q.getAccountViewByIdStmt, getAccountViewById, id)
-	var i GetAccountViewByIdRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
@@ -196,11 +111,40 @@ func (q *Queries) GetAccountViewById(ctx context.Context, id int64) (GetAccountV
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.UserID,
+		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.Username,
-		&i.Number,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getAccountViewById = `-- name: GetAccountViewById :one
+SELECT v.id, v.balance, v.currency, v.created_at, v.updated_at, v.user_id, v.name, v.description, v.is_main, v.number, v.username
+FROM account_user_details_view v
+WHERE v.id = $1
+`
+
+type GetAccountViewByIdRow struct {
+	AccountUserDetailsView AccountUserDetailsView `json:"account_user_details_view"`
+}
+
+func (q *Queries) GetAccountViewById(ctx context.Context, id int64) (GetAccountViewByIdRow, error) {
+	row := q.queryRow(ctx, q.getAccountViewByIdStmt, getAccountViewById, id)
+	var i GetAccountViewByIdRow
+	err := row.Scan(
+		&i.AccountUserDetailsView.ID,
+		&i.AccountUserDetailsView.Balance,
+		&i.AccountUserDetailsView.Currency,
+		&i.AccountUserDetailsView.CreatedAt,
+		&i.AccountUserDetailsView.UpdatedAt,
+		&i.AccountUserDetailsView.UserID,
+		&i.AccountUserDetailsView.Name,
+		&i.AccountUserDetailsView.Description,
+		&i.AccountUserDetailsView.IsMain,
+		&i.AccountUserDetailsView.Number,
+		&i.AccountUserDetailsView.Username,
 	)
 	return i, err
 }
@@ -209,7 +153,7 @@ const incrementAccountBalance = `-- name: IncrementAccountBalance :one
 UPDATE accounts
 SET balance =  balance + $2, updated_at = now()
 WHERE id = $1
-RETURNING id, balance, currency, user_id, number, name, description, is_main, created_at
+RETURNING id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 `
 
 type IncrementAccountBalanceParams struct {
@@ -217,65 +161,42 @@ type IncrementAccountBalanceParams struct {
 	Balance string `json:"balance"`
 }
 
-type IncrementAccountBalanceRow struct {
-	ID          int64          `json:"id"`
-	Balance     string         `json:"balance"`
-	Currency    string         `json:"currency"`
-	UserID      sql.NullInt64  `json:"user_id"`
-	Number      sql.NullString `json:"number"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsMain      bool           `json:"is_main"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (IncrementAccountBalanceRow, error) {
+func (q *Queries) IncrementAccountBalance(ctx context.Context, arg IncrementAccountBalanceParams) (Account, error) {
 	row := q.queryRow(ctx, q.incrementAccountBalanceStmt, incrementAccountBalance, arg.ID, arg.Balance)
-	var i IncrementAccountBalanceRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Balance,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.UserID,
 		&i.Number,
 		&i.Name,
 		&i.Description,
 		&i.IsMain,
-		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const listAccountEntriesByAccountId = `-- name: ListAccountEntriesByAccountId :many
-SELECT
-    account_name,
-    account_number,
-    is_main,
-    to_account_name,
-    to_account_number,
-    id,
-    created_at,
-    user_id,
-    account_id,
-    to_account_id,
-    type,
-    amount,
-    description
-FROM account_entries_view
-WHERE account_id = $1
+SELECT v.account_name, v.account_number, v.is_main, v.to_account_name, v.to_account_number, v.id, v.user_id, v.account_id, v.created_at, v.to_account_id, v.type, v.amount, v.description
+FROM account_entries_view v
+WHERE v.account_id = $1
   AND (
       $2::timestamptz IS NULL
-      OR created_at >= $2::timestamptz
+      OR v.created_at >= $2::timestamptz
   )
   AND (
       $3::timestamptz IS NULL
-      OR created_at < $3::timestamptz
+      OR v.created_at < $3::timestamptz
   )
   AND (
       $4::varchar IS NULL
-      OR type = $4::varchar
+      OR v.type = $4::varchar
   )
-ORDER BY created_at DESC, id DESC
+ORDER BY v.created_at DESC, v.id DESC
 LIMIT $6
 OFFSET $5
 `
@@ -290,19 +211,7 @@ type ListAccountEntriesByAccountIdParams struct {
 }
 
 type ListAccountEntriesByAccountIdRow struct {
-	AccountName     sql.NullString `json:"account_name"`
-	AccountNumber   sql.NullString `json:"account_number"`
-	IsMain          sql.NullBool   `json:"is_main"`
-	ToAccountName   sql.NullString `json:"to_account_name"`
-	ToAccountNumber sql.NullString `json:"to_account_number"`
-	ID              int64          `json:"id"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UserID          sql.NullInt64  `json:"user_id"`
-	AccountID       int64          `json:"account_id"`
-	ToAccountID     sql.NullInt64  `json:"to_account_id"`
-	Type            string         `json:"type"`
-	Amount          string         `json:"amount"`
-	Description     sql.NullString `json:"description"`
+	AccountEntriesView AccountEntriesView `json:"account_entries_view"`
 }
 
 func (q *Queries) ListAccountEntriesByAccountId(ctx context.Context, arg ListAccountEntriesByAccountIdParams) ([]ListAccountEntriesByAccountIdRow, error) {
@@ -322,19 +231,19 @@ func (q *Queries) ListAccountEntriesByAccountId(ctx context.Context, arg ListAcc
 	for rows.Next() {
 		var i ListAccountEntriesByAccountIdRow
 		if err := rows.Scan(
-			&i.AccountName,
-			&i.AccountNumber,
-			&i.IsMain,
-			&i.ToAccountName,
-			&i.ToAccountNumber,
-			&i.ID,
-			&i.CreatedAt,
-			&i.UserID,
-			&i.AccountID,
-			&i.ToAccountID,
-			&i.Type,
-			&i.Amount,
-			&i.Description,
+			&i.AccountEntriesView.AccountName,
+			&i.AccountEntriesView.AccountNumber,
+			&i.AccountEntriesView.IsMain,
+			&i.AccountEntriesView.ToAccountName,
+			&i.AccountEntriesView.ToAccountNumber,
+			&i.AccountEntriesView.ID,
+			&i.AccountEntriesView.UserID,
+			&i.AccountEntriesView.AccountID,
+			&i.AccountEntriesView.CreatedAt,
+			&i.AccountEntriesView.ToAccountID,
+			&i.AccountEntriesView.Type,
+			&i.AccountEntriesView.Amount,
+			&i.AccountEntriesView.Description,
 		); err != nil {
 			return nil, err
 		}

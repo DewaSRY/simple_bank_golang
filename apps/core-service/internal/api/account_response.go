@@ -16,19 +16,6 @@ type accountResponse struct {
 	CreatedAt   string `json:"created_at"`
 }
 
-type accountuserResponse struct {
-	ID          int64  `json:"id"`
-	Balance     string `json:"balance"`
-	Currency    string `json:"currency"`
-	UserID      int64  `json:"user_id"`
-	Number      string `json:"number"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	IsMain      bool   `json:"is_main"`
-	CreatedAt   string `json:"created_at"`
-	Username    string `json:"username"`
-}
-
 func toAccountResponse(account db.Account) accountResponse {
 	return accountResponse{
 		ID:          account.ID,
@@ -43,7 +30,25 @@ func toAccountResponse(account db.Account) accountResponse {
 	}
 }
 
-func toAccountuserResponse(account db.ListAccountsByUserIdRow) accountuserResponse {
+type accountuserResponse struct {
+	ID          int64  `json:"id"`
+	Balance     string `json:"balance"`
+	Currency    string `json:"currency"`
+	UserID      int64  `json:"user_id"`
+	Number      string `json:"number"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsMain      bool   `json:"is_main"`
+	CreatedAt   string `json:"created_at"`
+	Username    string `json:"username"`
+}
+
+// toAccountuserResponse is the single mapper for every query that selects
+// account_user_details_view via sqlc.embed(v) — ListMeAccountsByUserId,
+// ListAccountsSearchByUserNumber, and GetAccountViewById all produce a Row
+// type wrapping db.AccountUserDetailsView, so a new query against this view
+// never needs its own mapper.
+func toAccountuserResponse(account db.AccountUserDetailsView) accountuserResponse {
 	return accountuserResponse{
 		ID:          account.ID,
 		Balance:     account.Balance,
@@ -56,36 +61,6 @@ func toAccountuserResponse(account db.ListAccountsByUserIdRow) accountuserRespon
 		CreatedAt:   account.CreatedAt.Format("2006-01-02 15:04:05"),
 		Username:    account.Username.String,
 	}
-}
-
-func toListAccountuserResponse(accounts []db.ListAccountsByUserIdRow) []accountuserResponse {
-	accountuserResponses := make([]accountuserResponse, len(accounts))
-	for i, account := range accounts {
-		accountuserResponses[i] = toAccountuserResponse(account)
-	}
-	return accountuserResponses
-}
-
-func toAccountuserResponseFromSearch(account db.ListAccountsSearchByUserNumberRow) accountuserResponse {
-	return accountuserResponse{
-		ID:          account.ID,
-		Balance:     account.Balance,
-		Currency:    account.Currency,
-		UserID:      account.UserID.Int64,
-		Number:      account.Number.String,
-		Name:        account.Name.String,
-		Description: account.Description.String,
-		IsMain:      account.IsMain,
-		CreatedAt:   account.CreatedAt.Format("2006-01-02 15:04:05"),
-		Username:    account.Username.String,
-	}
-}
-func toListAccountuserResponseFromSearch(accounts []db.ListAccountsSearchByUserNumberRow) []accountuserResponse {
-	accountuserResponses := make([]accountuserResponse, len(accounts))
-	for i, account := range accounts {
-		accountuserResponses[i] = toAccountuserResponseFromSearch(account)
-	}
-	return accountuserResponses
 }
 
 // publicAccountResponse is the minimal, non-sensitive view of an account
@@ -100,7 +75,7 @@ type publicAccountResponse struct {
 	UserID   int64  `json:"user_id"`
 }
 
-func RecentTransferDestinationToPublicAccountResponse(account db.ListRecentTransferDestinationsRow) publicAccountResponse {
+func toPublicAccountResponseFromDestination(account db.ListRecentTransferDestinationsRow) publicAccountResponse {
 	return publicAccountResponse{
 		ID:       account.ID,
 		Name:     account.Name.String,
@@ -108,14 +83,6 @@ func RecentTransferDestinationToPublicAccountResponse(account db.ListRecentTrans
 		Username: account.Username,
 		UserID:   account.UserID,
 	}
-}
-
-func ListRecentTransferDestinationsToPublicAccountResponse(accounts []db.ListRecentTransferDestinationsRow) []publicAccountResponse {
-	responses := make([]publicAccountResponse, len(accounts))
-	for i, account := range accounts {
-		responses[i] = RecentTransferDestinationToPublicAccountResponse(account)
-	}
-	return responses
 }
 
 type accountEntriesViewResponse struct {
@@ -134,7 +101,11 @@ type accountEntriesViewResponse struct {
 	Description     string `json:"description"`
 }
 
-func toAccountEntriesViewResponse(entry db.AccountEntriesByAccountIdRow) accountEntriesViewResponse {
+// toAccountEntriesViewResponse is the single mapper for every query that
+// selects account_entries_view via sqlc.embed(v) — AccountEntriesByAccountId
+// and ListAccountEntriesByAccountId both produce a Row type wrapping
+// db.AccountEntriesView.
+func toAccountEntriesViewResponse(entry db.AccountEntriesView) accountEntriesViewResponse {
 	return accountEntriesViewResponse{
 		ID:              entry.ID,
 		AccountID:       entry.AccountID,
@@ -148,46 +119,6 @@ func toAccountEntriesViewResponse(entry db.AccountEntriesByAccountIdRow) account
 		ToAccountID:     entry.ToAccountID.Int64,
 		Type:            entry.Type,
 		Description:     entry.Description.String,
-	}
-}
-
-func toAccountListEntriesViewResponse(entry db.ListAccountEntriesByAccountIdRow) accountEntriesViewResponse {
-	return accountEntriesViewResponse{
-		ID:              entry.ID,
-		AccountID:       entry.AccountID,
-		Amount:          entry.Amount,
-		AccountName:     entry.AccountName.String,
-		AccountNumber:   entry.AccountNumber.String,
-		IsMain:          entry.IsMain.Bool,
-		ToAccountName:   entry.ToAccountName.String,
-		ToAccountNumber: entry.ToAccountNumber.String,
-		UserID:          entry.UserID.Int64,
-		ToAccountID:     entry.ToAccountID.Int64,
-		Type:            entry.Type,
-		Description:     entry.Description.String,
-	}
-}
-
-func toListAccountEntriesViewResponse(entries []db.ListAccountEntriesByAccountIdRow) []accountEntriesViewResponse {
-	accountEntriesViewResponses := make([]accountEntriesViewResponse, len(entries))
-	for i, entry := range entries {
-		accountEntriesViewResponses[i] = toAccountListEntriesViewResponse(entry)
-	}
-	return accountEntriesViewResponses
-}
-
-func toPublicAccountResponse(account db.GetAccountViewByIdRow) accountuserResponse {
-	return accountuserResponse{
-		ID:          account.ID,
-		Balance:     account.Balance,
-		Currency:    account.Currency,
-		UserID:      account.UserID.Int64,
-		Number:      account.Number.String,
-		Name:        account.Name.String,
-		Description: account.Description.String,
-		IsMain:      account.IsMain,
-		CreatedAt:   account.CreatedAt.Format("2006-01-02 15:04:05"),
-		Username:    account.Username.String,
 	}
 }
 

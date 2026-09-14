@@ -35,8 +35,8 @@ func TestTransferTx(t *testing.T) {
 
 	now := time.Now()
 
-	fromAccountLocked := sqlc.GetAccountByIdForUpdateRow{ID: 1, Balance: "1000", Currency: "USD", CreatedAt: now}
-	toAccountLocked := sqlc.GetAccountByIdForUpdateRow{ID: 2, Balance: "1000", Currency: "USD", CreatedAt: now}
+	fromAccountLocked := sqlc.Account{ID: 1, Balance: "1000", Currency: "USD", CreatedAt: now}
+	toAccountLocked := sqlc.Account{ID: 2, Balance: "1000", Currency: "USD", CreatedAt: now}
 
 	transfer := sqlc.Transfer{
 		ID:            10,
@@ -47,11 +47,11 @@ func TestTransferTx(t *testing.T) {
 		CreatedAt:     now,
 	}
 
-	sentEntry := sqlc.CreateEntriesRow{ID: 1, AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: negatedTransferAmount, CreatedAt: now}
-	receivedEntry := sqlc.CreateEntriesRow{ID: 2, AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: transferAmount, CreatedAt: now}
+	sentEntry := sqlc.Entry{ID: 1, AccountID: arg.FromAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: negatedTransferAmount, CreatedAt: now}
+	receivedEntry := sqlc.Entry{ID: 2, AccountID: arg.ToAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: transferAmount, CreatedAt: now}
 
-	debitedFromAccount := sqlc.IncrementAccountBalanceRow{ID: arg.FromAccountID, Balance: "900", Currency: "USD", CreatedAt: now}
-	creditedToAccount := sqlc.IncrementAccountBalanceRow{ID: arg.ToAccountID, Balance: "1100", Currency: "USD", CreatedAt: now}
+	debitedFromAccount := sqlc.Account{ID: arg.FromAccountID, Balance: "900", Currency: "USD", CreatedAt: now}
+	creditedToAccount := sqlc.Account{ID: arg.ToAccountID, Balance: "1100", Currency: "USD", CreatedAt: now}
 
 	// Small helpers so each test case can describe "what happens next" without
 	// re-typing the same params struct every time.
@@ -136,7 +136,7 @@ func TestTransferTx(t *testing.T) {
 			name: "stops when either account can't be found",
 			arg:  arg,
 			buildStubs: func(q *mockdb.MockQuerier) {
-				q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), arg.FromAccountID).Return(sqlc.GetAccountByIdForUpdateRow{}, sql.ErrNoRows)
+				q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), arg.FromAccountID).Return(sqlc.Account{}, sql.ErrNoRows)
 				q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), arg.ToAccountID).Times(0)
 			},
 			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
@@ -149,7 +149,7 @@ func TestTransferTx(t *testing.T) {
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), arg.FromAccountID).Return(fromAccountLocked, nil)
 				q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), arg.ToAccountID).Return(
-					sqlc.GetAccountByIdForUpdateRow{ID: 2, Balance: "1000", Currency: "EUR", CreatedAt: now}, nil,
+					sqlc.Account{ID: 2, Balance: "1000", Currency: "EUR", CreatedAt: now}, nil,
 				)
 				q.EXPECT().CreateTransfer(gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -190,7 +190,7 @@ func TestTransferTx(t *testing.T) {
 				lockAccounts(q)
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
-					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sqlc.CreateEntriesRow{}, errors.New("create from entry error")),
+					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sqlc.Entry{}, errors.New("create from entry error")),
 				)
 				// Balances should never be touched if the entry failed.
 				q.EXPECT().IncrementAccountBalance(gomock.Any(), gomock.Any()).Times(0)
@@ -207,7 +207,7 @@ func TestTransferTx(t *testing.T) {
 				gomock.InOrder(
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sentEntry, nil),
-					q.EXPECT().IncrementAccountBalance(gomock.Any(), debitFromAccountParams()).Return(sqlc.IncrementAccountBalanceRow{}, errors.New("update from balance error")),
+					q.EXPECT().IncrementAccountBalance(gomock.Any(), debitFromAccountParams()).Return(sqlc.Account{}, errors.New("update from balance error")),
 				)
 			},
 			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
@@ -223,7 +223,7 @@ func TestTransferTx(t *testing.T) {
 					q.EXPECT().CreateTransfer(gomock.Any(), arg).Return(transfer, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sentEntry, nil),
 					q.EXPECT().IncrementAccountBalance(gomock.Any(), debitFromAccountParams()).Return(debitedFromAccount, nil),
-					q.EXPECT().CreateEntries(gomock.Any(), receiveEntryParams()).Return(sqlc.CreateEntriesRow{}, errors.New("create to entry error")),
+					q.EXPECT().CreateEntries(gomock.Any(), receiveEntryParams()).Return(sqlc.Entry{}, errors.New("create to entry error")),
 				)
 			},
 			checkResponse: func(t *testing.T, result TransferTxResult, err error) {
@@ -240,7 +240,7 @@ func TestTransferTx(t *testing.T) {
 					q.EXPECT().CreateEntries(gomock.Any(), sendEntryParams()).Return(sentEntry, nil),
 					q.EXPECT().IncrementAccountBalance(gomock.Any(), debitFromAccountParams()).Return(debitedFromAccount, nil),
 					q.EXPECT().CreateEntries(gomock.Any(), receiveEntryParams()).Return(receivedEntry, nil),
-					q.EXPECT().IncrementAccountBalance(gomock.Any(), creditToAccountParams()).Return(sqlc.IncrementAccountBalanceRow{}, errors.New("update to balance error")),
+					q.EXPECT().IncrementAccountBalance(gomock.Any(), creditToAccountParams()).Return(sqlc.Account{}, errors.New("update to balance error")),
 				)
 			},
 			checkResponse: func(t *testing.T, result TransferTxResult, err error) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	mapper "github.com/DewaSRY/core-service/internal/db/mapper"
 	sqlc "github.com/DewaSRY/core-service/internal/db/sqlc"
 )
 
@@ -53,5 +52,5 @@ func createAccountTx(ctx context.Context, q sqlc.Querier, arg CreateAccountTxPar
 		return sqlc.Account{}, err
 	}
 
-	return mapper.UpdateAccountNumberRowToAccount(updated), nil
+	return updated, nil
 }

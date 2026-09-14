@@ -148,10 +148,10 @@ func (mr *MockQuerierMockRecorder) CountAccountsSearchByUserNumber(ctx, number a
 }
 
 // CreateAccount mocks base method.
-func (m *MockQuerier) CreateAccount(ctx context.Context, arg db.CreateAccountParams) (db.CreateAccountRow, error) {
+func (m *MockQuerier) CreateAccount(ctx context.Context, arg db.CreateAccountParams) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, arg)
-	ret0, _ := ret[0].(db.CreateAccountRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -163,10 +163,10 @@ func (mr *MockQuerierMockRecorder) CreateAccount(ctx, arg any) *gomock.Call {
 }
 
 // CreateEntries mocks base method.
-func (m *MockQuerier) CreateEntries(ctx context.Context, arg db.CreateEntriesParams) (db.CreateEntriesRow, error) {
+func (m *MockQuerier) CreateEntries(ctx context.Context, arg db.CreateEntriesParams) (db.Entry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateEntries", ctx, arg)
-	ret0, _ := ret[0].(db.CreateEntriesRow)
+	ret0, _ := ret[0].(db.Entry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -208,10 +208,10 @@ func (mr *MockQuerierMockRecorder) CreateUser(ctx, arg any) *gomock.Call {
 }
 
 // GetAccountById mocks base method.
-func (m *MockQuerier) GetAccountById(ctx context.Context, id int64) (db.GetAccountByIdRow, error) {
+func (m *MockQuerier) GetAccountById(ctx context.Context, id int64) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountById", ctx, id)
-	ret0, _ := ret[0].(db.GetAccountByIdRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -223,10 +223,10 @@ func (mr *MockQuerierMockRecorder) GetAccountById(ctx, id any) *gomock.Call {
 }
 
 // GetAccountByIdForUpdate mocks base method.
-func (m *MockQuerier) GetAccountByIdForUpdate(ctx context.Context, id int64) (db.GetAccountByIdForUpdateRow, error) {
+func (m *MockQuerier) GetAccountByIdForUpdate(ctx context.Context, id int64) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountByIdForUpdate", ctx, id)
-	ret0, _ := ret[0].(db.GetAccountByIdForUpdateRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -253,10 +253,10 @@ func (mr *MockQuerierMockRecorder) GetAccountViewById(ctx, id any) *gomock.Call 
 }
 
 // GetMainAccountByUserId mocks base method.
-func (m *MockQuerier) GetMainAccountByUserId(ctx context.Context, userID sql.NullInt64) (db.GetMainAccountByUserIdRow, error) {
+func (m *MockQuerier) GetMainAccountByUserId(ctx context.Context, userID sql.NullInt64) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMainAccountByUserId", ctx, userID)
-	ret0, _ := ret[0].(db.GetMainAccountByUserIdRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -313,10 +313,10 @@ func (mr *MockQuerierMockRecorder) GetUserById(ctx, id any) *gomock.Call {
 }
 
 // IncrementAccountBalance mocks base method.
-func (m *MockQuerier) IncrementAccountBalance(ctx context.Context, arg db.IncrementAccountBalanceParams) (db.IncrementAccountBalanceRow, error) {
+func (m *MockQuerier) IncrementAccountBalance(ctx context.Context, arg db.IncrementAccountBalanceParams) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IncrementAccountBalance", ctx, arg)
-	ret0, _ := ret[0].(db.IncrementAccountBalanceRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -357,21 +357,6 @@ func (mr *MockQuerierMockRecorder) ListAccountTransactionHistory(ctx, arg any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountTransactionHistory", reflect.TypeOf((*MockQuerier)(nil).ListAccountTransactionHistory), ctx, arg)
 }
 
-// ListAccountsByUserId mocks base method.
-func (m *MockQuerier) ListAccountsByUserId(ctx context.Context, arg db.ListAccountsByUserIdParams) ([]db.ListAccountsByUserIdRow, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAccountsByUserId", ctx, arg)
-	ret0, _ := ret[0].([]db.ListAccountsByUserIdRow)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAccountsByUserId indicates an expected call of ListAccountsByUserId.
-func (mr *MockQuerierMockRecorder) ListAccountsByUserId(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsByUserId", reflect.TypeOf((*MockQuerier)(nil).ListAccountsByUserId), ctx, arg)
-}
-
 // ListAccountsSearchByUserNumber mocks base method.
 func (m *MockQuerier) ListAccountsSearchByUserNumber(ctx context.Context, arg db.ListAccountsSearchByUserNumberParams) ([]db.ListAccountsSearchByUserNumberRow, error) {
 	m.ctrl.T.Helper()
@@ -385,6 +370,36 @@ func (m *MockQuerier) ListAccountsSearchByUserNumber(ctx context.Context, arg db
 func (mr *MockQuerierMockRecorder) ListAccountsSearchByUserNumber(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsSearchByUserNumber", reflect.TypeOf((*MockQuerier)(nil).ListAccountsSearchByUserNumber), ctx, arg)
+}
+
+// ListMeAccountsByUserId mocks base method.
+func (m *MockQuerier) ListMeAccountsByUserId(ctx context.Context, arg db.ListMeAccountsByUserIdParams) ([]db.ListMeAccountsByUserIdRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMeAccountsByUserId", ctx, arg)
+	ret0, _ := ret[0].([]db.ListMeAccountsByUserIdRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMeAccountsByUserId indicates an expected call of ListMeAccountsByUserId.
+func (mr *MockQuerierMockRecorder) ListMeAccountsByUserId(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeAccountsByUserId", reflect.TypeOf((*MockQuerier)(nil).ListMeAccountsByUserId), ctx, arg)
+}
+
+// ListMeAccountsByUserIdCount mocks base method.
+func (m *MockQuerier) ListMeAccountsByUserIdCount(ctx context.Context, arg db.ListMeAccountsByUserIdCountParams) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMeAccountsByUserIdCount", ctx, arg)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMeAccountsByUserIdCount indicates an expected call of ListMeAccountsByUserIdCount.
+func (mr *MockQuerierMockRecorder) ListMeAccountsByUserIdCount(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeAccountsByUserIdCount", reflect.TypeOf((*MockQuerier)(nil).ListMeAccountsByUserIdCount), ctx, arg)
 }
 
 // ListRecentTransferDestinations mocks base method.
@@ -403,10 +418,10 @@ func (mr *MockQuerierMockRecorder) ListRecentTransferDestinations(ctx, arg any) 
 }
 
 // SoftDeleteAccount mocks base method.
-func (m *MockQuerier) SoftDeleteAccount(ctx context.Context, id int64) (db.SoftDeleteAccountRow, error) {
+func (m *MockQuerier) SoftDeleteAccount(ctx context.Context, id int64) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SoftDeleteAccount", ctx, id)
-	ret0, _ := ret[0].(db.SoftDeleteAccountRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -418,10 +433,10 @@ func (mr *MockQuerierMockRecorder) SoftDeleteAccount(ctx, id any) *gomock.Call {
 }
 
 // UpdateAccount mocks base method.
-func (m *MockQuerier) UpdateAccount(ctx context.Context, arg db.UpdateAccountParams) (db.UpdateAccountRow, error) {
+func (m *MockQuerier) UpdateAccount(ctx context.Context, arg db.UpdateAccountParams) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAccount", ctx, arg)
-	ret0, _ := ret[0].(db.UpdateAccountRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -433,10 +448,10 @@ func (mr *MockQuerierMockRecorder) UpdateAccount(ctx, arg any) *gomock.Call {
 }
 
 // UpdateAccountNumber mocks base method.
-func (m *MockQuerier) UpdateAccountNumber(ctx context.Context, arg db.UpdateAccountNumberParams) (db.UpdateAccountNumberRow, error) {
+func (m *MockQuerier) UpdateAccountNumber(ctx context.Context, arg db.UpdateAccountNumberParams) (db.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAccountNumber", ctx, arg)
-	ret0, _ := ret[0].(db.UpdateAccountNumberRow)
+	ret0, _ := ret[0].(db.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

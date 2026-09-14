@@ -10,7 +10,7 @@ INSERT INTO entries (
 ) VALUES (
     $1, $2, $3, $4, $5
 )
-RETURNING id, account_id, type, amount, description, transfer_id, created_at;
+RETURNING *;
 
 -- name: ListAccountTransactionHistory :many
 SELECT

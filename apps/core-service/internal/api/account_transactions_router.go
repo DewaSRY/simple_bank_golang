@@ -11,6 +11,7 @@ import (
 
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	"github.com/DewaSRY/core-service/internal/db/store"
+	"github.com/DewaSRY/core-service/internal/util"
 )
 
 type depositRequest struct {
@@ -84,7 +85,7 @@ func (server *Server) deposit(ctx *gin.Context) {
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries), "Deposit completed successfully")
+	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries.AccountEntriesView), "Deposit completed successfully")
 }
 
 type listAccountEntriesQuery struct {
@@ -162,7 +163,11 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 		return
 	}
 
-	succeedWithMeta(ctx, http.StatusOK, toListAccountEntriesViewResponse(accountEntries), "Account entries retrieved successfully", Meta{
+	entries := util.MapSlice(accountEntries, func(row db.ListAccountEntriesByAccountIdRow) accountEntriesViewResponse {
+		return toAccountEntriesViewResponse(row.AccountEntriesView)
+	})
+
+	succeedWithMeta(ctx, http.StatusOK, entries, "Account entries retrieved successfully", Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 }
@@ -220,7 +225,7 @@ func (server *Server) listRecentTransferDestinations(ctx *gin.Context) {
 		return
 	}
 
-	responses := ListRecentTransferDestinationsToPublicAccountResponse(destinations)
+	responses := util.MapSlice(destinations, toPublicAccountResponseFromDestination)
 
 	succeed(ctx, http.StatusOK, responses, "Recent transfer destinations retrieved successfully")
 }

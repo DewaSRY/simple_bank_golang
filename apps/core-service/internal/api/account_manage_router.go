@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mapper "github.com/DewaSRY/core-service/internal/db/mapper"
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	"github.com/DewaSRY/core-service/internal/db/store"
 )
@@ -48,12 +47,12 @@ func (server *Server) detailAccount(ctx *gin.Context) {
 	}
 
 	authPayload := getAuthPayload(ctx)
-	if account.UserID.Int64 != authPayload.ID {
+	if account.AccountUserDetailsView.UserID.Int64 != authPayload.ID {
 		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toPublicAccountResponse(account), "Account retrieved successfully")
+	succeed(ctx, http.StatusOK, toAccountuserResponse(account.AccountUserDetailsView), "Account retrieved successfully")
 }
 
 type updateAccountRequest struct {
@@ -125,7 +124,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountResponse(mapper.UpdateAccountRowToAccount(updated)), "Account updated successfully")
+	succeed(ctx, http.StatusOK, toAccountResponse(updated), "Account updated successfully")
 }
 
 type deleteAccountResponse struct {

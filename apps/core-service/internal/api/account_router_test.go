@@ -115,7 +115,7 @@ func TestCreateAccount(t *testing.T) {
 }
 
 func TestUpdateAccount(t *testing.T) {
-	existingAccount := db.GetAccountByIdRow{
+	existingAccount := db.Account{
 		ID: 5, Balance: "100", Currency: "IDR",
 		UserID: sql.NullInt64{Int64: testUserID, Valid: true},
 		Name:   sql.NullString{String: "Old Name", Valid: true},
@@ -136,7 +136,7 @@ func TestUpdateAccount(t *testing.T) {
 					ID:          existingAccount.ID,
 					Name:        sql.NullString{String: "New Name", Valid: true},
 					Description: sql.NullString{String: "new description", Valid: true},
-				}).Return(db.UpdateAccountRow{ID: existingAccount.ID, Name: sql.NullString{String: "New Name", Valid: true}}, nil)
+				}).Return(db.Account{ID: existingAccount.ID, Name: sql.NullString{String: "New Name", Valid: true}}, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -151,7 +151,7 @@ func TestUpdateAccount(t *testing.T) {
 					ID:          existingAccount.ID,
 					Name:        sql.NullString{String: existingAccount.Name.String, Valid: true},
 					Description: sql.NullString{String: "new description only", Valid: true},
-				}).Return(db.UpdateAccountRow{ID: existingAccount.ID}, nil)
+				}).Return(db.Account{ID: existingAccount.ID}, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -161,7 +161,7 @@ func TestUpdateAccount(t *testing.T) {
 			name: "returns 404 when the account does not exist",
 			body: updateAccountRequest{Name: "New Name"},
 			buildStubs: func(q *mockdb.MockQuerier) {
-				q.EXPECT().GetAccountById(gomock.Any(), existingAccount.ID).Return(db.GetAccountByIdRow{}, sql.ErrNoRows)
+				q.EXPECT().GetAccountById(gomock.Any(), existingAccount.ID).Return(db.Account{}, sql.ErrNoRows)
 				q.EXPECT().UpdateAccount(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -173,7 +173,7 @@ func TestUpdateAccount(t *testing.T) {
 			body: updateAccountRequest{Name: "New Name"},
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), existingAccount.ID).Return(
-					db.GetAccountByIdRow{ID: existingAccount.ID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
+					db.Account{ID: existingAccount.ID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
 				q.EXPECT().UpdateAccount(gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -200,7 +200,7 @@ func TestUpdateAccount(t *testing.T) {
 func TestDeleteAccount(t *testing.T) {
 	const accountID = int64(5)
 
-	ownedAccount := db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
+	ownedAccount := db.Account{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
 
 	testCases := []struct {
 		name          string
@@ -271,7 +271,7 @@ func TestDeleteAccount(t *testing.T) {
 		{
 			name: "returns 404 when the account does not exist",
 			buildStubs: func(q *mockdb.MockQuerier) {
-				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.GetAccountByIdRow{}, sql.ErrNoRows)
+				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
 			},
 			buildStorer: func(storer *mockStorer) {},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -282,7 +282,7 @@ func TestDeleteAccount(t *testing.T) {
 			name: "rejects deleting an account owned by another user",
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
-					db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
+					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -311,7 +311,7 @@ func TestDeleteAccount(t *testing.T) {
 
 func TestDeposit(t *testing.T) {
 	const accountID = int64(5)
-	ownedAccount := db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
+	ownedAccount := db.Account{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
 
 	testCases := []struct {
 		name          string
@@ -353,7 +353,7 @@ func TestDeposit(t *testing.T) {
 			body: depositRequest{Amount: mustDecimal(t, "100")},
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
-					db.GetAccountByIdRow{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
+					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -365,7 +365,7 @@ func TestDeposit(t *testing.T) {
 			name: "returns 404 when the account does not exist",
 			body: depositRequest{Amount: mustDecimal(t, "100")},
 			buildStubs: func(q *mockdb.MockQuerier) {
-				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.GetAccountByIdRow{}, sql.ErrNoRows)
+				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
 			},
 			buildStorer: func(storer *mockStorer) {},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {

@@ -25,8 +25,8 @@ func TestCreateAccountTx(t *testing.T) {
 		IsMain:      false,
 	}
 
-	insertedAccount := sqlc.CreateAccountRow{ID: 42, Balance: "0", Currency: "IDR", UserID: arg.UserID, CreatedAt: now}
-	updatedAccount := sqlc.UpdateAccountNumberRow{
+	insertedAccount := sqlc.Account{ID: 42, Balance: "0", Currency: "IDR", UserID: arg.UserID, CreatedAt: now}
+	updatedAccount := sqlc.Account{
 		ID: 42, Balance: "0", Currency: "IDR", UserID: arg.UserID,
 		Number: sql.NullString{String: "ACT/whatever/042", Valid: true},
 		Name:   sql.NullString{String: "Savings", Valid: true}, CreatedAt: now,
@@ -38,7 +38,7 @@ func TestCreateAccountTx(t *testing.T) {
 
 		gomock.InOrder(
 			q.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-				func(_ context.Context, p sqlc.CreateAccountParams) (sqlc.CreateAccountRow, error) {
+				func(_ context.Context, p sqlc.CreateAccountParams) (sqlc.Account, error) {
 					require.False(t, p.Number.Valid, "number must be NULL on first insert")
 					require.Equal(t, arg.Name, p.Name.String)
 					require.Equal(t, arg.Description, p.Description.String)
@@ -49,7 +49,7 @@ func TestCreateAccountTx(t *testing.T) {
 				},
 			),
 			q.EXPECT().UpdateAccountNumber(gomock.Any(), gomock.Any()).DoAndReturn(
-				func(_ context.Context, p sqlc.UpdateAccountNumberParams) (sqlc.UpdateAccountNumberRow, error) {
+				func(_ context.Context, p sqlc.UpdateAccountNumberParams) (sqlc.Account, error) {
 					require.Equal(t, insertedAccount.ID, p.ID)
 					require.True(t, p.Number.Valid)
 					require.NotEmpty(t, p.Number.String)
@@ -68,7 +68,7 @@ func TestCreateAccountTx(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		q := mockdb.NewMockQuerier(ctrl)
 
-		q.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(sqlc.CreateAccountRow{}, errors.New("insert error"))
+		q.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(sqlc.Account{}, errors.New("insert error"))
 		q.EXPECT().UpdateAccountNumber(gomock.Any(), gomock.Any()).Times(0)
 
 		_, err := createAccountTx(context.Background(), q, arg)
@@ -80,7 +80,7 @@ func TestCreateAccountTx(t *testing.T) {
 		q := mockdb.NewMockQuerier(ctrl)
 
 		q.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(insertedAccount, nil)
-		q.EXPECT().UpdateAccountNumber(gomock.Any(), gomock.Any()).Return(sqlc.UpdateAccountNumberRow{}, errors.New("update number error"))
+		q.EXPECT().UpdateAccountNumber(gomock.Any(), gomock.Any()).Return(sqlc.Account{}, errors.New("update number error"))
 
 		_, err := createAccountTx(context.Background(), q, arg)
 		require.ErrorContains(t, err, "update number error")
@@ -91,9 +91,9 @@ func TestDepositTx(t *testing.T) {
 	now := time.Now()
 	const accountID = int64(1)
 
-	lockedAccount := sqlc.GetAccountByIdForUpdateRow{ID: accountID, Balance: "500", Currency: "IDR", CreatedAt: now}
-	createdEntry := sqlc.CreateEntriesRow{ID: 1, AccountID: accountID, Type: constant.ENTRY_TYPE_DEPOSIT, Amount: "100", CreatedAt: now}
-	creditedAccount := sqlc.IncrementAccountBalanceRow{ID: accountID, Balance: "600", Currency: "IDR", CreatedAt: now}
+	lockedAccount := sqlc.Account{ID: accountID, Balance: "500", Currency: "IDR", CreatedAt: now}
+	createdEntry := sqlc.Entry{ID: 1, AccountID: accountID, Type: constant.ENTRY_TYPE_DEPOSIT, Amount: "100", CreatedAt: now}
+	creditedAccount := sqlc.Account{ID: accountID, Balance: "600", Currency: "IDR", CreatedAt: now}
 
 	t.Run("deposits money and returns the updated balance", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
@@ -137,7 +137,7 @@ func TestDepositTx(t *testing.T) {
 	t.Run("stops when the account can't be found", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		q := mockdb.NewMockQuerier(ctrl)
-		q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), accountID).Return(sqlc.GetAccountByIdForUpdateRow{}, sql.ErrNoRows)
+		q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), accountID).Return(sqlc.Account{}, sql.ErrNoRows)
 		q.EXPECT().CreateEntries(gomock.Any(), gomock.Any()).Times(0)
 
 		_, err := depositTx(context.Background(), q, DepositTxParams{AccountID: accountID, Amount: "100"})
@@ -149,7 +149,7 @@ func TestDepositTx(t *testing.T) {
 		q := mockdb.NewMockQuerier(ctrl)
 
 		q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), accountID).Return(lockedAccount, nil)
-		q.EXPECT().CreateEntries(gomock.Any(), gomock.Any()).Return(sqlc.CreateEntriesRow{}, errors.New("create entry error"))
+		q.EXPECT().CreateEntries(gomock.Any(), gomock.Any()).Return(sqlc.Entry{}, errors.New("create entry error"))
 		q.EXPECT().IncrementAccountBalance(gomock.Any(), gomock.Any()).Times(0)
 
 		_, err := depositTx(context.Background(), q, DepositTxParams{AccountID: accountID, Amount: "100"})
@@ -163,9 +163,9 @@ func TestDeleteAccountTx(t *testing.T) {
 	const closingAccountID = int64(5)
 	const mainAccountID = int64(2)
 
-	closingAccount := sqlc.GetAccountByIdRow{ID: closingAccountID, Balance: "300", Currency: "IDR", IsMain: false, UserID: sql.NullInt64{Int64: userID, Valid: true}, CreatedAt: now}
-	mainAccountRow := sqlc.GetMainAccountByUserIdRow{ID: mainAccountID, Balance: "1000", Currency: "IDR", IsMain: true, UserID: sql.NullInt64{Int64: userID, Valid: true}, CreatedAt: now}
-	zeroBalanceClosingAccount := sqlc.GetAccountByIdRow{ID: closingAccountID, Balance: "0", Currency: "IDR", IsMain: false, UserID: sql.NullInt64{Int64: userID, Valid: true}, CreatedAt: now}
+	closingAccount := sqlc.Account{ID: closingAccountID, Balance: "300", Currency: "IDR", IsMain: false, UserID: sql.NullInt64{Int64: userID, Valid: true}, CreatedAt: now}
+	mainAccountRow := sqlc.Account{ID: mainAccountID, Balance: "1000", Currency: "IDR", IsMain: true, UserID: sql.NullInt64{Int64: userID, Valid: true}, CreatedAt: now}
+	zeroBalanceClosingAccount := sqlc.Account{ID: closingAccountID, Balance: "0", Currency: "IDR", IsMain: false, UserID: sql.NullInt64{Int64: userID, Valid: true}, CreatedAt: now}
 
 	lockAscending := func(q *mockdb.MockQuerier, closingLocked, mainLocked interface{}) {
 		// mainAccountID (2) < closingAccountID (5), so main is locked first.
@@ -180,7 +180,7 @@ func TestDeleteAccountTx(t *testing.T) {
 		q := mockdb.NewMockQuerier(ctrl)
 
 		q.EXPECT().GetAccountById(gomock.Any(), closingAccountID).Return(
-			sqlc.GetAccountByIdRow{ID: closingAccountID, IsMain: true, UserID: sql.NullInt64{Int64: userID, Valid: true}}, nil,
+			sqlc.Account{ID: closingAccountID, IsMain: true, UserID: sql.NullInt64{Int64: userID, Valid: true}}, nil,
 		)
 		q.EXPECT().GetMainAccountByUserId(gomock.Any(), gomock.Any()).Times(0)
 		q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), gomock.Any()).Times(0)
@@ -197,9 +197,9 @@ func TestDeleteAccountTx(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		q := mockdb.NewMockQuerier(ctrl)
 
-		zeroLocked := sqlc.GetAccountByIdForUpdateRow{ID: closingAccountID, Balance: "0", Currency: "IDR", CreatedAt: now}
-		mainLocked := sqlc.GetAccountByIdForUpdateRow{ID: mainAccountID, Balance: "1000", Currency: "IDR", CreatedAt: now}
-		deletedRow := sqlc.SoftDeleteAccountRow{ID: closingAccountID, Balance: "0", Currency: "IDR", CreatedAt: now}
+		zeroLocked := sqlc.Account{ID: closingAccountID, Balance: "0", Currency: "IDR", CreatedAt: now}
+		mainLocked := sqlc.Account{ID: mainAccountID, Balance: "1000", Currency: "IDR", CreatedAt: now}
+		deletedRow := sqlc.Account{ID: closingAccountID, Balance: "0", Currency: "IDR", CreatedAt: now}
 
 		q.EXPECT().GetAccountById(gomock.Any(), closingAccountID).Return(zeroBalanceClosingAccount, nil)
 		q.EXPECT().GetMainAccountByUserId(gomock.Any(), gomock.Any()).Return(mainAccountRow, nil)
@@ -218,10 +218,10 @@ func TestDeleteAccountTx(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		q := mockdb.NewMockQuerier(ctrl)
 
-		closingLocked := sqlc.GetAccountByIdForUpdateRow{ID: closingAccountID, Balance: "300", Currency: "IDR", CreatedAt: now}
-		mainLocked := sqlc.GetAccountByIdForUpdateRow{ID: mainAccountID, Balance: "1000", Currency: "IDR", CreatedAt: now}
+		closingLocked := sqlc.Account{ID: closingAccountID, Balance: "300", Currency: "IDR", CreatedAt: now}
+		mainLocked := sqlc.Account{ID: mainAccountID, Balance: "1000", Currency: "IDR", CreatedAt: now}
 		sweepTransfer := sqlc.Transfer{ID: 99, FromAccountID: closingAccountID, ToAccountID: mainAccountID, Amount: "300", CreatedAt: now}
-		deletedRow := sqlc.SoftDeleteAccountRow{ID: closingAccountID, Balance: "0", Currency: "IDR", CreatedAt: now}
+		deletedRow := sqlc.Account{ID: closingAccountID, Balance: "0", Currency: "IDR", CreatedAt: now}
 
 		q.EXPECT().GetAccountById(gomock.Any(), closingAccountID).Return(closingAccount, nil)
 		q.EXPECT().GetMainAccountByUserId(gomock.Any(), gomock.Any()).Return(mainAccountRow, nil)
@@ -236,14 +236,14 @@ func TestDeleteAccountTx(t *testing.T) {
 				AccountID: closingAccountID, Type: constant.ENTRY_TYPE_SEND, Amount: "-300",
 				Description: sql.NullString{String: closeAccountTransferDescription, Valid: true},
 				TransferID:  sql.NullInt64{Int64: sweepTransfer.ID, Valid: true},
-			}).Return(sqlc.CreateEntriesRow{}, nil),
-			q.EXPECT().IncrementAccountBalance(gomock.Any(), sqlc.IncrementAccountBalanceParams{ID: closingAccountID, Balance: "-300"}).Return(sqlc.IncrementAccountBalanceRow{}, nil),
+			}).Return(sqlc.Entry{}, nil),
+			q.EXPECT().IncrementAccountBalance(gomock.Any(), sqlc.IncrementAccountBalanceParams{ID: closingAccountID, Balance: "-300"}).Return(sqlc.Account{}, nil),
 			q.EXPECT().CreateEntries(gomock.Any(), sqlc.CreateEntriesParams{
 				AccountID: mainAccountID, Type: constant.ENTRY_TYPE_RECEIVED, Amount: "300",
 				Description: sql.NullString{String: closeAccountTransferDescription, Valid: true},
 				TransferID:  sql.NullInt64{Int64: sweepTransfer.ID, Valid: true},
-			}).Return(sqlc.CreateEntriesRow{}, nil),
-			q.EXPECT().IncrementAccountBalance(gomock.Any(), sqlc.IncrementAccountBalanceParams{ID: mainAccountID, Balance: "300"}).Return(sqlc.IncrementAccountBalanceRow{}, nil),
+			}).Return(sqlc.Entry{}, nil),
+			q.EXPECT().IncrementAccountBalance(gomock.Any(), sqlc.IncrementAccountBalanceParams{ID: mainAccountID, Balance: "300"}).Return(sqlc.Account{}, nil),
 			q.EXPECT().SoftDeleteAccount(gomock.Any(), closingAccountID).Return(deletedRow, nil),
 		)
 
@@ -258,7 +258,7 @@ func TestDeleteAccountTx(t *testing.T) {
 		q := mockdb.NewMockQuerier(ctrl)
 
 		q.EXPECT().GetAccountById(gomock.Any(), closingAccountID).Return(closingAccount, nil)
-		q.EXPECT().GetMainAccountByUserId(gomock.Any(), gomock.Any()).Return(sqlc.GetMainAccountByUserIdRow{}, sql.ErrNoRows)
+		q.EXPECT().GetMainAccountByUserId(gomock.Any(), gomock.Any()).Return(sqlc.Account{}, sql.ErrNoRows)
 		q.EXPECT().GetAccountByIdForUpdate(gomock.Any(), gomock.Any()).Times(0)
 
 		_, err := deleteAccountTx(context.Background(), q, DeleteAccountTxParams{AccountID: closingAccountID, UserID: userID})
@@ -269,8 +269,8 @@ func TestDeleteAccountTx(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		q := mockdb.NewMockQuerier(ctrl)
 
-		closingLocked := sqlc.GetAccountByIdForUpdateRow{ID: closingAccountID, Balance: "300", Currency: "IDR", CreatedAt: now}
-		mainLocked := sqlc.GetAccountByIdForUpdateRow{ID: mainAccountID, Balance: "1000", Currency: "IDR", CreatedAt: now}
+		closingLocked := sqlc.Account{ID: closingAccountID, Balance: "300", Currency: "IDR", CreatedAt: now}
+		mainLocked := sqlc.Account{ID: mainAccountID, Balance: "1000", Currency: "IDR", CreatedAt: now}
 
 		q.EXPECT().GetAccountById(gomock.Any(), closingAccountID).Return(closingAccount, nil)
 		q.EXPECT().GetMainAccountByUserId(gomock.Any(), gomock.Any()).Return(mainAccountRow, nil)

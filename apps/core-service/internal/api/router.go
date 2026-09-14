@@ -29,7 +29,7 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	// Account routes
 	authorized.POST("/accounts", server.createAccount)
 	authorized.GET("/accounts/search-by-number", server.searchAccountByNumber)
-	authorized.GET("/accounts", server.listAccounts)
+	authorized.GET("/accounts/me", server.listmeAccounts)
 
 	// account routes manage
 	authorized.GET("/accounts/:id", server.detailAccount)

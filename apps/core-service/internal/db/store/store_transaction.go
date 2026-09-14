@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	mapper "github.com/DewaSRY/core-service/internal/db/mapper"
 	sqlc "github.com/DewaSRY/core-service/internal/db/sqlc"
 	constant "github.com/DewaSRY/core-service/internal/domain/constant"
 	"github.com/shopspring/decimal"
@@ -110,7 +109,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	if err != nil {
 		return result, err
 	}
-	result.FromEntry = mapper.CreateEntriesRowToEntry(fromEntry)
+	result.FromEntry = fromEntry
 
 	//record for sending transaction
 	debitedFromAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
@@ -121,7 +120,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	if err != nil {
 		return result, err
 	}
-	result.FromAccount = mapper.UpdateBalanceAccountToAccount(debitedFromAccount)
+	result.FromAccount = debitedFromAccount
 
 	toEntry, err := q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 		AccountID:   arg.ToAccountID,
@@ -134,7 +133,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 	if err != nil {
 		return result, err
 	}
-	result.ToEntry = mapper.CreateEntriesRowToEntry(toEntry)
+	result.ToEntry = toEntry
 
 	//record for receiving transaction
 	creditedToAccount, err := q.IncrementAccountBalance(ctx, sqlc.IncrementAccountBalanceParams{
@@ -146,7 +145,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 		return result, err
 	}
 
-	result.ToAccount = mapper.UpdateBalanceAccountToAccount(creditedToAccount)
+	result.ToAccount = creditedToAccount
 
 	return result, nil
 }

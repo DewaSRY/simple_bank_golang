@@ -41,7 +41,7 @@ INSERT INTO entries (
 ) VALUES (
     $1, $2, $3, $4, $5
 )
-RETURNING id, account_id, type, amount, description, transfer_id, created_at
+RETURNING id, account_id, type, amount, created_at, user_id, description, transfer_id
 `
 
 type CreateEntriesParams struct {
@@ -52,17 +52,7 @@ type CreateEntriesParams struct {
 	TransferID  sql.NullInt64  `json:"transfer_id"`
 }
 
-type CreateEntriesRow struct {
-	ID          int64          `json:"id"`
-	AccountID   int64          `json:"account_id"`
-	Type        string         `json:"type"`
-	Amount      string         `json:"amount"`
-	Description sql.NullString `json:"description"`
-	TransferID  sql.NullInt64  `json:"transfer_id"`
-	CreatedAt   time.Time      `json:"created_at"`
-}
-
-func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (CreateEntriesRow, error) {
+func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error) {
 	row := q.queryRow(ctx, q.createEntriesStmt, createEntries,
 		arg.AccountID,
 		arg.Type,
@@ -70,15 +60,16 @@ func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (C
 		arg.Description,
 		arg.TransferID,
 	)
-	var i CreateEntriesRow
+	var i Entry
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
 		&i.Type,
 		&i.Amount,
+		&i.CreatedAt,
+		&i.UserID,
 		&i.Description,
 		&i.TransferID,
-		&i.CreatedAt,
 	)
 	return i, err
 }

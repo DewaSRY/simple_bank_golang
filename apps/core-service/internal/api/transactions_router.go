@@ -81,5 +81,5 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries), "Transfer completed successfully")
+	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries.AccountEntriesView), "Transfer completed successfully")
 }
