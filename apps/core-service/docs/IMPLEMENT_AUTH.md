@@ -118,6 +118,39 @@ Loaded from `app.env` if present, otherwise from real environment variables. If 
 
 There is currently **no refresh-token duration field** — only a single access token is issued for both register and login (see §11).
 
+### 4.1 Setting up the environment for auth to work
+
+This section is deliberately narrower than [CONFIG_ENV_VARIABLE.md](CONFIG_ENV_VARIABLE.md) (which covers `LoadConfig`/Viper mechanics in full) — it's just the practical "what do I set, and how" checklist to get register/login/token verification running locally.
+
+**Vars the auth flow actually depends on**, plus the ones the server needs just to boot:
+
+| Var | Why auth needs it | Example (local) | Notes |
+|---|---|---|---|
+| `JWT_SECRET_KEY` | Signs and verifies every token | `<32+ random bytes, e.g. from openssl>` | `NewJWTMaker` (`internal/token/jwt_maker.go:20`) rejects anything under 32 characters — the server fails at startup, not silently, if this is too short or empty |
+| `JWT_ACCESS_TOKEN_DURATION` | Token expiry, set on every `CreateToken` call (§2, §5) | `15m` | A Go duration string (`15m`, `1h`, `24h`); one value used for both register and login — there's no separate refresh-token duration (§11) |
+| `DB_DRIVER` | Register/login can't look up or create a user without a DB connection | `postgres` | Not auth-specific, but the auth endpoints are unusable without it |
+| `DB_SOURCE` | Same as above | `postgres://simple_bank:password@localhost:5433/simple_bank?sslmode=disable` | Matches the `postgres` service in [docker-compose.yml](../docker-compose.yml) (host port `5433` → container `5432`) |
+| `SERVER_ADDRESS` | Where the API, including `/api/v1/auth/*`, listens | `0.0.0.0:8080` | Required for the process to start at all |
+| `CORS_ALLOWED_ORIGINS` | Lets a browser client actually send the `Authorization` header (see Cross-Feature Coupling, below) | `http://localhost:3000` | Comma-separated; left empty disables CORS entirely — fine for server-to-server calls, breaks browser clients |
+
+**Steps, local dev:**
+
+1. Copy the template: `cp app.env.example app.env`. `app.env` is git-ignored; `app.env.example` (`app.env.example:1-6`) is the checked-in template with every key present but empty.
+2. Start Postgres (and run migrations): `docker compose up -d` — this brings up the `postgres` service and runs the one-shot `migrate` service against `internal/db/migrations` (see [MIGRATION_GUID.md](MIGRATION_GUID.md)).
+3. Fill in `DB_DRIVER=postgres` and `DB_SOURCE=postgres://simple_bank:password@localhost:5433/simple_bank?sslmode=disable` to match the compose file's exposed port.
+4. Generate a real `JWT_SECRET_KEY` — anything ≥32 bytes works:
+   ```bash
+   openssl rand -base64 32
+   ```
+   Don't leave this at the empty placeholder from `app.env.example`; a missing or short secret is the most common reason the server won't start (see the "Worth flagging" callout below).
+5. Set `JWT_ACCESS_TOKEN_DURATION` (e.g. `15m`) and `SERVER_ADDRESS` (e.g. `0.0.0.0:8080`).
+6. Set `CORS_ALLOWED_ORIGINS` if a browser-based client (not curl/Postman) will call these endpoints, e.g. `http://localhost:3000`.
+7. Run the server from the repo root: `go run cmd/server/main.go`. `LoadConfig(".")` (`cmd/server/main.go:34`) resolves `"."` against the process's working directory — run from anywhere else and `app.env` won't be found, silently falling back to whatever's in the real environment (§0 gotcha in [CONFIG_ENV_VARIABLE.md](CONFIG_ENV_VARIABLE.md)).
+
+**No `app.env` file (Docker/CI/prod):** set the same keys as real environment variables instead. `LoadConfig` explicitly calls `viper.BindEnv` for every `mapstructure` tag (`internal/config/config.go:45-54`) specifically so plain env vars work with no config file present — see [CONFIG_ENV_VARIABLE.md §3](CONFIG_ENV_VARIABLE.md#section-3-loadconfig--merging-a-file-with-the-environment) for why that call exists.
+
+**Worth flagging — no startup validation on required fields.** Neither `LoadConfig` nor `NewServer` checks that `JWTSecretKey` or `DBSource` are non-empty before using them ([NEED_TO_IMPROVE.md](../NEED_TO_IMPROVE.md)). A too-*short* secret does fail loudly, via `NewJWTMaker`'s length check (§2) surfacing as `"cannot create token maker: ..."` from `api.NewServer` — but a *missing* `DB_SOURCE` or a `JWT_SECRET_KEY` that's empty in a way that still passes the length check (it doesn't, here, since `len("") < 32`) would instead fail deeper downstream (`sql.Open`, or wherever the zero-value first gets used) with a less obvious error. If the server won't start, check `app.env` is actually being found (step 7) before assuming the values themselves are wrong.
+
 ## 5. Auth endpoints — `internal/api/auth_router.go`
 
 **Problem it solves:** turn a set of credentials into an access token, or reject them without telling the caller more than necessary.
