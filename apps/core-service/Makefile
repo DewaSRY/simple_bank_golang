@@ -59,4 +59,27 @@ docker-dep-push:
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
 
-.PHONY: db-up db-down test server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop docker-dep-build docker-dep-push swag-gen
+TF_DIR := terraform
+
+tf-init:
+	terraform -chdir=$(TF_DIR) init
+
+tf-fmt:
+	terraform -chdir=$(TF_DIR) fmt
+
+tf-validate:
+	terraform -chdir=$(TF_DIR) validate
+
+tf-plan:
+	terraform -chdir=$(TF_DIR) plan
+
+tf-apply:
+	terraform -chdir=$(TF_DIR) apply
+
+tf-output:
+	terraform -chdir=$(TF_DIR) output
+
+tf-destroy:
+	terraform -chdir=$(TF_DIR) destroy
+
+.PHONY: db-up db-down test server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop docker-dep-build docker-dep-push swag-gen tf-init tf-fmt tf-validate tf-plan tf-apply tf-output tf-destroy

@@ -1,0 +1,14 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored - never commit real secrets.
+
+docker_image = "sdewa/core-service-dep:latest"
+
+# Supabase: Project Settings -> Database -> Connection string (URI, use the pooler host for EC2)
+db_source = "postgresql://postgres:<password>@<supabase-host>:5432/postgres?sslmode=require"
+
+jwt_secret_key            = "replace-with-a-real-32-plus-character-secret"
+jwt_access_token_duration = "7d"
+cors_allowed_origins      = ""
+
+# Lock this down to your own IP (e.g. ["1.2.3.4/32"]) once you know it.
+ssh_cidr_blocks = ["0.0.0.0/0"]
