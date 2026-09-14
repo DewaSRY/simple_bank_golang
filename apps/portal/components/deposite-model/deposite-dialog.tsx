@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { AccountList } from "./account-list";
 interface Props {
   open?: boolean;
   setOpen?: (open: boolean) => void;
@@ -17,13 +18,16 @@ interface Props {
 export function DepositeDialog({ open, setOpen }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className="p-4 lg:min-w-4xl">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <DialogTitle>Deposite Funds</DialogTitle>
           <DialogDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
+            Enter the amount you want to deposite. Click save when you&apos;re
+            done.
           </DialogDescription>
         </DialogHeader>
+
+        <AccountList />
 
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
