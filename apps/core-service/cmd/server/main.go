@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
-	store "github.com/DewaSRY/core-service/db/store"
 	api "github.com/DewaSRY/core-service/internal/api"
 	config "github.com/DewaSRY/core-service/internal/config"
+	store "github.com/DewaSRY/core-service/internal/db/store"
 	_ "github.com/DewaSRY/core-service/internal/docs" // swagger docs
 )
 

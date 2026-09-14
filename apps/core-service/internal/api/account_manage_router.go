@@ -7,9 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mapper "github.com/DewaSRY/core-service/db/mapper"
-	db "github.com/DewaSRY/core-service/db/sqlc"
-	"github.com/DewaSRY/core-service/db/store"
+	mapper "github.com/DewaSRY/core-service/internal/db/mapper"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
+	"github.com/DewaSRY/core-service/internal/db/store"
 )
 
 type manageAccountParams struct {

@@ -11,8 +11,8 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 
-	store "github.com/DewaSRY/core-service/db/store"
 	config "github.com/DewaSRY/core-service/internal/config"
+	store "github.com/DewaSRY/core-service/internal/db/store"
 	"github.com/DewaSRY/core-service/internal/token"
 )
 

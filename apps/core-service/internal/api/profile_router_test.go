@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	mockdb "github.com/DewaSRY/core-service/db/mock"
-	db "github.com/DewaSRY/core-service/db/sqlc"
+	mockdb "github.com/DewaSRY/core-service/internal/db/mock"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 )
 
 func doGetProfileRequest(t *testing.T, server *Server, authHeader string) *httptest.ResponseRecorder {

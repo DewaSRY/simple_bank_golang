@@ -10,7 +10,7 @@ RUN CGO_ENABLED=0 go build -o main ./cmd/server
 FROM alpine:3.20
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY db/migrations ./db/migrations
+COPY internal/db/migrations ./internal/db/migrations
 
 # app.env holds secrets (JWT key, DB source) so it is not baked into the image;
 # mount it at runtime, e.g. `docker run -v $(pwd)/app.env:/app/app.env ...`

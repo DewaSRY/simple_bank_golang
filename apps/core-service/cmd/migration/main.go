@@ -12,7 +12,7 @@ import (
 )
 
 func createMigrationFile(migrationName string) {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate create -ext sql -dir db/migrations -seq %s", migrationName))
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate create -ext sql -dir internal/db/migrations -seq %s", migrationName))
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -25,13 +25,13 @@ func createMigrationFile(migrationName string) {
 
 func upMigration(dbURI string) {
 
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path db/migrations -database %s up", dbURI))
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("migrate -path internal/db/migrations -database %s up", dbURI))
 	output, err := cmd.CombinedOutput()
 	fmt.Println("Running migration up...")
 	fmt.Println(string(output))
 	if err != nil {
 		// Note: the postgres driver already rolled back the failing migration
-		// file's own transaction (see db/migrations/README.md). We must still
+		// file's own transaction (see internal/db/migrations/README.md). We must still
 		// exit non-zero so callers (Makefile/CI) don't treat this as success.
 		fmt.Println("Migration up failed.")
 		fmt.Println("Error:", err)
@@ -44,7 +44,7 @@ func upMigration(dbURI string) {
 func downMigration(dbURI string) {
 	cmd := exec.Command(
 		"migrate",
-		"-path", "db/migrations",
+		"-path", "internal/db/migrations",
 		"-database", dbURI,
 		"down", "1",
 	)
@@ -64,7 +64,7 @@ func downMigration(dbURI string) {
 }
 
 func forceMigration(dbURI string, version int) {
-	cmd := exec.Command("migrate", "-path", "db/migrations", "-database", dbURI, "force", fmt.Sprintf("%d", version))
+	cmd := exec.Command("migrate", "-path", "internal/db/migrations", "-database", dbURI, "force", fmt.Sprintf("%d", version))
 	output, err := cmd.CombinedOutput()
 	fmt.Println("Running migration force...")
 	fmt.Println(string(output))
@@ -78,7 +78,7 @@ func forceMigration(dbURI string, version int) {
 }
 
 func migrateGotoversion(dbURI string, version int) {
-	cmd := exec.Command("migrate", "-path", "db/migrations", "-database", dbURI, "goto", fmt.Sprintf("%d", version))
+	cmd := exec.Command("migrate", "-path", "internal/db/migrations", "-database", dbURI, "goto", fmt.Sprintf("%d", version))
 	output, err := cmd.CombinedOutput()
 	fmt.Println("Running migration goto version...")
 	fmt.Println(string(output))

@@ -1,6 +1,6 @@
 package api
 
-import db "github.com/DewaSRY/core-service/db/sqlc"
+import db "github.com/DewaSRY/core-service/internal/db/sqlc"
 
 func toTransactionHistoryItem(row db.ListAccountTransactionHistoryRow) transactionHistoryItem {
 	item := transactionHistoryItem{

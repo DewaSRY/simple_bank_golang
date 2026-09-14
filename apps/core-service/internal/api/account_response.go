@@ -1,7 +1,7 @@
 package api
 
 import (
-	db "github.com/DewaSRY/core-service/db/sqlc"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 )
 
 type accountResponse struct {

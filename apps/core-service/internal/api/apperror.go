@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/DewaSRY/core-service/db/store"
+	"github.com/DewaSRY/core-service/internal/db/store"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )

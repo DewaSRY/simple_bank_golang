@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	mockdb "github.com/DewaSRY/core-service/db/mock"
-	db "github.com/DewaSRY/core-service/db/sqlc"
-	"github.com/DewaSRY/core-service/db/store"
+	mockdb "github.com/DewaSRY/core-service/internal/db/mock"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
+	"github.com/DewaSRY/core-service/internal/db/store"
 )
 
 func TestTransactionTransfer(t *testing.T) {

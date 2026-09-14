@@ -49,7 +49,7 @@ jobs:
           sudo mv migrate /usr/local/bin/migrate
 
       - name: Run migrations
-        run: migrate -path db/migrations -database "postgresql://simple_bank:password@localhost:5433/simple_bank?sslmode=disable" up
+        run: migrate -path internal/db/migrations -database "postgresql://simple_bank:password@localhost:5433/simple_bank?sslmode=disable" up
 
       - name: Build
         run: go build ./...

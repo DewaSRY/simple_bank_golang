@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 
-	db "github.com/DewaSRY/core-service/db/sqlc"
-	"github.com/DewaSRY/core-service/db/store"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
+	"github.com/DewaSRY/core-service/internal/db/store"
 )
 
 type depositRequest struct {

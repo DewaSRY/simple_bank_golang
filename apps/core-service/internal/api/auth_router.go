@@ -9,10 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 
-	"github.com/DewaSRY/core-service/pkg/utils"
+	"github.com/DewaSRY/core-service/internal/util"
 
-	db "github.com/DewaSRY/core-service/db/sqlc"
-	"github.com/DewaSRY/core-service/db/store"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
+	"github.com/DewaSRY/core-service/internal/db/store"
 )
 
 type loginUserRequest struct {
@@ -55,7 +55,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	if err := utils.CheckPassword(req.Password, user.HashedPassword); err != nil {
+	if err := util.CheckPassword(req.Password, user.HashedPassword); err != nil {
 		fail(ctx, UnauthorizedErr("invalid username or password"))
 		return
 	}
@@ -128,7 +128,7 @@ func (server *Server) registerUser(ctx *gin.Context) {
 	}
 
 	// Hash the password
-	hashedPassword, err := utils.HashPassword(req.Password)
+	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		fail(ctx, InternalErr())
 		return

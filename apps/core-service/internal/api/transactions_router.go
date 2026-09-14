@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 
-	db "github.com/DewaSRY/core-service/db/sqlc"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 )
 
 type createTransactionTransferRequest struct {

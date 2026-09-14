@@ -15,11 +15,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	mockdb "github.com/DewaSRY/core-service/db/mock"
-	db "github.com/DewaSRY/core-service/db/sqlc"
-	store "github.com/DewaSRY/core-service/db/store"
 	config "github.com/DewaSRY/core-service/internal/config"
-	"github.com/DewaSRY/core-service/pkg/utils"
+	mockdb "github.com/DewaSRY/core-service/internal/db/mock"
+	db "github.com/DewaSRY/core-service/internal/db/sqlc"
+	store "github.com/DewaSRY/core-service/internal/db/store"
+	"github.com/DewaSRY/core-service/internal/util"
 )
 
 // mockStorer adapts a *mockdb.MockQuerier (generated only from sqlc.Querier)
@@ -116,7 +116,7 @@ func TestRegisterUser(t *testing.T) {
 					func(_ context.Context, arg db.CreateUserParams) (db.CreateUserRow, error) {
 						require.Equal(t, validReq.Username, arg.Username)
 						require.Equal(t, validReq.Email, arg.Email)
-						require.NoError(t, utils.CheckPassword(validReq.Password, arg.HashedPassword))
+						require.NoError(t, util.CheckPassword(validReq.Password, arg.HashedPassword))
 						return db.CreateUserRow{ID: 1, Username: arg.Username, Email: arg.Email, CreatedAt: time.Now()}, nil
 					},
 				)
