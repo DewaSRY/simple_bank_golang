@@ -6,12 +6,13 @@ import type {
   AccountWithUserName,
   RequestAccountbody,
   SearchAccountsParams,
+  SearchMeAccountsParams,
 } from "./type";
 export class AccountClient extends BaseClient {
-  listAccounts({ page = 1, limit = 10 }: Partial<PaginationParams> = {}) {
+  listMeAccounts({ name, page = 1, limit = 10 }: SearchMeAccountsParams) {
     return this.get<CommonSuccessResponse<AccountWithUserName[]>>({
-      endpoint: "/accounts",
-      params: { page, limit },
+      endpoint: "/accounts/me",
+      params: { name, page, limit },
     });
   }
 

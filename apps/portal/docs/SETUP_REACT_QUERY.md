@@ -15,14 +15,14 @@ Read the callouts before copying a pattern.
 
 ## Section 0 — Background Primer
 
-| Approach | Direction | Transport | Typical use in this app |
-| --- | --- | --- | --- |
-| Server Component fetch | server → client (one-shot) | direct call, no browser round-trip | Initial page render — still how every page gets its first data |
-| TanStack Query | client ⇄ server, cached | the existing Axios instance (`lib/api/base-client.ts`) | Refetch, cache-sharing, and mutations *after* the page has loaded |
-| Plain `useEffect` fetch | client → server, uncached | Axios/fetch | Not used anywhere in this app — TanStack Query replaces this pattern entirely |
+| Approach                | Direction                  | Transport                                              | Typical use in this app                                                       |
+| ----------------------- | -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Server Component fetch  | server → client (one-shot) | direct call, no browser round-trip                     | Initial page render — still how every page gets its first data                |
+| TanStack Query          | client ⇄ server, cached    | the existing Axios instance (`lib/api/base-client.ts`) | Refetch, cache-sharing, and mutations _after_ the page has loaded             |
+| Plain `useEffect` fetch | client → server, uncached  | Axios/fetch                                            | Not used anywhere in this app — TanStack Query replaces this pattern entirely |
 
 TanStack Query isn't a transport (it doesn't talk to the network itself) —
-it's a cache and subscription layer *in front of* whatever fetch function you
+it's a cache and subscription layer _in front of_ whatever fetch function you
 give it. In this app that fetch function is always an existing `accountClient`
 / `authClient` method (`feature/account/client.ts:52`, `feature/auth/client.ts:29`),
 unchanged by adopting the library.
@@ -38,7 +38,7 @@ unchanged by adopting the library.
    component called it.** Two components calling `useQuery` with the same key
    array share one in-flight request and one cached result; a key built even
    slightly differently (different param order, an extra field) is a
-   *different* cache entry. This is why the key is a shared factory function
+   _different_ cache entry. This is why the key is a shared factory function
    (`accountKeys.list`) instead of an inline array at each call site — see
    [Section 4](#section-4--query-keys--hooks-per-feature).
 3. **`useMutation` has no cache entry of its own** — it's fire-and-forget
@@ -52,14 +52,14 @@ wraps `children` inside `NextIntlClientProvider`. The root layout itself
 implements none of the query logic — it only wires the provider into the
 tree once, above every route.
 
-| Concern | Owner (file) | Analogy |
-| --- | --- | --- |
-| `QueryClient` defaults (staleTime, retry policy) | `lib/query/query-client.ts` | The oven's factory-set temperature/timer defaults |
-| Mounting the client + devtools in the React tree | `providers/query-provider.tsx` | Plugging the oven in |
-| Query keys + fetch/hook per feature | `feature/<name>/hooks/query.ts` | The recipe card — what to fetch and how to name the dish |
-| Server-side prefetch + hydration handoff | the owning `page.tsx` | Preheating before the guest (the client) arrives |
-| Rendering loading/error/data states | the Client Component (e.g. `account-list.tsx`) | Plating the dish |
-| The actual HTTP call | `accountClient` / `authClient` (`feature/*/client.ts`) | The grocery run — untouched by any of the above |
+| Concern                                          | Owner (file)                                           | Analogy                                                  |
+| ------------------------------------------------ | ------------------------------------------------------ | -------------------------------------------------------- |
+| `QueryClient` defaults (staleTime, retry policy) | `lib/query/query-client.ts`                            | The oven's factory-set temperature/timer defaults        |
+| Mounting the client + devtools in the React tree | `providers/query-provider.tsx`                         | Plugging the oven in                                     |
+| Query keys + fetch/hook per feature              | `feature/<name>/hooks/query.ts`                        | The recipe card — what to fetch and how to name the dish |
+| Server-side prefetch + hydration handoff         | the owning `page.tsx`                                  | Preheating before the guest (the client) arrives         |
+| Rendering loading/error/data states              | the Client Component (e.g. `account-list.tsx`)         | Plating the dish                                         |
+| The actual HTTP call                             | `accountClient` / `authClient` (`feature/*/client.ts`) | The grocery run — untouched by any of the above          |
 
 It's split this way so the fetch function and its cache key can be reused
 identically on the server (`prefetchQuery`) and the client (`useQuery`)
@@ -97,11 +97,11 @@ export function createQueryClient(): QueryClient {
 `shouldRetryQuery` (`lib/query/query-client.ts:10-17`) is a function, not a
 boolean, because failures aren't uniform:
 
-| Field | What actually happens |
-| --- | --- |
-| `staleTime: 30_000` | Hydrated/fetched data gets a 30s grace period before a mount/refocus triggers a silent background refetch |
-| `gcTime: 5 * 60_000` | Library default, made explicit — how long an *unused* query stays cached before eviction |
-| `retry` (queries) | Retries network errors and 5xx up to `MAX_QUERY_RETRIES` (2) times; never retries 4xx — a 401/404/422 won't succeed on a second attempt, it'll just delay the error reaching the component |
+| Field                      | What actually happens                                                                                                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `staleTime: 30_000`        | Hydrated/fetched data gets a 30s grace period before a mount/refocus triggers a silent background refetch                                                                                             |
+| `gcTime: 5 * 60_000`       | Library default, made explicit — how long an _unused_ query stays cached before eviction                                                                                                              |
+| `retry` (queries)          | Retries network errors and 5xx up to `MAX_QUERY_RETRIES` (2) times; never retries 4xx — a 401/404/422 won't succeed on a second attempt, it'll just delay the error reaching the component            |
 | `retry: false` (mutations) | Never auto-retries. A login/register/create is a user-triggered write; silently resubmitting on a transient failure risks a duplicate side effect (e.g. two accounts created) the user didn't ask for |
 
 This file is intentionally free of `"use client"`/React imports (unlike its
@@ -112,7 +112,7 @@ directly in a unit test without mounting a component.
 
 **Problem it solves:** a `QueryClient` is stateful (it holds the cache) —
 sharing one instance across every render in the browser is correct, but
-sharing one instance across *requests* on the server would leak one user's
+sharing one instance across _requests_ on the server would leak one user's
 cached data into another user's response.
 
 **How it's implemented:**
@@ -154,7 +154,7 @@ already no-ops itself out of production bundles internally.
 ## Section 4 — Query keys + hooks, per feature
 
 **Problem it solves:** the Server Component (prefetch) and the Client
-Component (`useQuery`) need to agree on the *exact* same cache key for
+Component (`useQuery`) need to agree on the _exact_ same cache key for
 hydration to hand data off without a loading flash — and every feature needs
 this key/fetch/hook trio, so it's a pattern, not a one-off.
 
@@ -164,19 +164,19 @@ this key/fetch/hook trio, so it's a pattern, not a one-off.
 // feature/account/hooks/query.ts:8-27
 export const accountKeys = {
   all: ["accounts"] as const,
-  list: (params: ListAccountsParams) =>
+  list: (params: listMeAccountsParams) =>
     [...accountKeys.all, "list", params] as const,
 };
 
 export function fetchAccounts(
-  params: ListAccountsParams = {},
+  params: listMeAccountsParams = {},
 ): Promise<AccountWithUserName[]> {
   return accountClient
-    .listAccounts(params)
+    .listMeAccounts(params)
     .then((response) => response.data.data);
 }
 
-export function useAccounts(params: ListAccountsParams = {}) {
+export function useAccounts(params: listMeAccountsParams = {}) {
   return useQuery({
     queryKey: accountKeys.list(params),
     queryFn: () => fetchAccounts(params),
@@ -213,15 +213,15 @@ export const authQueryKeys = {
 };
 
 export const useLoginMutation = () => {
-  return useMutation<CommonSuccessResponse<AuthResponse>, Error, LoginRequest>(
-    {
-      mutationFn: (body) =>
-        authClient.login(body).then((response) => response.data),
-    },
-  );
+  return useMutation<CommonSuccessResponse<AuthResponse>, Error, LoginRequest>({
+    mutationFn: (body) =>
+      authClient.login(body).then((response) => response.data),
+  });
 };
 
-export const useRegisterMutation = () => { /* same shape, RegisterRequest */ };
+export const useRegisterMutation = () => {
+  /* same shape, RegisterRequest */
+};
 
 export const useProfileQuery = () => {
   return useQuery<CommonSuccessResponse<ProfileResponse>, Error>({
@@ -231,11 +231,11 @@ export const useProfileQuery = () => {
 };
 ```
 
-| Hook | Shape | Cached under a key? |
-| --- | --- | --- |
-| `useLoginMutation` | `useMutation` | No — mutations aren't cache entries |
-| `useRegisterMutation` | `useMutation` | No |
-| `useProfileQuery` | `useQuery` | Yes, `authQueryKeys.profile()` |
+| Hook                  | Shape         | Cached under a key?                 |
+| --------------------- | ------------- | ----------------------------------- |
+| `useLoginMutation`    | `useMutation` | No — mutations aren't cache entries |
+| `useRegisterMutation` | `useMutation` | No                                  |
+| `useProfileQuery`     | `useQuery`    | Yes, `authQueryKeys.profile()`      |
 
 `authQueryKeys` only has a `profile()` entry — login and register aren't
 cached, so there's nothing for a key to identify.
@@ -286,7 +286,7 @@ the dashboard's account list is — there's no `page.tsx` awaiting
 entirely inside the Server Component with a bare `try`/`catch`. That's
 simple, but the data could never be refetched or invalidated without a full
 page reload. Prefetching into a TanStack Query cache and hydrating it lets
-the Server Component keep doing the *first* fetch while handing off ongoing
+the Server Component keep doing the _first_ fetch while handing off ongoing
 cache ownership to the client.
 
 ```tsx
@@ -302,22 +302,22 @@ await queryClient.prefetchQuery({
 
 <HydrationBoundary state={dehydrate(queryClient)}>
   <AccountList />
-</HydrationBoundary>
+</HydrationBoundary>;
 ```
 
 `prefetchQuery` is **awaited**, not fire-and-forget behind a Suspense
 fallback, so the first paint already has data — the same blocking behavior
-the old inline `try`/`catch` had. If `accountClient.listAccounts` throws
+the old inline `try`/`catch` had. If `accountClient.listMeAccounts` throws
 (e.g. a 401), `prefetchQuery` catches it internally and stores the error in
 the query cache; `dehydrate` ships that error state down too, so
 `AccountList`'s own `error` branch handles it (`components/dashboard/account-list.tsx:25-31`)
 — no `try`/`catch` needed in the page component anymore.
 
 **Rough edge worth flagging:** the key (`accountKeys.list(accountParams)`)
-must be built the *exact* same way on both the server and the client. That's
+must be built the _exact_ same way on both the server and the client. That's
 why it's a shared function rather than an inline array literal at each call
 site — a mismatched key (different param order, an extra field) silently
-mounts a *different* cache entry than the one hydrated, producing a loading
+mounts a _different_ cache entry than the one hydrated, producing a loading
 flash instead of instant data, with no error or warning.
 
 ```
@@ -333,7 +333,7 @@ Client Component (AccountList)
 TanStack Query
    │  now owns the browser copy: refetch on focus, manual invalidation, etc.
    ▼
-accountClient.listAccounts() (unchanged)
+accountClient.listMeAccounts() (unchanged)
 ```
 
 ## Component/presentational layer
@@ -362,23 +362,23 @@ no data fetching, and should not be confused with `AccountList` above.
   here calls `queryClient.clear()` on sign-out today.
 - **Build-time requests are short-circuited app-wide.** `isBuildPhase()`
   (`lib/api/api-interceptor.ts:21-25`) throws `BuildPhaseSkippedError` for
-  *any* request instance during `next build`'s static generation phase —
+  _any_ request instance during `next build`'s static generation phase —
   this applies to every `queryFn`/`mutationFn` in this doc, not just the
   dashboard's prefetch, since they all route through the same intercepted
   Axios instance (`lib/api/base-client.ts:39-42`).
 
 ## Final reference table
 
-| Method | Endpoint | Client method | Wired to TanStack Query? |
-| --- | --- | --- | --- |
-| GET | `/accounts` | `accountClient.listAccounts` (`feature/account/client.ts:52`) | Yes — `useAccounts` / server prefetch |
-| GET | `/accounts/search-by-number` | `accountClient.searchAccountByNumber` (`feature/account/client.ts:66`) | No — called directly, no query hook exists for it |
-| POST | `/accounts` | `accountClient.createAccount` (`feature/account/client.ts:59`) | No — no mutation hook exists for it |
-| POST | `/accounts/{id}` | `accountClient.updateAccount` (`feature/account/client.ts:77`) | No — no mutation hook exists for it |
-| — | `/accounts/{id}/deposit` | *(commented-out placeholder only, `feature/account/client.ts:84`)* | No — endpoint not implemented client-side yet |
-| POST | `/auth/login` | `authClient.login` (`feature/auth/client.ts:30`) | Yes — `useLoginMutation` |
-| POST | `/auth/register` | `authClient.register` (`feature/auth/client.ts:37`) | Yes — `useRegisterMutation` |
-| GET | `/auth/profile` | `authClient.getProfile` (`feature/auth/client.ts:44`) | Yes — `useProfileQuery` |
+| Method | Endpoint                     | Client method                                                          | Wired to TanStack Query?                          |
+| ------ | ---------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------- |
+| GET    | `/accounts`                  | `accountClient.listMeAccounts` (`feature/account/client.ts:52`)        | Yes — `useAccounts` / server prefetch             |
+| GET    | `/accounts/search-by-number` | `accountClient.searchAccountByNumber` (`feature/account/client.ts:66`) | No — called directly, no query hook exists for it |
+| POST   | `/accounts`                  | `accountClient.createAccount` (`feature/account/client.ts:59`)         | No — no mutation hook exists for it               |
+| POST   | `/accounts/{id}`             | `accountClient.updateAccount` (`feature/account/client.ts:77`)         | No — no mutation hook exists for it               |
+| —      | `/accounts/{id}/deposit`     | _(commented-out placeholder only, `feature/account/client.ts:84`)_     | No — endpoint not implemented client-side yet     |
+| POST   | `/auth/login`                | `authClient.login` (`feature/auth/client.ts:30`)                       | Yes — `useLoginMutation`                          |
+| POST   | `/auth/register`             | `authClient.register` (`feature/auth/client.ts:37`)                    | Yes — `useRegisterMutation`                       |
+| GET    | `/auth/profile`              | `authClient.getProfile` (`feature/auth/client.ts:44`)                  | Yes — `useProfileQuery`                           |
 
 ## Verification performed
 

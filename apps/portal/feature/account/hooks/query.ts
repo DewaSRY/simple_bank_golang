@@ -25,7 +25,9 @@ export function useAccounts(params: Partial<PaginationParams> = {}) {
   return useQuery({
     queryKey: queryKeys.list(params),
     queryFn: () =>
-      accountClient.listAccounts(params).then((response) => response.data.data),
+      accountClient
+        .listMeAccounts(params)
+        .then((response) => response.data.data),
   });
 }
 
