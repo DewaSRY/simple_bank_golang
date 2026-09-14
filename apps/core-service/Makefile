@@ -38,6 +38,9 @@ CONTAINER_NAME := core-service
 docker-build:
 	docker build -t $(IMAGE_NAME):latest .
 
+
+
+
 docker-run:
 	docker run --name $(CONTAINER_NAME) -p 8080:8080 -v $(CURDIR)/app.env:/app/app.env:ro $(IMAGE_NAME):latest
 
@@ -45,7 +48,15 @@ docker-stop:
 	docker stop $(CONTAINER_NAME) 
 	docker rm $(CONTAINER_NAME)
 
+DEP_IMAGE_NAME := sdewa/core-service-dep
+
+docker-dep-build:
+	docker build -t $(DEP_IMAGE_NAME):latest .
+
+docker-dep-push: 
+	docker push $(DEP_IMAGE_NAME):latest
+
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
 
-.PHONY: db-up db-down test server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop swag-gen
+.PHONY: db-up db-down test server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop docker-dep-build docker-dep-push swag-gen
