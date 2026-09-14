@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -12,6 +13,8 @@ import { useTransferStore } from "./store";
 import type { DestinationAccount } from "./type";
 
 export function DestinationStep() {
+  const { t } = useTranslation("transfer");
+  const { t: tCommon } = useTranslation("common");
   const { sourceAccount, destinationAccount, setDestinationAccount, setStep } =
     useTransferStore();
   const [number, setNumber] = useState("");
@@ -42,8 +45,8 @@ export function DestinationStep() {
     <div>
       <Tabs defaultValue="recent">
         <TabsList>
-          <TabsTrigger value="recent">Recent</TabsTrigger>
-          <TabsTrigger value="search">Search by number</TabsTrigger>
+          <TabsTrigger value="recent">{t("recentTab")}</TabsTrigger>
+          <TabsTrigger value="search">{t("searchByNumberTab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recent">
@@ -61,7 +64,7 @@ export function DestinationStep() {
               ))
             ) : (
               <p className="py-4 text-center text-sm text-muted-foreground">
-                No recent transactions yet.
+                {t("noRecentTransactions")}
               </p>
             )}
           </div>
@@ -71,12 +74,12 @@ export function DestinationStep() {
           <SearchInput
             search={number}
             onSearch={setNumber}
-            placeholder="Search by account number..."
+            placeholder={t("searchByNumberPlaceholder")}
           />
           <div className="max-h-80 space-y-2 overflow-y-auto py-2">
             {number.trim().length === 0 ? (
               <p className="py-4 text-center text-sm text-muted-foreground">
-                Enter an account number to search.
+                {t("enterAccountNumberPrompt")}
               </p>
             ) : numberResults.length > 0 ? (
               numberResults.map((account, idx) => (
@@ -91,7 +94,7 @@ export function DestinationStep() {
               ))
             ) : (
               <p className="py-4 text-center text-sm text-muted-foreground">
-                No accounts found.
+                {t("noAccountsFound")}
               </p>
             )}
           </div>
@@ -104,7 +107,7 @@ export function DestinationStep() {
           variant="outline"
           onClick={() => setStep("source")}
         >
-          Back
+          {tCommon("back")}
         </Button>
       </DialogFooter>
     </div>

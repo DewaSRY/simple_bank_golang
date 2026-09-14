@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -12,6 +13,7 @@ import { useAccounts } from "@/feature/account/hooks/query";
 import Link from "next/link";
 
 export function NavAccountList() {
+  const { t } = useTranslation("common");
   const { data: accounts, isLoading } = useAccounts({
     page: 1,
     limit: 10,
@@ -20,7 +22,7 @@ export function NavAccountList() {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Accounts</SidebarGroupLabel>
+      <SidebarGroupLabel>{t("yourAccounts")}</SidebarGroupLabel>
       <SidebarGroupContent className="flex flex-col gap-0.5">
         {isLoading ? (
           <div className="flex flex-col gap-3 px-2 py-2">
@@ -58,7 +60,7 @@ export function NavAccountList() {
           ))
         ) : (
           <p className="px-2 py-2 text-xs text-muted-foreground">
-            No accounts yet.
+            {t("noAccounts")}
           </p>
         )}
       </SidebarGroupContent>

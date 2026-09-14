@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export function PreviewStep({ onSuccess }: Props) {
+  const { t } = useTranslation("transfer");
+  const { t: tCommon } = useTranslation("common");
   const { sourceAccount, destinationAccount, details, setStep } = useTransferStore();
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +35,7 @@ export function PreviewStep({ onSuccess }: Props) {
       });
       onSuccess();
     } catch (err) {
-      setError(getApiErrorMessage(err, "Failed to transfer. Please try again."));
+      setError(getApiErrorMessage(err, t("transferError")));
     }
   }
 
@@ -43,14 +46,14 @@ export function PreviewStep({ onSuccess }: Props) {
       <Card className="mb-4">
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">From</span>
+            <span className="text-sm text-muted-foreground">{t("from")}</span>
             <div className="text-right">
               <p className="font-medium">{sourceAccount.name}</p>
               <p className="text-sm text-muted-foreground">{sourceAccount.number}</p>
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">To</span>
+            <span className="text-sm text-muted-foreground">{t("to")}</span>
             <div className="text-right">
               <p className="font-medium">{destinationAccount.name}</p>
               <p className="text-sm text-muted-foreground">
@@ -59,13 +62,17 @@ export function PreviewStep({ onSuccess }: Props) {
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Amount</span>
+            <span className="text-sm text-muted-foreground">
+              {t("amount")}
+            </span>
             <p className="font-medium">
               {formatAccountAmount(String(details.amount))}
             </p>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Description</span>
+            <span className="text-sm text-muted-foreground">
+              {t("description")}
+            </span>
             <p className="text-right font-medium">{details.description}</p>
           </div>
         </CardContent>
@@ -80,10 +87,10 @@ export function PreviewStep({ onSuccess }: Props) {
           onClick={() => setStep("details")}
           disabled={isPending}
         >
-          Back
+          {tCommon("back")}
         </Button>
         <Button type="button" onClick={handleConfirm} disabled={isPending}>
-          {isPending ? "Transferring..." : "Confirm Transfer"}
+          {isPending ? t("transferring") : t("confirmTransfer")}
         </Button>
       </DialogFooter>
     </div>

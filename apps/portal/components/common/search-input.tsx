@@ -1,5 +1,6 @@
 import { debounce } from "es-toolkit";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   InputGroup,
   InputGroupAddon,
@@ -26,18 +27,18 @@ export function SearchInput({
   className,
   icon,
 }: Props) {
+  const { t } = useTranslation("common");
+
   return (
     <InputGroup className={cn(className)}>
       <InputGroupInput
-        placeholder={placeholder ?? "Search..."}
+        placeholder={placeholder ?? t("searchPlaceholder")}
         value={search}
         onChange={(e) => onSearch(e.target.value)}
       />
       <InputGroupAddon>{icon ?? <Search />}</InputGroupAddon>
       {addon && (
-        <InputGroupAddon align="inline-end">
-          {addonText ?? "12 results"}
-        </InputGroupAddon>
+        <InputGroupAddon align="inline-end">{addonText}</InputGroupAddon>
       )}
     </InputGroup>
   );

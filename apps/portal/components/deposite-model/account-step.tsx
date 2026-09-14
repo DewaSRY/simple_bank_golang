@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 
@@ -5,6 +7,7 @@ import { AccountList } from "./account-list";
 import { useDepositeStore } from "./store";
 
 export function AccountStep() {
+  const { t: tCommon } = useTranslation("common");
   const { selectedAccount, setStep } = useDepositeStore();
 
   return (
@@ -14,13 +17,15 @@ export function AccountStep() {
       </div>
 
       <DialogFooter>
-        <DialogClose render={<Button variant="outline">Cancel</Button>} />
+        <DialogClose
+          render={<Button variant="outline">{tCommon("cancel")}</Button>}
+        />
         <Button
           type="button"
           disabled={!selectedAccount}
           onClick={() => setStep("details")}
         >
-          Continue
+          {tCommon("continue")}
         </Button>
       </DialogFooter>
     </div>

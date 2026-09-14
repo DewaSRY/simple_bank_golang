@@ -1,6 +1,7 @@
 "use client";
 
 import { Wallet } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardDescription,
@@ -15,6 +16,9 @@ export function AccountSummaryCard({
 }: {
   account: AccountWithUserName;
 }) {
+  const { t } = useTranslation("account");
+  const { t: tCommon } = useTranslation("common");
+
   return (
     <Card className="overflow-hidden border-0 bg-primary text-primary-foreground shadow-lg">
       <CardHeader className="gap-6 p-6 sm:p-8">
@@ -32,13 +36,13 @@ export function AccountSummaryCard({
           </div>
           {account.is_main && (
             <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-medium">
-              Main account
+              {t("mainAccount")}
             </span>
           )}
         </div>
         <div>
           <p className="text-sm text-primary-foreground/65">
-            Available balance
+            {tCommon("availableBalance")}
           </p>
           <p className="mt-1 font-mono text-4xl font-semibold tracking-tight">
             {formatAccountAmount(account.balance, account.currency)}

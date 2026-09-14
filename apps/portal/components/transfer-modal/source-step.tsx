@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
@@ -10,6 +11,8 @@ import { useTransferStore } from "./store";
 import type { SourceAccount } from "./type";
 
 export function SourceStep() {
+  const { t } = useTranslation("transfer");
+  const { t: tCommon } = useTranslation("common");
   const { sourceAccount, setSourceAccount, setStep } = useTransferStore();
   const [name, setName] = useState("");
 
@@ -25,7 +28,7 @@ export function SourceStep() {
       <SearchInput
         search={name}
         onSearch={setName}
-        placeholder="Search your accounts..."
+        placeholder={t("searchAccountsPlaceholder")}
       />
 
       <div className="max-h-80 space-y-2 overflow-y-auto py-2">
@@ -43,7 +46,9 @@ export function SourceStep() {
       </div>
 
       <DialogFooter>
-        <DialogClose render={<Button variant="outline">Cancel</Button>} />
+        <DialogClose
+          render={<Button variant="outline">{tCommon("cancel")}</Button>}
+        />
       </DialogFooter>
     </div>
   );

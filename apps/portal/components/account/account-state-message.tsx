@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Link } from "@/i18n/navigation";
 import {
   Card,
@@ -16,6 +17,8 @@ export function AccountStateMessage({
   title: string;
   description: string;
 }) {
+  const { t } = useTranslation("account");
+
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 px-6 py-12 dark:bg-black">
       <Card className="w-full max-w-md text-center">
@@ -28,7 +31,7 @@ export function AccountStateMessage({
             href="/dashboard"
             className="text-sm font-medium underline underline-offset-4"
           >
-            Return to dashboard
+            {t("returnToDashboard")}
           </Link>
         </CardContent>
       </Card>

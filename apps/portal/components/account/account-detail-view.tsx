@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link, useRouter } from "@/i18n/navigation";
 
 import { useAccountDetail } from "@/feature/account-manage/hooks/query";
@@ -16,6 +17,7 @@ import { EditAccountDialog } from "@/components/edit-account-model/edit-account-
 import { DeleteAccountDialog } from "@/components/delete-account-model/delete-account-dialog";
 
 export function AccountDetailView({ accountId }: { accountId: number }) {
+  const { t } = useTranslation("account");
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -37,8 +39,8 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   if (accountEntriesLoading || accountDetailLoading) {
     return (
       <AccountStateMessage
-        title="Loading account"
-        description="Fetching the account activity..."
+        title={t("loadingTitle")}
+        description={t("loadingDescription")}
       />
     );
   }
@@ -46,8 +48,8 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   if (accountEntriesError || accountDetailError) {
     return (
       <AccountStateMessage
-        title="Unable to load account"
-        description="Please try again in a moment."
+        title={t("loadErrorTitle")}
+        description={t("loadErrorDescription")}
       />
     );
   }
@@ -55,8 +57,8 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   if (!account) {
     return (
       <AccountStateMessage
-        title="Account not found"
-        description="This account may have been removed or is unavailable."
+        title={t("notFoundTitle")}
+        description={t("notFoundDescription")}
       />
     );
   }
@@ -70,17 +72,17 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
             className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" aria-hidden />
-            Back to dashboard
+            {t("backToDashboard")}
           </Link>
 
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil aria-hidden />
-              Edit
+              {t("edit")}
             </Button>
             <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
               <Trash2 aria-hidden />
-              Delete
+              {t("delete")}
             </Button>
           </div>
         </div>

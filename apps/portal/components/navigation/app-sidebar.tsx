@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { IconInnerShadowTop } from "@tabler/icons-react";
+import { useTranslation } from "react-i18next";
 
 import {
   Sidebar,
@@ -20,6 +21,8 @@ import { DepositeSideModel } from "@/components/deposite-model/deposite-side-mod
 import { TransferSideModel } from "@/components/transfer-modal/transfer-side-model";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { t } = useTranslation("common");
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -33,7 +36,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <IconInnerShadowTop className="size-4!" />
               </span>
               <span className="text-base font-semibold tracking-tight">
-                Simple Bank
+                {t("appName")}
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

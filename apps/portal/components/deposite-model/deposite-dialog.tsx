@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import {
   Dialog,
   DialogContent,
@@ -16,23 +18,25 @@ interface Props {
   setOpen?: (open: boolean) => void;
 }
 
-const STEP_COPY = {
-  account: {
-    title: "Deposite Funds",
-    description: "Select the account you want to deposite into.",
-  },
-  details: {
-    title: "Deposite Funds",
-    description: "Enter the amount and a description for this deposite.",
-  },
-  preview: {
-    title: "Review Deposite",
-    description: "Confirm the details before submitting your deposite.",
-  },
-} as const;
-
 export function DepositeDialog({ open, setOpen }: Props) {
+  const { t } = useTranslation("deposit");
   const { step, reset } = useDepositeStore();
+
+  const STEP_COPY = {
+    account: {
+      title: t("depositFundsTitle"),
+      description: t("selectAccountDescription"),
+    },
+    details: {
+      title: t("depositFundsTitle"),
+      description: t("enterDetailsDescription"),
+    },
+    preview: {
+      title: t("reviewDepositTitle"),
+      description: t("reviewDepositDescription"),
+    },
+  } as const;
+
   const { title, description } = STEP_COPY[step];
 
   function handleOpenChange(nextOpen: boolean) {

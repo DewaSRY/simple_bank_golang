@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Dialog,
@@ -19,27 +20,29 @@ interface Props {
   setOpen?: (open: boolean) => void;
 }
 
-const STEP_COPY = {
-  source: {
-    title: "Transfer Funds",
-    description: "Select the account you want to transfer from.",
-  },
-  destination: {
-    title: "Transfer Funds",
-    description: "Choose a recent recipient or search by account number.",
-  },
-  details: {
-    title: "Transfer Funds",
-    description: "Enter the amount and a description for this transfer.",
-  },
-  preview: {
-    title: "Review Transfer",
-    description: "Confirm the details before submitting your transfer.",
-  },
-} as const;
-
 export function TransferDialog({ open, setOpen }: Props) {
+  const { t } = useTranslation("transfer");
   const { step, reset } = useTransferStore();
+
+  const STEP_COPY = {
+    source: {
+      title: t("transferFundsTitle"),
+      description: t("selectSourceDescription"),
+    },
+    destination: {
+      title: t("transferFundsTitle"),
+      description: t("selectDestinationDescription"),
+    },
+    details: {
+      title: t("transferFundsTitle"),
+      description: t("enterDetailsDescription"),
+    },
+    preview: {
+      title: t("reviewTransferTitle"),
+      description: t("reviewTransferDescription"),
+    },
+  } as const;
+
   const { title, description } = STEP_COPY[step];
 
   useEffect(() => {

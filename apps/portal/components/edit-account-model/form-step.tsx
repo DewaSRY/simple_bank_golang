@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
@@ -15,25 +16,18 @@ import type { AccountWithUserName } from "@/feature/account/type";
 import { useEditAccountStore } from "./store";
 import type { EditAccountFormValues } from "./type";
 
-const FIELD_MESSAGES: Record<string, string> = {
-  nameRequired: "Name is required",
-  descriptionRequired: "Description is required",
-};
-
-function translateFieldMessage(key: string) {
-  return FIELD_MESSAGES[key] ?? key;
-}
-
 interface Props {
   account: AccountWithUserName;
 }
 
 export function FormStep({ account }: Props) {
+  const { t } = useTranslation("account");
+  const { t: tCommon } = useTranslation("common");
   const { values, fieldErrors, setValues, setFieldErrors, setStep } =
     useEditAccountStore();
 
   const form = useForm({
-    resolver: zodResolverTranslate(createAccountSchema, translateFieldMessage),
+    resolver: zodResolverTranslate(createAccountSchema, t),
     defaultValues: {
       name: values?.name ?? account.name,
       description: values?.description ?? account.description,
@@ -63,13 +57,13 @@ export function FormStep({ account }: Props) {
       <div className="space-y-4 mb-6">
         <InputField
           name="name"
-          label="Name"
+          label={t("name")}
           control={form.control}
           autoComplete="name"
         />
         <TextareaField
           name="description"
-          label="Description"
+          label={t("description")}
           control={form.control}
           cols={40}
           maxLength={400}
@@ -80,8 +74,10 @@ export function FormStep({ account }: Props) {
       </div>
 
       <DialogFooter>
-        <DialogClose render={<Button variant="outline">Cancel</Button>} />
-        <Button type="submit">Continue</Button>
+        <DialogClose
+          render={<Button variant="outline">{tCommon("cancel")}</Button>}
+        />
+        <Button type="submit">{tCommon("continue")}</Button>
       </DialogFooter>
     </form>
   );

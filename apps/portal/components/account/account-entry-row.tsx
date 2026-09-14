@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { AccountEntriesResponse } from "@/feature/account-transaction/type";
 import {
   formatAccountAmount,
@@ -17,6 +18,7 @@ export function AccountEntryRow({
   accountId: number;
   currency: string;
 }) {
+  const { t } = useTranslation("account");
   const isIncoming = isIncomingEntry(entry, accountId);
   const Icon = isIncoming ? ArrowDownLeft : ArrowUpRight;
 
@@ -35,7 +37,7 @@ export function AccountEntryRow({
             <Icon className="size-4" aria-hidden />
           </span>
           <div>
-            <p className="font-medium">{getEntryLabel(entry, accountId)}</p>
+            <p className="font-medium">{getEntryLabel(entry, accountId, t)}</p>
             <p className="text-xs capitalize text-muted-foreground">
               {entry.type}
             </p>

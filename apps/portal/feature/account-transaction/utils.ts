@@ -26,11 +26,12 @@ export function isIncomingEntry(
 export function getEntryLabel(
   entry: AccountEntriesResponse,
   accountId: number,
+  t: (key: string, params?: Record<string, unknown>) => string,
 ) {
-  if (entry.type.toLowerCase() === "deposit") return "Deposit";
-  if (entry.type.toLowerCase() === "withdraw") return "Withdrawal";
+  if (entry.type.toLowerCase() === "deposit") return t("deposit");
+  if (entry.type.toLowerCase() === "withdraw") return t("withdrawal");
 
   return entry.account_id === accountId
-    ? `To ${entry.to_account_name || entry.to_account_number}`
-    : `From ${entry.account_name || entry.account_number}`;
+    ? t("toEntry", { name: entry.to_account_name || entry.to_account_number })
+    : t("fromEntry", { name: entry.account_name || entry.account_number });
 }

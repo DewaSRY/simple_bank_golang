@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   Card,
@@ -19,6 +20,8 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useTranslation("common");
+
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -28,13 +31,11 @@ export default function GlobalError({
       <Card className="w-full max-w-md text-center">
         <CardHeader className="items-center">
           <AlertTriangle className="size-6 text-destructive" aria-hidden />
-          <CardTitle>Something went wrong</CardTitle>
-          <CardDescription>
-            An unexpected error occurred. Please try again.
-          </CardDescription>
+          <CardTitle>{t("error.title")}</CardTitle>
+          <CardDescription>{t("error.description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={reset}>Try again</Button>
+          <Button onClick={reset}>{t("tryAgain")}</Button>
         </CardContent>
       </Card>
     </main>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export function PreviewStep({ accountId, onSuccess }: Props) {
+  const { t } = useTranslation("account");
+  const { t: tCommon } = useTranslation("common");
   const { values, setStep, setFieldErrors } = useEditAccountStore();
   const { mutateAsync, isPending } = useUpdateAccount(accountId);
   const [error, setError] = useState<string | null>(null);
@@ -32,9 +35,7 @@ export function PreviewStep({ accountId, onSuccess }: Props) {
         setStep("form");
         return;
       }
-      setError(
-        getApiErrorMessage(err, "Unable to update this account. Please try again."),
-      );
+      setError(getApiErrorMessage(err, t("updateError")));
     }
   }
 
@@ -45,11 +46,13 @@ export function PreviewStep({ accountId, onSuccess }: Props) {
       <Card className="mb-4">
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Name</span>
+            <span className="text-sm text-muted-foreground">{t("name")}</span>
             <p className="text-right font-medium">{values.name}</p>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Description</span>
+            <span className="text-sm text-muted-foreground">
+              {t("description")}
+            </span>
             <p className="text-right font-medium">{values.description}</p>
           </div>
         </CardContent>
@@ -64,10 +67,10 @@ export function PreviewStep({ accountId, onSuccess }: Props) {
           onClick={() => setStep("form")}
           disabled={isPending}
         >
-          Back
+          {tCommon("back")}
         </Button>
         <Button type="button" onClick={handleConfirm} disabled={isPending}>
-          {isPending ? "Submitting..." : "Confirm"}
+          {isPending ? t("submitting") : tCommon("confirm")}
         </Button>
       </DialogFooter>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useAccounts } from "@/feature/account/hooks/query";
 import { SearchInput } from "@/components/common/search-input";
 
@@ -7,6 +8,7 @@ import { useDepositeStore } from "./store";
 import { useState } from "react";
 
 export function AccountList() {
+  const { t } = useTranslation("common");
   const { setSelectedAccount, selectedAccount } = useDepositeStore();
 
   const [name, setName] = useState("");
@@ -23,7 +25,11 @@ export function AccountList() {
 
   return (
     <div>
-      <SearchInput search={name} onSearch={handleSearch} />
+      <SearchInput
+        search={name}
+        onSearch={handleSearch}
+        placeholder={t("searchPlaceholder")}
+      />
 
       <div className="space-y-2 py-2">
         {accounts &&

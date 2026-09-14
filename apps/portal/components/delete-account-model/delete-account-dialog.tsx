@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,8 @@ export function DeleteAccountDialog({
   setOpen,
   onDeleted,
 }: Props) {
+  const { t } = useTranslation("account");
+  const { t: tCommon } = useTranslation("common");
   const { mutateAsync, isPending } = useDeleteAccount(account.id);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,9 +46,7 @@ export function DeleteAccountDialog({
       handleOpenChange(false);
       onDeleted();
     } catch (err) {
-      setError(
-        getApiErrorMessage(err, "Unable to delete this account. Please try again."),
-      );
+      setError(getApiErrorMessage(err, t("deleteError")));
     }
   }
 
@@ -53,11 +54,9 @@ export function DeleteAccountDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-sm px-4">
         <DialogHeader>
-          <DialogTitle>Delete account</DialogTitle>
+          <DialogTitle>{t("deleteAccountTitle")}</DialogTitle>
           <DialogDescription>
-            This will permanently delete &ldquo;{account.name}&rdquo; and
-            sweep its remaining balance to your main account. This action
-            cannot be undone.
+            {t("deleteAccountDescription", { name: account.name })}
           </DialogDescription>
         </DialogHeader>
 
@@ -70,7 +69,7 @@ export function DeleteAccountDialog({
             onClick={() => handleOpenChange(false)}
             disabled={isPending}
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button
             type="button"
@@ -78,7 +77,7 @@ export function DeleteAccountDialog({
             onClick={handleConfirm}
             disabled={isPending}
           >
-            {isPending ? "Deleting..." : "Delete account"}
+            {isPending ? t("deleting") : t("deleteAccountTitle")}
           </Button>
         </DialogFooter>
       </DialogContent>

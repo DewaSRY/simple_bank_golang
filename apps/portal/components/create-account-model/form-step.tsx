@@ -19,6 +19,7 @@ import { useCreateAccountStore } from "./store";
 
 export function FormStep() {
   const { t } = useTranslation("account");
+  const { t: tCommon } = useTranslation("common");
   const { values, fieldErrors, setValues, setFieldErrors, setStep } =
     useCreateAccountStore();
 
@@ -70,8 +71,10 @@ export function FormStep() {
       </div>
 
       <DialogFooter>
-        <DialogClose render={<Button variant="outline">Cancel</Button>} />
-        <Button type="submit">Continue</Button>
+        <DialogClose
+          render={<Button variant="outline">{tCommon("cancel")}</Button>}
+        />
+        <Button type="submit">{tCommon("continue")}</Button>
       </DialogFooter>
     </form>
   );

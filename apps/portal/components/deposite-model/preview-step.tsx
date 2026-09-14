@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export function PreviewStep({ onSuccess }: Props) {
+  const { t } = useTranslation("deposit");
+  const { t: tCommon } = useTranslation("common");
   const { selectedAccount, details, setStep } = useDepositeStore();
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +30,7 @@ export function PreviewStep({ onSuccess }: Props) {
       await mutateAsync(details);
       onSuccess();
     } catch (err) {
-      setError(getApiErrorMessage(err, "Failed to deposit. Please try again."));
+      setError(getApiErrorMessage(err, t("depositError")));
     }
   }
 
@@ -38,7 +41,9 @@ export function PreviewStep({ onSuccess }: Props) {
       <Card className="mb-4">
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Account</span>
+            <span className="text-sm text-muted-foreground">
+              {t("account")}
+            </span>
             <div className="text-right">
               <p className="font-medium">{selectedAccount.name}</p>
               <p className="text-sm text-muted-foreground">
@@ -47,13 +52,17 @@ export function PreviewStep({ onSuccess }: Props) {
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Amount</span>
+            <span className="text-sm text-muted-foreground">
+              {t("amount")}
+            </span>
             <p className="font-medium">
               {formatAccountAmount(String(details.amount))}
             </p>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">Description</span>
+            <span className="text-sm text-muted-foreground">
+              {t("description")}
+            </span>
             <p className="text-right font-medium">{details.description}</p>
           </div>
         </CardContent>
@@ -68,10 +77,10 @@ export function PreviewStep({ onSuccess }: Props) {
           onClick={() => setStep("details")}
           disabled={isPending}
         >
-          Back
+          {tCommon("back")}
         </Button>
         <Button type="button" onClick={handleConfirm} disabled={isPending}>
-          {isPending ? "Depositing..." : "Confirm Deposit"}
+          {isPending ? t("depositing") : t("confirmDeposit")}
         </Button>
       </DialogFooter>
     </div>

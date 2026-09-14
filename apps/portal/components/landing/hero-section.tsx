@@ -80,7 +80,7 @@ export function HeroSection() {
                 </span>
               </div>
               <p className="mt-6 text-xs text-primary-foreground/65">
-                Available balance
+                {t("availableBalance")}
               </p>
               <p className="mt-1 font-mono text-3xl font-semibold tracking-tight">
                 24,650.00

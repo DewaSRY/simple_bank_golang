@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -14,21 +15,23 @@ export function AccountDetailsCard({
 }: {
   account: AccountWithUserName;
 }) {
+  const { t } = useTranslation("account");
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account details</CardTitle>
-        <CardDescription>Information for this account</CardDescription>
+        <CardTitle>{t("accountDetailsTitle")}</CardTitle>
+        <CardDescription>{t("accountDetailsDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="text-xs text-muted-foreground">Currency</p>
+          <p className="text-xs text-muted-foreground">{t("currency")}</p>
           <p className="mt-1 font-medium">{account.currency}</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">Description</p>
+          <p className="text-xs text-muted-foreground">{t("description")}</p>
           <p className="mt-1 font-medium">
-            {account.description || "No description"}
+            {account.description || t("noDescription")}
           </p>
         </div>
       </CardContent>

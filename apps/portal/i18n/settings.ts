@@ -7,7 +7,7 @@ export function isAppLocale(value: string): value is AppLocale {
   return (locales as readonly string[]).includes(value);
 }
 
-export const namespaces = ["common", "auth", "transfer"] as const;
+export const namespaces = ["common", "auth", "account", "deposit", "transfer"] as const;
 export type AppNamespace = (typeof namespaces)[number];
 export const defaultNamespace: AppNamespace = "common";
 

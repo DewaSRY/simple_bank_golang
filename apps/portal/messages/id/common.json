@@ -19,6 +19,21 @@
   "themeLight": "Terang",
   "themeDark": "Gelap",
   "themeSystem": "Sistem",
+  "toggleSidebar": "Alihkan sidebar",
+  "cancel": "Batal",
+  "back": "Kembali",
+  "continue": "Lanjutkan",
+  "confirm": "Konfirmasi",
+  "close": "Tutup",
+  "loading": "Memuat…",
+  "tryAgain": "Coba lagi",
+  "availableBalance": "Saldo tersedia",
+  "searchPlaceholder": "Cari...",
+  "error": {
+    "title": "Terjadi kesalahan",
+    "description": "Terjadi kesalahan yang tidak terduga. Silakan coba lagi.",
+    "dashboardDescription": "Gagal memuat akun Anda."
+  },
   "landing": {
     "metaTitle": "Simple Bank — Perbankan jadi sederhana",
     "metaDescription": "Buka rekening multi-mata uang, setor dana, dan transfer uang secara instan, semua dalam satu tempat bersama Simple Bank.",

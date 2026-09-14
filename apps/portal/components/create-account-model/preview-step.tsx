@@ -15,6 +15,7 @@ interface Props {
 
 export function PreviewStep({ onSuccess }: Props) {
   const { t } = useTranslation("account");
+  const { t: tCommon } = useTranslation("common");
   const { values, setStep, setFieldErrors } = useCreateAccountStore();
   const { mutateAsync, isPending } = useCreateAccountMutation();
   const [error, setError] = useState<string | null>(null);
@@ -67,10 +68,10 @@ export function PreviewStep({ onSuccess }: Props) {
           onClick={() => setStep("form")}
           disabled={isPending}
         >
-          Back
+          {tCommon("back")}
         </Button>
         <Button type="button" onClick={handleConfirm} disabled={isPending}>
-          {isPending ? "Submitting..." : "Confirm"}
+          {isPending ? t("submitting") : tCommon("confirm")}
         </Button>
       </DialogFooter>
     </div>

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Controller, type FieldValues } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   Field,
@@ -30,6 +31,7 @@ function PasswordField<T extends FieldValues>({
   ...inputProps
 }: PasswordFieldProps<T>) {
   const [visible, setVisible] = React.useState(false);
+  const { t } = useTranslation("auth");
 
   return (
     <Controller
@@ -61,7 +63,7 @@ function PasswordField<T extends FieldValues>({
               size="icon-xs"
               className="absolute inset-y-0 right-1 my-auto"
               onClick={() => setVisible((prev) => !prev)}
-              aria-label={visible ? "Hide password" : "Show password"}
+              aria-label={visible ? t("hidePassword") : t("showPassword")}
             >
               {visible ? <EyeOff /> : <Eye />}
             </Button>

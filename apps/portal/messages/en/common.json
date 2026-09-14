@@ -19,6 +19,21 @@
   "themeLight": "Light",
   "themeDark": "Dark",
   "themeSystem": "System",
+  "toggleSidebar": "Toggle sidebar",
+  "cancel": "Cancel",
+  "back": "Back",
+  "continue": "Continue",
+  "confirm": "Confirm",
+  "close": "Close",
+  "loading": "Loading…",
+  "tryAgain": "Try again",
+  "availableBalance": "Available balance",
+  "searchPlaceholder": "Search...",
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "dashboardDescription": "Failed to load your accounts."
+  },
   "landing": {
     "metaTitle": "Simple Bank — Banking made simple",
     "metaDescription": "Open multi-currency accounts, deposit funds, and transfer money instantly, all in one place with Simple Bank.",

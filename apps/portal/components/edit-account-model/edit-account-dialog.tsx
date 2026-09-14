@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 import {
   Dialog,
   DialogContent,
@@ -19,19 +21,21 @@ interface Props {
   setOpen?: (open: boolean) => void;
 }
 
-const STEP_COPY = {
-  form: {
-    title: "Update account",
-    description: "Update the account details below.",
-  },
-  preview: {
-    title: "Review changes",
-    description: "Confirm the details before submitting.",
-  },
-} as const;
-
 export function EditAccountDialog({ account, open, setOpen }: Props) {
+  const { t } = useTranslation("account");
   const { step, reset } = useEditAccountStore();
+
+  const STEP_COPY = {
+    form: {
+      title: t("editAccountTitle"),
+      description: t("editAccountDescription"),
+    },
+    preview: {
+      title: t("reviewChangesTitle"),
+      description: t("reviewAccountDescription"),
+    },
+  } as const;
+
   const { title, description } = STEP_COPY[step];
 
   function handleOpenChange(nextOpen: boolean) {

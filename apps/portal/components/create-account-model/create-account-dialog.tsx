@@ -27,8 +27,8 @@ export function CreateAccountDialog({ open, setOpen }: props) {
       description: t("createAccountDescription"),
     },
     preview: {
-      title: "Review Account",
-      description: "Confirm the details before submitting.",
+      title: t("reviewAccountTitle"),
+      description: t("reviewAccountDescription"),
     },
   } as const;
 

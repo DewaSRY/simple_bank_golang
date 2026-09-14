@@ -1,11 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { scrollToFirstError } from "@/feature/account/form";
+import { scrollToFirstError, zodResolverTranslate } from "@/feature/account/form";
 import {
   depositSchema,
   type DepositFormValues,
@@ -14,10 +14,12 @@ import {
 import { useDepositeStore } from "./store";
 
 export function DetailsStep() {
+  const { t } = useTranslation("deposit");
+  const { t: tCommon } = useTranslation("common");
   const { details, setDetails, setStep } = useDepositeStore();
 
   const form = useForm<DepositFormValues>({
-    resolver: zodResolver(depositSchema),
+    resolver: zodResolverTranslate(depositSchema, t),
     defaultValues: {
       amount: details ? String(details.amount) : "",
       description: details?.description ?? "",
@@ -37,23 +39,23 @@ export function DetailsStep() {
       <div className="space-y-4 mb-6">
         <InputField
           name="amount"
-          label="Amount"
+          label={t("amount")}
           control={form.control}
           type="number"
           step="0.01"
           min="0"
           inputMode="decimal"
-          placeholder="0.00"
+          placeholder={t("amountPlaceholder")}
           autoComplete="off"
         />
         <TextareaField
           name="description"
-          label="Description"
+          label={t("description")}
           control={form.control}
           maxLength={200}
           counter
           counterPosition="bottom"
-          placeholder="What's this deposit for?"
+          placeholder={t("descriptionPlaceholder")}
         />
       </div>
 
@@ -63,9 +65,9 @@ export function DetailsStep() {
           variant="outline"
           onClick={() => setStep("account")}
         >
-          Back
+          {tCommon("back")}
         </Button>
-        <Button type="submit">Continue</Button>
+        <Button type="submit">{tCommon("continue")}</Button>
       </DialogFooter>
     </form>
   );
