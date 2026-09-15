@@ -34,6 +34,9 @@ func TestTransactionTransfer(t *testing.T) {
 			body: createTransactionTransferRequest{FromAccountID: fromAccountID, ToAccountID: toAccountID, Amount: mustDecimal(t, "100"), Description: "rent"},
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), fromAccountID).Return(fromAccount, nil)
+				q.EXPECT().AccountEntriesByAccountId(gomock.Any(), int64(11)).Return(
+					db.AccountEntriesByAccountIdRow{AccountEntriesView: db.AccountEntriesView{ID: 11, AccountID: fromAccountID, Amount: "-100.00"}}, nil,
+				)
 			},
 			buildStorer: func(storer *mockStorer) {
 				storer.transferTxFunc = func(_ context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error) {
@@ -41,7 +44,7 @@ func TestTransactionTransfer(t *testing.T) {
 					require.Equal(t, toAccountID, arg.ToAccountID)
 					require.Equal(t, "100.00", arg.Amount)
 					require.Equal(t, "rent", arg.Description.String)
-					return store.TransferTxResult{Transfer: db.Transfer{ID: 1}}, nil
+					return store.TransferTxResult{Transfer: db.Transfer{ID: 1}, FromEntry: db.Entry{ID: 11}}, nil
 				}
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -133,7 +136,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 			name: "lists recent destinations for an owned account",
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
-				q.EXPECT().ListRecentTransferDestinations(gomock.Any(), db.ListRecentTransferDestinationsParams{FromAccountID: accountID, LimitCount: 5}).Return(
+				q.EXPECT().ListRecentTransferDestinations(gomock.Any(), db.ListRecentTransferDestinationsParams{FromAccountID: accountID, LimitCount: 10}).Return(
 					[]db.ListRecentTransferDestinationsRow{
 						{ID: 2, Name: sql.NullString{String: "Savings", Valid: true}, Number: sql.NullString{String: "ACT/1", Valid: true}},
 					}, nil,

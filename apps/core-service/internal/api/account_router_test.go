@@ -325,12 +325,18 @@ func TestDeposit(t *testing.T) {
 			body: depositRequest{Amount: mustDecimal(t, "100"), Description: "salary"},
 			buildStubs: func(q *mockdb.MockQuerier) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
+				q.EXPECT().AccountEntriesByAccountId(gomock.Any(), int64(50)).Return(
+					db.AccountEntriesByAccountIdRow{AccountEntriesView: db.AccountEntriesView{ID: 50, AccountID: accountID, Amount: "100.00"}}, nil,
+				)
 			},
 			buildStorer: func(storer *mockStorer) {
 				storer.depositTxFunc = func(_ context.Context, arg store.DepositTxParams) (store.DepositTxResult, error) {
 					require.Equal(t, accountID, arg.AccountID)
 					require.Equal(t, "100.00", arg.Amount)
-					return store.DepositTxResult{Account: db.Account{ID: accountID, Balance: "100.00"}}, nil
+					return store.DepositTxResult{
+						Account: db.Account{ID: accountID, Balance: "100.00"},
+						Entry:   db.Entry{ID: 50},
+					}, nil
 				}
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {

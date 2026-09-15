@@ -39,6 +39,7 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	// accounts-transaction
 	authorized.GET("/accounts/:id/entries", server.listAccountEntriesByAccountId)
 	authorized.GET("/accounts/:id/recent-destinations", server.listRecentTransferDestinations)
+	authorized.GET("/accounts/:id/transactions", server.listAccountTransactionHistory)
 	authorized.POST("/accounts/:id/deposit", server.deposit)
 
 	// Transaction routes

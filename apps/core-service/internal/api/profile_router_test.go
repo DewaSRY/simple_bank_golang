@@ -16,7 +16,7 @@ import (
 )
 
 func doGetProfileRequest(t *testing.T, server *Server, authHeader string) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/profile", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/profile", nil)
 	if authHeader != "" {
 		req.Header.Set(authorizationHeaderKey, authHeader)
 	}

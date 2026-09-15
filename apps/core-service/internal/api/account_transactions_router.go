@@ -229,3 +229,98 @@ func (server *Server) listRecentTransferDestinations(ctx *gin.Context) {
 
 	succeed(ctx, http.StatusOK, responses, "Recent transfer destinations retrieved successfully")
 }
+
+type listAccountTransactionHistoryQuery struct {
+	paginationQuery
+	Month int32 `form:"month" binding:"omitempty,min=1,max=12"`
+	Year  int32 `form:"year" binding:"omitempty,min=1"`
+}
+
+// listAccountTransactionHistory godoc
+// @Summary      List account transaction history
+// @Description  List labeled transaction history for an account owned by the authenticated user, paginated
+// @Tags         accounts-transaction
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id     path      int  true   "Account ID"
+// @Param        month  query     int  false  "Month (1-12), defaults to the current month"
+// @Param        year   query     int  false  "Year, defaults to the current year"
+// @Param        page   query     int  false  "Page number"     default(1)
+// @Param        limit  query     int  false  "Items per page"  default(10)
+// @Success      200    {object}  successResponse{data=[]transactionHistoryItem,meta=Meta}
+// @Failure      400    {object}  errorResponse
+// @Failure      401    {object}  errorResponse
+// @Failure      403    {object}  errorResponse
+// @Failure      404    {object}  errorResponse
+// @Failure      500    {object}  errorResponse
+// @Router       /accounts/{id}/transactions [get]
+func (server *Server) listAccountTransactionHistory(ctx *gin.Context) {
+	var params manageAccountParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		return
+	}
+
+	var query listAccountTransactionHistoryQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		return
+	}
+
+	account, err := server.store.GetAccountById(ctx, params.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			fail(ctx, NotFoundErr("account not found"))
+			return
+		}
+		fail(ctx, InternalErr())
+		return
+	}
+
+	authPayload := getAuthPayload(ctx)
+	if account.UserID.Int64 != authPayload.ID {
+		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
+		return
+	}
+
+	now := time.Now().UTC()
+	month := query.Month
+	if month == 0 {
+		month = int32(now.Month())
+	}
+	year := query.Year
+	if year == 0 {
+		year = int32(now.Year())
+	}
+
+	periodStart := time.Date(int(year), time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	periodEnd := periodStart.AddDate(0, 1, 0)
+
+	history, err := server.store.ListAccountTransactionHistory(ctx, db.ListAccountTransactionHistoryParams{
+		AccountID:   params.ID,
+		PeriodStart: periodStart,
+		PeriodEnd:   periodEnd,
+		OffsetCount: query.offset(),
+		LimitCount:  query.Limit,
+	})
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	total, err := server.store.CountAccountTransactionHistory(ctx, db.CountAccountTransactionHistoryParams{
+		AccountID:   params.ID,
+		PeriodStart: periodStart,
+		PeriodEnd:   periodEnd,
+	})
+	if err != nil {
+		fail(ctx, InternalErr())
+		return
+	}
+
+	items := util.MapSlice(history, toTransactionHistoryItem)
+
+	succeedWithMeta(ctx, http.StatusOK, items, "Transaction history retrieved successfully", Meta{
+		Page: query.Page, Limit: query.Limit, Total: total,
+	})
+}
