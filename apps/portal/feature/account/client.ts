@@ -12,7 +12,7 @@ export class AccountClient extends BaseClient {
   listMeAccounts({ name, page = 1, limit = 10 }: SearchMeAccountsParams) {
     return this.get<CommonSuccessResponse<AccountWithUserName[]>>({
       endpoint: "/accounts/me",
-      params: { name, page, limit },
+      params: { ...(name ? { name } : {}), page, limit },
     });
   }
 
