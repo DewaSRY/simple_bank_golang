@@ -31,7 +31,7 @@ export interface RequestAccountbody {
   name: string;
 }
 export interface SearchMeAccountsParams extends Partial<PaginationParams> {
-  name: string;
+  name?: string;
 }
 
 export interface SearchAccountsParams extends Partial<PaginationParams> {
