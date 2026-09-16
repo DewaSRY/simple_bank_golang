@@ -20,7 +20,7 @@ export function AccountStateMessage({
   const { t } = useTranslation("account");
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-zinc-50 px-6 py-12 dark:bg-black">
+    <main className="flex flex-1 items-center justify-center bg-background px-6 py-12">
       <Card className="w-full max-w-md text-center">
         <CardHeader>
           <CardTitle>{title}</CardTitle>

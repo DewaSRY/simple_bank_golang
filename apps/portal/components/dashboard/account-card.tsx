@@ -32,7 +32,7 @@ export function AccountListItem({ account }: { account: AccountWithUserName }) {
                 {account.name}
                 {account.is_main && (
                   <Star
-                    className="size-3.5 shrink-0 fill-amber-400 text-amber-400"
+                    className="size-3.5 shrink-0 fill-warning text-warning"
                     aria-hidden
                   />
                 )}

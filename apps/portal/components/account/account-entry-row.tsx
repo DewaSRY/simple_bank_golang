@@ -30,8 +30,8 @@ export function AccountEntryRow({
           <span
             className={
               isIncoming
-                ? "flex size-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600"
-                : "flex size-8 items-center justify-center rounded-full bg-rose-500/10 text-rose-600"
+                ? "flex size-8 items-center justify-center rounded-full bg-success/10 text-success"
+                : "flex size-8 items-center justify-center rounded-full bg-destructive/10 text-destructive"
             }
           >
             <Icon className="size-4" aria-hidden />
@@ -47,8 +47,8 @@ export function AccountEntryRow({
       <td
         className={
           isIncoming
-            ? "px-4 py-4 text-right font-mono font-medium text-emerald-600"
-            : "px-4 py-4 text-right font-mono font-medium text-rose-600"
+            ? "px-4 py-4 text-right font-mono font-medium text-success"
+            : "px-4 py-4 text-right font-mono font-medium text-destructive"
         }
       >
         {formatAccountAmount(entry.amount, currency, isIncoming)}

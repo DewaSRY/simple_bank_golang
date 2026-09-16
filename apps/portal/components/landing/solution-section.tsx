@@ -49,7 +49,7 @@ export function SolutionSection() {
                         {account.name}
                         {account.main && (
                           <Star
-                            className="size-3 shrink-0 fill-amber-400 text-amber-400"
+                            className="size-3 shrink-0 fill-warning text-warning"
                             aria-hidden
                           />
                         )}

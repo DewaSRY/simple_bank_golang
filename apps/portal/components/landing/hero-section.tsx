@@ -112,7 +112,7 @@ export function HeroSection() {
               transition={{ duration: 0.5, delay: 0.65 }}
               className="mt-2 flex items-center gap-3 rounded-2xl p-3"
             >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-400/15 text-amber-500">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-warning/15 text-warning">
                 <Star className="size-4 fill-current" aria-hidden />
               </span>
               <div className="min-w-0 flex-1">

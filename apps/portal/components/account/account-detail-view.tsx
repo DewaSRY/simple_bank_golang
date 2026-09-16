@@ -64,7 +64,7 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   }
 
   return (
-    <main className="flex flex-1 flex-col bg-zinc-50 px-4 py-6 dark:bg-black sm:px-6">
+    <main className="flex flex-1 flex-col bg-background px-4 py-6 sm:px-6">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
