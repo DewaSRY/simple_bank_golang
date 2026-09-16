@@ -1,5 +1,6 @@
 import { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { SESSION_COOKIE_NAME } from "@/feature/auth/constants";
+// import logger from "@/lib/logger";
 
 export class BuildPhaseSkippedError extends Error {
   constructor(endpoint?: string) {
@@ -13,6 +14,7 @@ export class BuildPhaseSkippedError extends Error {
 export class ApiInterceptor {
   constructor(private instance: AxiosInstance) {
     this.setupRequestInterceptors();
+    this.setupResponseInterceptors();
   }
 
   private isServer(): boolean {
@@ -68,5 +70,94 @@ export class ApiInterceptor {
     if (this.isServer()) return;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     config.headers["X-Timezone"] = timezone;
+  }
+
+  private setupResponseInterceptors(): void {
+    this.instance.interceptors.response.use(
+      async (response) => {
+        if (typeof window === "undefined") {
+          const { default: logger } = await import("@/lib/logger");
+          logger.info(`API Request Success`, {
+            method: response.config?.method?.toUpperCase(),
+            path: response.config?.url,
+            status: response.status,
+            request_body: response.config?.data,
+            response_data: response.data,
+            request_params: response.config?.params,
+            response_header: response.headers,
+            request_header: response.config?.headers,
+            ...(await this.getRequestDeviceInfo()),
+          });
+        }
+
+        return response;
+      },
+      async (error) => {
+        if (error instanceof BuildPhaseSkippedError) {
+          return Promise.reject(error);
+        }
+
+        const status = error.response?.status;
+        if (status === 401) {
+          await this.handleUnauthorized();
+        }
+
+        if (typeof window === "undefined") {
+          const { default: logger } = await import("@/lib/logger");
+
+          logger.error(`API Request Failed`, {
+            method: error.config?.method?.toUpperCase(),
+            path: error.config?.url,
+            status: status ?? "network_error",
+            message: error.response?.data?.message ?? error.message,
+            request_body: error.config?.data,
+            response_data: error.response?.data,
+            request_params: error.config?.params,
+            response_header: error.response?.headers,
+            request_header: error.config?.headers,
+            ...(await this.getRequestDeviceInfo()),
+          });
+        }
+
+        return Promise.reject(error);
+      },
+    );
+  }
+
+  private async getRequestDeviceInfo(): Promise<{
+    userAgent?: string;
+    ip?: string;
+    deviceType?: string;
+  }> {
+    try {
+      const { headers } = await import("next/headers");
+      const headersList = await headers();
+      const userAgent = headersList.get("user-agent") ?? undefined;
+
+      return {
+        userAgent,
+        ip:
+          headersList.get("x-forwarded-for") ??
+          headersList.get("x-real-ip") ??
+          undefined,
+        deviceType: this.getDeviceType(userAgent),
+      };
+    } catch {
+      return {};
+    }
+  }
+
+  private getDeviceType(userAgent?: string): string {
+    if (!userAgent) return "unknown";
+    if (/tablet|ipad/i.test(userAgent)) return "tablet";
+    if (/mobi|android|iphone/i.test(userAgent)) return "mobile";
+    return "desktop";
+  }
+  private async handleUnauthorized(): Promise<void> {
+    console.warn("🔒 Unauthorized access detected. Redirecting to logout...");
+
+    if (!this.isServer()) {
+      window.location.href = "/logout";
+    }
   }
 }
