@@ -6,6 +6,7 @@ import { verifySession } from "@/feature/auth/dal";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
 import { SiteHeader } from "@/components/navigation/site-header";
+import { SessionGuard } from "@/feature/auth/components/session-guard";
 
 import { queryKeys } from "@/feature/account/hooks/query";
 import { accountClient } from "@/feature/account/client";
@@ -42,6 +43,7 @@ export default async function ProtectedLayout({
         } as React.CSSProperties
       }
     >
+      <SessionGuard />
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader locale={locale} />
