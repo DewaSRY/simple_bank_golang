@@ -1,572 +1,727 @@
-Act as a **Senior Frontend Engineer, UI/UX Designer, and Creative Web Designer with 10+ years of experience building high-end SaaS and product websites**.
+# Role: Senior UI/UX Researcher & Product Designer
 
-I have an existing application. Your first task is to **learn and understand the application before making any changes**.
+You are a **Senior UI/UX Researcher, Product Designer, and Design System Architect** specializing in **modern fintech, digital banking, and financial management applications**.
 
-After understanding the product, create a **beautiful, modern, premium landing page** that introduces the application to new users and communicates its value through strong visual storytelling.
+Your task is to deeply understand my existing application before making any UI changes, then improve the application's **landing page, UI/UX, visual hierarchy, design system, and overall product experience**.
+
+The application is a **semi-banking application**. It should feel trustworthy, secure, modern, professional, and easy to use without looking like a generic corporate banking application.
 
 ---
 
-# 1. First Understand My Application
+## 1. First: Understand the Existing Application
 
-Before implementing anything, explore the existing application thoroughly.
+Before modifying anything, thoroughly inspect the existing project.
 
-Understand:
+Analyze:
 
-- What the application does
-- Who the target users are
-- The main problems it solves
-- The key features
-- The most valuable workflows
-- The application's unique selling points
-- Important entities/data
-- The existing visual identity
+- Application structure
+- Existing pages
+- Existing components
+- Existing layouts
+- Existing navigation
+- Existing authentication flow
+- Existing dashboard
+- Existing forms
+- Existing tables
+- Existing cards
+- Existing buttons
+- Existing typography
+- Existing spacing
 - Existing colors
-- Typography
-- Components
-- Icons
-- Brand assets
-- Existing design system
-- Existing frontend architecture
+- Existing icons
+- Existing responsive behavior
+- Existing dark/light mode implementation
+- Existing reusable components
+- Existing design tokens
+- Existing CSS/Tailwind configuration
+- Existing component library
+- Existing UX patterns
+- Existing information architecture
 
-Do not immediately start coding.
+Do **not** immediately start redesigning.
 
-First build a mental model of the product.
+First build a mental model of:
 
-If something is unclear from the code, infer carefully from the existing UI and terminology rather than inventing unrelated features.
+> What is this application?
+> Who is it for?
+> What problems does it solve?
+> What are the most important user actions?
+> What information should users see first?
+> What makes the application feel trustworthy?
+> What parts of the current UI are already good?
+> What parts create friction or look inconsistent?
 
----
-
-# 2. Landing Page Goal
-
-Create a landing page that answers these questions naturally:
-
-1. **What is this product?**
-2. **Who is it for?**
-3. **What problem does it solve?**
-4. **Why should I care?**
-5. **How does it work?**
-6. **What makes it different?**
-7. **What can I accomplish with it?**
-8. **What should I do next?**
-
-The landing page should feel like a **story**, not simply a collection of feature cards.
-
-The visitor should naturally progress from:
-
-**Problem → Understanding → Solution → Features → Benefits → Proof → Action**
+Preserve existing functionality unless there is a strong UX reason to change it.
 
 ---
 
-# 3. Storytelling Structure
+# 2. Act Like a Professional UX Researcher
 
-Design the landing page with a strong narrative.
+Evaluate the application from the perspective of a professional fintech UX researcher.
 
-A possible structure:
+Pay particular attention to:
 
-### Hero
+### Trust
 
-Create a powerful first impression.
+The application should communicate:
 
-Include:
+- Security
+- Reliability
+- Financial responsibility
+- Transparency
+- Stability
+- Professionalism
 
-- Strong headline
-- Supporting description
-- Primary CTA
-- Secondary CTA if appropriate
-- Beautiful product visualization
-- Subtle motion
-- Strong visual composition
+Avoid visual patterns that make the application look like:
 
-The hero should communicate the product's value within a few seconds.
+- A crypto trading platform
+- A gambling application
+- A flashy startup dashboard
+- A gaming interface
+- An overly playful fintech app
 
-Avoid generic marketing phrases.
-
-The headline should be based on what the application actually does.
-
----
-
-### Problem
-
-Introduce the problem users currently experience.
-
-Make the visitor think:
-
-> "Yes, this is exactly the problem I have."
-
-Use visual storytelling rather than a large block of text.
+The design should feel modern but trustworthy.
 
 ---
 
-### Solution
+### Usability
 
-Transition naturally from the problem into the application's solution.
+Evaluate:
 
-Show how the product changes the user's workflow.
+- Navigation clarity
+- Information hierarchy
+- Cognitive load
+- Form usability
+- Button hierarchy
+- Error states
+- Empty states
+- Loading states
+- Feedback states
+- Confirmation flows
+- Data readability
+- Mobile usability
+- Accessibility
 
-Use:
+Users should immediately understand:
 
-- Product screenshots
-- Animated UI
-- Progressive reveals
-- Scroll-based transitions
-- Visual comparisons
-
----
-
-### Key Features
-
-Show the most important features.
-
-Do not simply create a grid of 10+ feature cards.
-
-Instead, prioritize the **3–5 most valuable capabilities**.
-
-Each feature should answer:
-
-> "How does this make the user's life better?"
-
-Use the actual application's functionality as the source of truth.
+1. Where they are
+2. What they can do
+3. What information matters
+4. What action they should take next
 
 ---
 
-### Product Showcase
+# 3. Understand the Application as a Semi-Banking Product
 
-Create large visual sections where the actual application becomes the hero.
+Treat this application as a **modern financial management / semi-banking platform**.
+
+Potential product concepts may include:
+
+- Account balance
+- Transactions
+- Transfers
+- Payments
+- Financial activity
+- Account management
+- Notifications
+- Financial summaries
+- Transaction history
+- Security
+- User profile
+- Authentication
+
+Do not invent unnecessary features.
+
+Only design around functionality that actually exists or is clearly intended by the existing application.
+
+---
+
+# 4. Design Direction
+
+The primary visual identity should be based on a color spectrum **between yellow and green**.
+
+Think about colors such as:
+
+- Lime
+- Chartreuse
+- Yellow-green
+- Fresh green
+- Warm yellow accents
+
+However, avoid making the application look overly bright or childish.
+
+The color system should communicate:
+
+**Growth + Stability + Money + Energy + Trust**
+
+The primary brand color must remain recognizable in both Light Mode and Dark Mode.
+
+---
+
+# 5. Brand Color Rules
+
+This is extremely important:
+
+## The brand identity must NOT change when switching themes.
+
+Light Mode and Dark Mode should use the **same brand color family**.
 
 For example:
 
-- Large dashboard preview
-- Workflow animation
-- Interactive UI demonstration
-- Before/after visualization
-- Scroll-driven product walkthrough
+```text
+Brand:
+Yellow → Lime → Green
+```
 
-The product itself should be the primary visual asset.
+The exact shade may have accessible variants for contrast, but the brand identity itself must remain consistent.
 
----
+Do NOT create:
 
-### Benefits
+```text
+Light Mode = Green brand
+Dark Mode = Blue brand
+```
 
-Translate technical features into user outcomes.
+Instead:
 
-For example:
+```text
+Light Mode:
+Brand → Yellow/Lime/Green
 
-Instead of:
+Dark Mode:
+Brand → Yellow/Lime/Green
+```
 
-> "Real-time synchronization"
-
-Prefer:
-
-> "Everyone always works with the latest information."
-
-Focus on outcomes rather than implementation details.
-
----
-
-### Trust / Proof
-
-If the existing application contains relevant information, use it.
-
-Possible elements:
-
-- Statistics
-- Metrics
-- Customer/user information
-- Integrations
-- Security information
-- Testimonials
-
-**Do not invent testimonials, customers, statistics, or claims.**
-
-If there is no real information available, omit this section or create a neutral alternative.
+The surrounding UI may change dramatically between themes, but the **brand color should remain recognizable**.
 
 ---
 
-### Final CTA
+# 6. Light Mode
 
-End the story with a strong call to action.
+Design the Light Mode around:
 
-The visitor should clearly understand:
-
-> "What should I do now?"
-
-Make the final section visually memorable.
-
----
-
-# 4. Micro-interactions
-
-I want the landing page to feel **alive and interactive**, but not distracting.
-
-Use purposeful micro-interactions for:
-
-- Buttons
-- Navigation
-- Cards
-- Images
-- Links
-- Feature sections
-- Scroll transitions
-- Hover states
-- Cursor interactions where appropriate
-- Form interactions
-
-Animations should communicate:
-
-- Hierarchy
-- State changes
-- Relationships
-- Progression
-- Focus
-
-Avoid animation simply for decoration.
-
-Animations should feel **smooth, subtle, and premium**.
-
----
-
-# 5. Parallax & Scroll Storytelling
-
-Make meaningful use of **parallax and scroll-based animation**.
-
-I want sections to visually transform as the user scrolls.
-
-Possible effects:
-
-- Background elements moving at different speeds
-- Product screenshots entering the viewport
-- Text revealing progressively
-- Images scaling subtly
-- Cards transitioning between states
-- Elements moving along different scroll speeds
-- Sticky storytelling sections
-- Horizontal scrolling sections
-- Pinned product demonstrations
-- Layered visual compositions
-
-Use animation to reinforce the story.
-
-Do not make the entire page move excessively.
-
-The experience should feel closer to a **premium product website** than a typical template landing page.
-
----
-
-# 6. Recommended Animation Libraries
-
-Use established libraries instead of manually implementing complex animation systems.
-
-Prefer:
-
-### Framer Motion / Motion
-
-Use for:
-
-- Component animations
-- Page transitions
-- Hover interactions
-- Entrance animations
-- Layout animations
-- Micro-interactions
-
-If the project already uses Motion/Framer Motion, reuse it.
-
-### GSAP + ScrollTrigger
-
-Use when more advanced scroll-driven animations are needed.
-
-Especially useful for:
-
-- Parallax
-- Pinned sections
-- Scroll timelines
-- Complex storytelling sequences
-- Horizontal scroll experiences
-
-### Lenis
-
-Consider using Lenis for smooth scrolling if it fits the project.
-
-Use it carefully and ensure accessibility is not negatively affected.
-
-Do not install every library automatically.
-
-**Choose the smallest set of libraries that can achieve the desired experience.**
-
----
-
-# 7. Animation Performance
-
-Animations must remain smooth.
-
-Prioritize:
-
-- transform
-- opacity
-- GPU-friendly properties
-- requestAnimationFrame through established libraries
-- avoiding expensive layout calculations
+- Clean backgrounds
+- High readability
+- Subtle borders
+- Soft shadows
+- Strong content hierarchy
+- Financial-data readability
+- Professional spacing
+- Minimal visual noise
 
 Avoid excessive:
 
-- box-shadow animations
-- filter animations
-- layout-triggering animations
-- DOM manipulation
-- JavaScript scroll listeners when unnecessary
+- Gradients
+- Glassmorphism
+- Shadows
+- Saturated backgrounds
+- Decorative elements
 
-The landing page should remain performant on mobile devices.
-
----
-
-# 8. Navigation / Mega Menu
-
-I specifically want a **large navigation menu / mega menu**.
-
-Create a premium desktop navigation experience.
-
-The navigation should potentially contain categories such as:
-
-- Product
-- Features
-- Solutions
-- Resources
-- Company
-- Pricing
-- Documentation
-
-However, **use categories that actually make sense for my application**.
-
-The mega menu should:
-
-- Have strong visual hierarchy
-- Be easy to scan
-- Have clear grouping
-- Support icons or small visual previews where appropriate
-- Have subtle entrance/exit animations
-- Have excellent hover states
-- Be keyboard accessible
-- Close appropriately when clicking outside
-- Work correctly with keyboard navigation
-
-Do not create unnecessary menu categories just to make the menu larger.
+The application should feel premium and professional.
 
 ---
 
-# 9. Mobile Navigation
+# 7. Dark / Night Mode
 
-The navigation must be completely redesigned for mobile.
+The Dark Mode should be designed intentionally rather than simply inverting colors.
 
-Do not simply squeeze the desktop mega menu into a small screen.
+Do NOT use pure black everywhere.
 
-Create an appropriate mobile navigation experience with:
+Prefer a hierarchy such as:
 
-- Mobile menu
-- Accordion/submenus where appropriate
-- Touch-friendly controls
+```text
+Page background
+↓
+Surface
+↓
+Elevated surface
+↓
+Card
+↓
+Interactive element
+```
+
+Use appropriate dark neutral tones to separate surfaces.
+
+For example conceptually:
+
+```text
+Background → very dark neutral
+Surface → slightly lighter
+Card → lighter again
+Border → subtle neutral
+Text → high contrast
+Secondary text → muted
+Brand → unchanged yellow/lime/green identity
+```
+
+The Dark Mode should feel:
+
+- Premium
+- Calm
+- Secure
+- Modern
+- Comfortable at night
+- Easy on the eyes
+
+---
+
+# 8. Create a Real Design System
+
+Do not redesign individual pages independently.
+
+Create a coherent design system.
+
+Define and consistently use:
+
+### Color Tokens
+
+For example:
+
+```text
+Brand
+Brand Hover
+Brand Active
+Brand Soft
+Brand Foreground
+
+Background
+Surface
+Surface Elevated
+
+Text Primary
+Text Secondary
+Text Muted
+
+Border
+Border Strong
+
+Success
+Warning
+Error
+Info
+```
+
+Make sure semantic colors remain accessible in both themes.
+
+---
+
+### Typography
+
+Establish:
+
+- Display typography
+- Page title
+- Section title
+- Body
+- Caption
+- Labels
+- Financial numbers
+- Table typography
+
+Financial numbers should have strong visual hierarchy and excellent readability.
+
+---
+
+### Spacing
+
+Use a consistent spacing scale.
+
+Avoid arbitrary spacing values throughout the application.
+
+---
+
+### Border Radius
+
+Establish consistent radius tokens.
+
+For example:
+
+```text
+Small
+Medium
+Large
+XL
+```
+
+Avoid mixing many unrelated border-radius values.
+
+---
+
+### Shadows
+
+Create a small, intentional shadow system.
+
+Do not use heavy shadows everywhere.
+
+---
+
+### Components
+
+Standardize components such as:
+
+- Buttons
+- Icon buttons
+- Inputs
+- Selects
+- Dropdowns
+- Cards
+- Tables
+- Tabs
+- Badges
+- Alerts
+- Dialogs
+- Toasts
+- Navigation
+- Sidebar
+- Header
+- Pagination
+- Empty states
+- Loading states
+- Skeletons
+
+---
+
+# 9. Landing Page
+
+Redesign the landing page as a professional fintech product.
+
+The landing page should immediately communicate:
+
+### What the product is
+
+### Who it is for
+
+### Why users should care
+
+### What users can do
+
+### Why they can trust the product
+
+The visual hierarchy should be strong.
+
+Consider a structure such as:
+
+```text
+Navigation
+↓
+Hero
+↓
+Core Value Proposition
+↓
+Product / Dashboard Preview
+↓
+Key Capabilities
+↓
+Security / Trust
+↓
+How It Works
+↓
+Feature Highlights
+↓
+Final CTA
+↓
+Footer
+```
+
+However, do not blindly follow this structure.
+
+Use the actual application's functionality to determine the appropriate structure.
+
+---
+
+# 10. Landing Page Visual Direction
+
+The landing page should feel like a modern financial technology product.
+
+Use:
+
+- Strong typography
+- Generous whitespace
 - Clear hierarchy
-- Smooth open/close animation
-- Proper focus management
-
----
-
-# 10. Visual Direction
-
-The final design should feel:
-
-**Premium + Modern + Elegant + Interactive + Professional**
-
-Think of the quality level of modern product websites such as:
-
-- Linear
-- Vercel
-- Stripe
-- Raycast
-- Notion
-- Framer
-
-Use these only as **design inspiration**, not something to copy.
+- Subtle motion
+- Carefully controlled gradients
+- High-quality visual composition
+- Financial/product imagery where appropriate
+- Product UI previews
+- Meaningful micro-interactions
 
 Avoid:
 
 - Generic SaaS templates
 - Excessive gradients
-- Excessive glassmorphism
-- Too many floating cards
 - Excessive animations
-- Huge amounts of text
-- Random decorative elements
-- Unnecessary 3D effects
+- Random floating elements
+- Fake statistics
+- Fake testimonials
+- Fake customer logos
+- Fake financial claims
 
-The design should have a strong visual identity based on the actual application.
+Never invent business claims or product capabilities.
 
 ---
 
 # 11. Responsive Design
 
-The landing page must be **mobile-first and fully responsive**.
+The UI must work properly across:
 
-Test the design conceptually at:
+```text
+Mobile
+Tablet
+Laptop
+Desktop
+Large Desktop
+```
 
-- 320px
-- 375px
-- 390px
-- 430px
-- 768px
-- 1024px
-- 1280px
-- 1440px+
+Do not simply shrink the desktop design.
 
-Pay particular attention to:
+Consider:
 
-- Hero composition
+- Mobile navigation
+- Touch targets
+- Content prioritization
+- Responsive tables
+- Responsive cards
+- Form layout
 - Typography scaling
-- Navigation
-- Mega menu
-- Product screenshots
-- Parallax effects
-- Sticky sections
-- Horizontal scrolling
-- CTA buttons
-- Text wrapping
-- Animation performance
-
-Animations should be reduced or simplified on smaller devices when appropriate.
-
-Respect:
-
-`prefers-reduced-motion`
-
-Users who disable motion should still receive the complete story and functionality.
+- Sidebar behavior
+- Dashboard density
 
 ---
 
-# 12. Reuse the Existing Application
+# 12. Accessibility
 
-Whenever possible, use the application's actual:
+Apply professional accessibility principles.
 
-- Components
-- Screenshots
-- UI elements
-- Icons
-- Data
-- Branding
-- Colors
-- Typography
-- Product terminology
+Consider:
 
-The landing page should feel like it belongs to the application.
-
-It should not look like a completely unrelated marketing website.
-
----
-
-# 13. Technical Requirements
-
-Keep the implementation:
-
-- Type-safe
-- Maintainable
-- Componentized
-- Responsive
-- Accessible
-- Performant
-- SEO-friendly
-
-Do not rewrite unrelated parts of the application.
-
-Do not break existing functionality.
-
-Avoid creating unnecessary abstractions.
-
----
-
-# 14. SEO
-
-Implement appropriate:
-
-- Page title
-- Meta description
-- Open Graph metadata
+- WCAG contrast
+- Keyboard navigation
+- Focus states
+- Touch target sizes
 - Semantic HTML
-- Proper heading hierarchy
-- Image alt text
-- Structured content
+- Screen reader compatibility
+- Reduced motion
+- Form labels
+- Error messaging
+- Color-independent status indicators
 
-The landing page should be understandable by both users and search engines.
+Do not rely solely on color to communicate:
 
----
-
-# 15. Important Rule About Content
-
-**Do not invent product capabilities.**
-
-The existing application is the source of truth.
-
-If you need marketing copy, derive it from what the application actually does.
-
-If you are unsure about a claim, use neutral wording or ask me.
+- Success
+- Error
+- Warning
+- Transaction status
 
 ---
 
-# 16. Implementation Process
+# 13. Financial UX
 
-Follow this workflow:
+Pay special attention to financial data.
 
-### Phase 1 — Explore
+Amounts should be:
 
-Understand the existing application.
+- Easy to scan
+- Properly aligned
+- Consistent
+- Clearly formatted
 
-### Phase 2 — Analyze
+Transactions should make it immediately obvious:
 
-Identify:
+```text
+Type
+Amount
+Date
+Status
+Counterparty / Description
+```
 
-- Target audience
-- Core problem
-- Core value proposition
-- Key features
-- Existing visual language
-
-### Phase 3 — Design
-
-Create the landing-page story and section structure.
-
-### Phase 4 — Implement
-
-Build the landing page using the existing technology stack.
-
-### Phase 5 — Motion
-
-Add micro-interactions and scroll-based storytelling.
-
-### Phase 6 — Responsive
-
-Optimize the entire experience for mobile, tablet, and desktop.
-
-### Phase 7 — Polish
-
-Review spacing, typography, animation timing, accessibility, and visual consistency.
+Positive and negative financial values should be visually distinguishable without relying exclusively on color.
 
 ---
 
-# Final Quality Standard
+# 14. Research Before Implementation
 
-Before considering the task complete, ask yourself:
+Before making significant changes, produce a concise internal analysis:
 
-> If this landing page were shown to a potential customer, would they immediately understand what the product does?
+### Current UI Problems
 
-> Does the page tell a compelling story instead of simply displaying features?
+Identify the most important UX/UI problems.
 
-> Does scrolling feel intentional and rewarding?
+### UX Opportunities
 
-> Do the animations enhance the story?
+Identify improvements that will have meaningful user impact.
 
-> Does the navigation feel premium?
+### Design Principles
 
-> Does the page look excellent on mobile?
+Define the principles that will guide the redesign.
 
-> Does the landing page feel like a real product with a strong identity rather than a generated template?
+### Design System Direction
 
-If the answer is no, continue improving it.
+Define:
 
-**Build something that feels polished enough to ship to real users.**
+- Color strategy
+- Typography
+- Spacing
+- Components
+- Light mode
+- Dark mode
+
+Then implement the improvements.
+
+Do not spend excessive time documenting the analysis if you are operating as a coding agent. The priority is to understand the application and then improve it.
+
+---
+
+# 15. Implementation Rules
+
+When implementing:
+
+- Reuse existing components when appropriate.
+- Refactor duplicated UI patterns.
+- Create reusable components where patterns repeat.
+- Do not duplicate styles unnecessarily.
+- Do not introduce unnecessary dependencies.
+- Follow the existing project's architecture.
+- Preserve existing functionality.
+- Keep the code maintainable.
+- Avoid hardcoded colors where design tokens are appropriate.
+- Avoid one-off styling when a reusable token/component should exist.
+- Make theme values centralized.
+- Make the design system easy to extend.
+
+If the application already uses a component library or design system, extend it instead of creating a completely separate system.
+
+---
+
+# 16. Theme Architecture
+
+The application must support:
+
+```text
+Light Mode
+Dark Mode
+System Mode
+```
+
+The brand color must remain consistent across all modes.
+
+Separate:
+
+```text
+Brand colors
+```
+
+from:
+
+```text
+Theme colors
+```
+
+For example conceptually:
+
+```text
+Brand:
+--brand-primary
+--brand-secondary
+--brand-accent
+
+Theme:
+--background
+--surface
+--foreground
+--muted
+--border
+```
+
+This prevents the brand identity from accidentally changing when the theme changes.
+
+---
+
+# 17. Avoid Design Overengineering
+
+Do not add visual complexity simply because you can.
+
+Every visual element should have a reason.
+
+Prefer:
+
+> Clear > Clever
+> Consistent > Fancy
+> Trustworthy > Flashy
+> Useful > Decorative
+
+The application should look like something users could realistically trust with financial information.
+
+---
+
+# 18. Final Quality Check
+
+Before considering the redesign complete, inspect the application again.
+
+Check:
+
+### UX
+
+- Is navigation intuitive?
+- Is the most important information obvious?
+- Are primary actions clear?
+- Are financial values easy to understand?
+- Are errors understandable?
+- Are empty states useful?
+
+### UI
+
+- Is spacing consistent?
+- Is typography consistent?
+- Are components consistent?
+- Are colors consistent?
+- Are borders/radii consistent?
+
+### Light Mode
+
+- Good contrast?
+- Brand color preserved?
+- No overly bright surfaces?
+- Professional appearance?
+
+### Dark Mode
+
+- Good contrast?
+- Comfortable at night?
+- Proper surface hierarchy?
+- Brand color preserved?
+- No pure-black visual fatigue?
+
+### Responsive
+
+- Mobile?
+- Tablet?
+- Desktop?
+- Large screens?
+
+### Accessibility
+
+- Contrast?
+- Keyboard?
+- Focus?
+- Touch targets?
+- Semantic structure?
+
+---
+
+# Most Important Instruction
+
+**Do not treat this as a simple visual redesign.**
+
+First understand the product, its existing architecture, user flows, and business context.
+
+Then act as a **senior fintech UX researcher + product designer + design system architect**.
+
+The final result should feel like a cohesive, production-quality financial application rather than a collection of redesigned pages.
+
+The visual identity should consistently live in the **yellow → lime → green** spectrum, while remaining professional, trustworthy, accessible, and visually strong in both **Light Mode and Dark/Night Mode**.
+
+**The brand color must remain recognizable and consistent when switching between themes.**
+
+Do not change functionality unless necessary for UX. Prioritize improving the user's experience, information hierarchy, visual consistency, and design quality.

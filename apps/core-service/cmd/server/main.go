@@ -12,6 +12,7 @@ import (
 	config "github.com/DewaSRY/core-service/internal/config"
 	store "github.com/DewaSRY/core-service/internal/db/store"
 	_ "github.com/DewaSRY/core-service/internal/docs" // swagger docs
+	corelog "github.com/DewaSRY/core-service/internal/logger"
 )
 
 // @title Core Simple bank application
@@ -33,34 +34,42 @@ func main() {
 
 	cfg, err := config.LoadConfig(".")
 	if err != nil {
+		// No Config yet, so no LOG_LEVEL/LOG_FORMAT to build a structured
+		// logger from — the stdlib logger is the only option this early.
 		log.Fatal("cannot load config:", err)
 	}
 
+	logger := corelog.New(cfg)
+
 	// create dabase connection pool and verify connectivity
-	conn := connectDB(cfg)
+	conn := connectDB(cfg, logger)
 	defer conn.Close()
 
 	// ping the database to verify connectivity
-	if conn.Ping() != nil {
-		log.Fatal("cannot ping db:", err)
-	} else {
-		log.Println("Successfully connected to the database")
+	if err := conn.Ping(); err != nil {
+		logger.Error("cannot ping db", "error", err)
+		os.Exit(1)
 	}
+	logger.Info("successfully connected to the database")
 
 	store := store.NewStore(conn)
-	server, err := api.NewServer(store, cfg)
+	server, err := api.NewServer(store, cfg, logger)
 	if err != nil {
-		log.Fatal("cannot create server:", err)
+		logger.Error("cannot create server", "error", err)
+		os.Exit(1)
 	}
 
 	// verify the port is free before starting the server
 	listener, err := net.Listen("tcp", cfg.ServerAddress)
 	if err != nil {
-		log.Fatal("port already in use:", err)
+		logger.Error("port already in use", "error", err, "address", cfg.ServerAddress)
+		os.Exit(1)
 	}
 	listener.Close()
 
+	logger.Info("starting server", "address", cfg.ServerAddress)
 	if err := server.Start(cfg.ServerAddress); err != nil {
-		log.Fatal("cannot start server:", err)
+		logger.Error("cannot start server", "error", err)
+		os.Exit(1)
 	}
 }

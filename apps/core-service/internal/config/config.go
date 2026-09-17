@@ -16,6 +16,14 @@ type Config struct {
 	JWTSecretKey           string        `mapstructure:"JWT_SECRET_KEY"`
 	JWTAccessTokenDuration time.Duration `mapstructure:"JWT_ACCESS_TOKEN_DURATION"`
 	CORSAllowedOrigins     []string      `mapstructure:"CORS_ALLOWED_ORIGINS"`
+
+	// LogLevel controls which log records are emitted: "debug", "info",
+	// "warn", or "error" (case-insensitive). Empty/unrecognized defaults to
+	// "info" — see internal/logger.New.
+	LogLevel string `mapstructure:"LOG_LEVEL"`
+	// LogFormat selects the log encoding: "json" (default, machine-parseable)
+	// or "text" (human-readable, handy for local dev).
+	LogFormat string `mapstructure:"LOG_FORMAT"`
 }
 
 // LoadConfig reads configuration from an optional app.env file

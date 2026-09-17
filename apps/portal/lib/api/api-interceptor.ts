@@ -1,6 +1,21 @@
 import { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { SESSION_COOKIE_NAME } from "@/feature/auth/constants";
-// import logger from "@/lib/logger";
+
+declare module "axios" {
+  export interface InternalAxiosRequestConfig {
+    metadata?: {
+      requestId: string;
+      startTime: number;
+    };
+  }
+}
+
+function generateRequestId(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 export class BuildPhaseSkippedError extends Error {
   constructor(endpoint?: string) {
@@ -32,8 +47,26 @@ export class ApiInterceptor {
         throw new BuildPhaseSkippedError(config.url);
       }
 
+      const requestId = generateRequestId();
+      config.metadata = { requestId, startTime: Date.now() };
+      config.headers["X-Request-Id"] = requestId;
+
       await this.addAuthorizationHeader(config);
       this.addClientTimezoneHeader(config);
+
+      if (typeof window === "undefined") {
+        const { default: logger } = await import("@/lib/logger");
+        logger.info(`API Request Started`, {
+          requestId,
+          method: config.method?.toUpperCase(),
+          path: config.url,
+          request_body: config.data,
+          request_params: config.params,
+          request_header: config.headers,
+          ...(await this.getRequestDeviceInfo()),
+        });
+      }
+
       return config;
     });
   }
@@ -77,7 +110,10 @@ export class ApiInterceptor {
       async (response) => {
         if (typeof window === "undefined") {
           const { default: logger } = await import("@/lib/logger");
+          const metadata = response.config?.metadata;
           logger.info(`API Request Success`, {
+            requestId: metadata?.requestId,
+            duration_ms: metadata ? Date.now() - metadata.startTime : undefined,
             method: response.config?.method?.toUpperCase(),
             path: response.config?.url,
             status: response.status,
@@ -104,8 +140,11 @@ export class ApiInterceptor {
 
         if (typeof window === "undefined") {
           const { default: logger } = await import("@/lib/logger");
+          const metadata = error.config?.metadata;
 
           logger.error(`API Request Failed`, {
+            requestId: metadata?.requestId,
+            duration_ms: metadata ? Date.now() - metadata.startTime : undefined,
             method: error.config?.method?.toUpperCase(),
             path: error.config?.url,
             status: status ?? "network_error",

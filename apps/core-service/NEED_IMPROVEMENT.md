@@ -31,3 +31,8 @@ rule of make pr
 
 - onle branch can make pr to main is dev
 - the branch want to make pr to dev should have patter "epic/\*"
+
+i want to change my ci/cd flow,
+
+update my production flow
+by

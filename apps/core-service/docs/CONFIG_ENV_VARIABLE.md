@@ -43,9 +43,9 @@ It's split this way so `Config` stays a plain, mockable value instead of a globa
 
 ## Section 2 — The `Config` struct — the schema
 
-**The problem it solves.** Every setting the app needs — five strings plus one duration plus one string slice — needs one place they're all declared, typed, and named, instead of a `DB_SOURCE` string literal scattered across `main.go`, `connect_db.go`, and `cmd/migration/main.go`.
+**The problem it solves.** Every setting the app needs — seven strings plus one duration plus one string slice — needs one place they're all declared, typed, and named, instead of a `DB_SOURCE` string literal scattered across `main.go`, `connect_db.go`, and `cmd/migration/main.go`.
 
-**How it's implemented.** [internal/config/config.go:12-19](../internal/config/config.go#L12-L19):
+**How it's implemented.** [internal/config/config.go](../internal/config/config.go):
 
 ```go
 type Config struct {
@@ -55,6 +55,8 @@ type Config struct {
 	JWTSecretKey           string        `mapstructure:"JWT_SECRET_KEY"`
 	JWTAccessTokenDuration time.Duration `mapstructure:"JWT_ACCESS_TOKEN_DURATION"`
 	CORSAllowedOrigins     []string      `mapstructure:"CORS_ALLOWED_ORIGINS"`
+	LogLevel               string        `mapstructure:"LOG_LEVEL"`
+	LogFormat              string        `mapstructure:"LOG_FORMAT"`
 }
 ```
 
@@ -66,6 +68,10 @@ type Config struct {
 | `JWTSecretKey` | `JWT_SECRET_KEY` | `string` | *(blank — set per environment)* |
 | `JWTAccessTokenDuration` | `JWT_ACCESS_TOKEN_DURATION` | `time.Duration` | `15m` |
 | `CORSAllowedOrigins` | `CORS_ALLOWED_ORIGINS` | `[]string` | *(blank; comma-separated when set, e.g. `http://localhost:3000,http://localhost:5173`)* |
+| `LogLevel` | `LOG_LEVEL` | `string` | `info` — see [docs/LOGGING.md](LOGGING.md) |
+| `LogFormat` | `LOG_FORMAT` | `string` | `json` — see [docs/LOGGING.md](LOGGING.md) |
+
+`LogLevel`/`LogFormat` are the two exceptions to "the struct itself does zero validation" below — `internal/logger.New` (not this package) treats an empty or unrecognized value as `"info"`/`"json"` rather than erroring, so a typo'd `LOG_LEVEL` silently falls back to the default level instead of failing config load.
 
 **If you're new to `mapstructure`:** it's the library Viper unmarshals *through* — the tag name is a `mapstructure` requirement, not a Viper one, and it has nothing to do with `encoding/json`. Writing `json:"DB_SOURCE"` here compiles fine and does nothing; `viper.Unmarshal` never looks at it. This is the single most common mistake when adding a field: add it, tag it wrong (or not at all), and you get a zero value with `err == nil` — no crash, no warning, the field is just always empty.
 
@@ -202,7 +208,7 @@ func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	...
 ```
 
-This is intentional per the comment, and matches a server-to-server deployment where no browser client needs CORS headers at all — but it means leaving `CORS_ALLOWED_ORIGINS` unset is indistinguishable, at the config layer, from deliberately disabling browser access. Nothing logs which case you're in.
+This is intentional per the comment, and matches a server-to-server deployment where no browser client needs CORS headers at all — but it means leaving `CORS_ALLOWED_ORIGINS` unset is indistinguishable, at the config layer, from deliberately disabling browser access. `NewServer` now logs which case a given run is in, once, at startup (`"CORS disabled: ..."` or `"CORS enabled"` with the origin list) — see [internal/api/server.go](../internal/api/server.go) and [docs/LOGGING.md](LOGGING.md) — but `Config` itself still can't tell the two cases apart; the log line is observability, not a fix for the underlying ambiguity.
 
 ## Section 5 — Local dev vs. production: `app.env` vs. real environment variables
 
@@ -260,3 +266,5 @@ Both flows end at the same `Config{...}` value and the same two call sites — t
 | `JWT_SECRET_KEY` | `JWTSecretKey` | `string` | *(blank)* | Yes — rejected below 32 chars | [server.go:40](../internal/api/server.go#L40), [jwt_maker.go:21-23](../internal/token/jwt_maker.go#L21-L23) |
 | `JWT_ACCESS_TOKEN_DURATION` | `JWTAccessTokenDuration` | `time.Duration` | `15m` | **Not enforced** — unset silently decodes to `0s` | [auth_router.go:61,70,154,163](../internal/api/auth_router.go#L61) |
 | `CORS_ALLOWED_ORIGINS` | `CORSAllowedOrigins` | `[]string` (comma-separated) | *(blank)* | No — blank deliberately disables CORS | [server.go:48,88-100](../internal/api/server.go#L48) |
+| `LOG_LEVEL` | `LogLevel` | `string` | `info` | No — empty/unrecognized falls back to `info` | [internal/logger/logger.go](../internal/logger/logger.go) |
+| `LOG_FORMAT` | `LogFormat` | `string` | `json` | No — anything but `text` falls back to `json` | [internal/logger/logger.go](../internal/logger/logger.go) |

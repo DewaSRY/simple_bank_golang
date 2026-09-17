@@ -77,16 +77,22 @@ Rough edge: `status` is a parameter on both functions, but every single call sit
 **Problem it solves:** let a handler say *what kind* of failure happened without knowing anything about how it gets turned into JSON.
 
 ```go
-// internal/api/apperror.go:16-21
+// internal/api/apperror.go:19-33
 type AppError struct {
 	Status  int
 	Code    string
 	Message string
 	Details []FieldError
+
+	// Cause is the real underlying error, if any — never rendered in the
+	// response, only logged (see the update below and docs/LOGGING.md).
+	Cause error
 }
 
 func (e *AppError) Error() string { return e.Message }
 ```
+
+**Update (added alongside `docs/LOGGING.md`):** `AppError` now carries an unexported-from-JSON `Cause error` field. It exists purely so `errorHandlerMiddleware` has something real to log for a 500 — before this, `InternalErr()` took no argument, so the DB error/panic/etc. that actually caused the failure was discarded the moment a handler called it, and a 500 in production logs had no more information than the string `"internal server error"`. Every `InternalErr()` call site became `InternalErr(err)`; see the update to §3 below.
 
 `AppError` has no JSON tags — it's never marshaled directly. It's an internal carrier; `errorHandlerMiddleware` copies its fields into the actual wire type:
 
@@ -113,7 +119,7 @@ A fixed set of constructors (`internal/api/apperror.go:33-66`) is the only sanct
 | `UnauthorizedErr(message string)` | 401 | `UNAUTHORIZED` | |
 | `ForbiddenErr(message string)` | 403 | `FORBIDDEN` | |
 | `ConflictErr(code, message string)` | 409 | caller-supplied | |
-| `InternalErr()` | 500 | `INTERNAL_ERROR` | Message is always the fixed string `"internal server error"` — never the real underlying error |
+| `InternalErr(err error)` | 500 | `INTERNAL_ERROR` | `Message` is always the fixed string `"internal server error"` — the real `err` is stored on `Cause` and logged by `errorHandlerMiddleware`, never sent to the client. Always pass the error that caused the branch, never `nil` |
 
 `fail` records the error and stops the chain, but — per §0 — doesn't render anything:
 
@@ -128,8 +134,8 @@ func fail(ctx *gin.Context, err *AppError) {
 `errorHandlerMiddleware` is the only place that renders an error response, for every route registered after it (i.e. every route, since it's registered globally in `NewServer`):
 
 ```go
-// internal/api/apperror.go:82-105
-func errorHandlerMiddleware() gin.HandlerFunc {
+// internal/api/apperror.go, current shape (see docs/LOGGING.md for the full rationale)
+func errorHandlerMiddleware(log *slog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()
 
@@ -137,8 +143,11 @@ func errorHandlerMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		reqLog := loggerFromContext(ctx, log).With(/* method, path */)
+
 		var appErr *AppError
 		if errors.As(ctx.Errors.Last().Err, &appErr) {
+			logAppError(reqLog, appErr) // Error level + Cause for 5xx, Warn for 4xx
 			ctx.JSON(appErr.Status, errorResponse{Error: errorBody{
 				Code:    appErr.Code,
 				Message: appErr.Message,
@@ -147,6 +156,7 @@ func errorHandlerMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		reqLog.Error("unhandled error", "error", ctx.Errors.Last().Err.Error())
 		ctx.JSON(http.StatusInternalServerError, errorResponse{Error: errorBody{
 			Code:    errCodeInternal,
 			Message: "internal server error",
@@ -156,6 +166,8 @@ func errorHandlerMiddleware() gin.HandlerFunc {
 ```
 
 The `default` branch (falling back to a sanitized 500) is the concrete mechanism behind §0 gotcha 3 — it's what makes it structurally impossible for a raw Go error to reach a client, even if a future handler pushes a plain `error` onto `ctx.Errors` instead of an `*AppError`.
+
+**Update:** the middleware now takes a `*slog.Logger` and logs every failure before rendering it — see `docs/LOGGING.md` for the full design (request IDs, panic recovery, access logging). The response shape this section documents (`errorResponse{Error: errorBody{...}}`) is unchanged; only what happens *before* it's written changed.
 
 ## 4. Field-level validation errors — `fieldErrorsFromBindErr` / `validationMessage`
 
@@ -220,7 +232,7 @@ if errors.As(err, &pqErr) && pqErr.Code.Name() == "unique_violation" {
 	fail(ctx, ConflictErr(errCodeConflict, "username or email already exists"))
 	return
 }
-fail(ctx, InternalErr())
+fail(ctx, InternalErr(err))
 ```
 
 **Transfer failures** go through a dedicated classifier, since `store.TransferTx` can fail for several distinct business reasons:
@@ -246,7 +258,7 @@ func transferAppError(err error) *AppError {
 	case errors.As(err, &pqErr) && pqErr.Code.Name() == "foreign_key_violation":
 		return BadRequestErr(errCodeNotFound, "account not found")
 	default:
-		return InternalErr()
+		return InternalErr(err)
 	}
 }
 ```
@@ -351,8 +363,8 @@ There's a second, independently-written mini-mapper of the same shape for users 
 ## Cross-feature coupling
 
 - **`auth_middleware.go` uses the same `fail`/`AppError` convention**, not something local to it: `authMiddleware` (`internal/api/auth_middleware.go`) calls `fail(ctx, UnauthorizedErr(err.Error()))` on any token failure, which is rendered by the same global `errorHandlerMiddleware` as every other handler's errors. If you're only reading `response.go`/`apperror.go`, it's easy to miss that auth failures flow through the identical pipeline documented here rather than something bespoke.
-- **`transferAppError` reads sentinel errors owned by the `store` package**, coupling `internal/api`'s response text to `db/store/errors.go`'s error message strings (§5). The `store` package itself knows nothing about HTTP status codes or response envelopes — the translation is entirely on the `api` side, which is why adding a new failure mode to `TransferTx` requires a matching `case` in `transferAppError`, or it silently falls into the generic `InternalErr()` branch.
-- **Middleware registration order in `NewServer`** (`internal/api/server.go:47-52`) matters here specifically: `errorHandlerMiddleware()` must be registered *before* `bindRouters` wires any route, since Gin's `ctx.Next()`/post-processing model only lets a middleware inspect errors from handlers registered after it in the chain. It's registered right after `corsMiddleware`, ahead of every route — swapping that order would mean errors from at least the first-bound routes never get rendered by it.
+- **`transferAppError` reads sentinel errors owned by the `store` package**, coupling `internal/api`'s response text to `db/store/errors.go`'s error message strings (§5). The `store` package itself knows nothing about HTTP status codes or response envelopes — the translation is entirely on the `api` side, which is why adding a new failure mode to `TransferTx` requires a matching `case` in `transferAppError`, or it silently falls into the generic `InternalErr(err)` branch.
+- **Middleware registration order in `NewServer`** matters here specifically, and not just relative to `bindRouters`: `errorHandlerMiddleware` must be registered *before* `recoveryMiddleware`, not after. Gin middleware nests through `ctx.Next()` — a panic unwinds past every `ctx.Next()` call up to the first `recover()` above it in the chain, skipping any post-`ctx.Next()` code (like `errorHandlerMiddleware`'s response rendering) that sits *below* that `recover()`. Registering `errorHandlerMiddleware` first means it's still above `recoveryMiddleware` in the chain, so once `recoveryMiddleware`'s `recover()` calls `fail(ctx, ...)` and returns normally, control passes back up through `errorHandlerMiddleware`'s own `ctx.Next()` call and it renders the 500. Get the order backwards and a panic gets "recovered" into a response nothing ever writes — the client sees an empty `200`. See `docs/LOGGING.md` for the full middleware chain and why each piece sits where it does.
 
 ## Presentational layer
 

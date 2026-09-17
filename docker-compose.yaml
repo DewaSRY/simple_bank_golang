@@ -25,6 +25,8 @@ services:
       JWT_SECRET_KEY: "46cb893a8ab20cb9042f3bdb49747c4fc813fb04a370aa2b16d7feaf30367fad"
       JWT_ACCESS_TOKEN_DURATION: "600m"
       CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+      LOG_LEVEL: "info"
+      LOG_FORMAT: "json"
     ports:
       - "8080:8080"
     depends_on:

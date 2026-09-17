@@ -1,6 +1,8 @@
 package api
 
 import (
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +17,7 @@ import (
 func newTestRouterWithAuthMiddleware(t *testing.T, tokenMaker token.Maker) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.Use(errorHandlerMiddleware())
+	router.Use(errorHandlerMiddleware(slog.New(slog.NewTextHandler(io.Discard, nil))))
 
 	router.GET("/protected", authMiddleware(tokenMaker), func(ctx *gin.Context) {
 		payload := getAuthPayload(ctx)

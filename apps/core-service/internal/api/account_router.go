@@ -48,7 +48,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		IsMain:      false,
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -93,7 +93,7 @@ func (server *Server) listmeAccounts(ctx *gin.Context) {
 		OffsetCount: query.offset(),
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -105,7 +105,7 @@ func (server *Server) listmeAccounts(ctx *gin.Context) {
 		},
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -152,13 +152,13 @@ func (server *Server) searchAccountByNumber(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
 	total, err := server.store.CountAccountsSearchByUserNumber(ctx, sql.NullString{String: query.Number, Valid: true})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 

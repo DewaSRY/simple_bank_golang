@@ -42,7 +42,7 @@ func (server *Server) detailAccount(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -95,7 +95,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -120,7 +120,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 		Description: sql.NullString{String: description, Valid: description != ""},
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -159,7 +159,7 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -194,6 +194,6 @@ func deleteAccountAppError(err error) *AppError {
 	case errors.Is(err, store.ErrCannotDeleteMainAccount):
 		return ConflictErr(errCodeMainAccount, err.Error())
 	default:
-		return InternalErr()
+		return InternalErr(err)
 	}
 }
