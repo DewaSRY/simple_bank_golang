@@ -13,8 +13,7 @@ FROM alpine:3.20
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY internal/db/migrations ./internal/db/migrations
-
-
+COPY app.prod.env ./app.env
 
 EXPOSE 8080
 ENTRYPOINT ["/app/main"]
