@@ -66,7 +66,7 @@ func NewServer(store store.Storer, cfg config.Config, log *slog.Logger) (*Server
 	// a response that's never written and the client sees an empty 200.
 	router := gin.New()
 	router.Use(requestIDMiddleware())
-	router.Use(loggingMiddleware(log))
+	router.Use(loggingMiddleware(log, cfg))
 	router.Use(corsMiddleware(cfg.CORSAllowedOrigins))
 	router.Use(errorHandlerMiddleware(log))
 	router.Use(recoveryMiddleware(log))

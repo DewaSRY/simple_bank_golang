@@ -43,7 +43,7 @@ It's split this way so `Config` stays a plain, mockable value instead of a globa
 
 ## Section 2 — The `Config` struct — the schema
 
-**The problem it solves.** Every setting the app needs — seven strings plus one duration plus one string slice — needs one place they're all declared, typed, and named, instead of a `DB_SOURCE` string literal scattered across `main.go`, `connect_db.go`, and `cmd/migration/main.go`.
+**The problem it solves.** Every setting the app needs — seven strings plus one duration plus one string slice plus a handful of logging toggles — needs one place they're all declared, typed, and named, instead of a `DB_SOURCE` string literal scattered across `main.go`, `connect_db.go`, and `cmd/migration/main.go`.
 
 **How it's implemented.** [internal/config/config.go](../internal/config/config.go):
 
@@ -57,6 +57,10 @@ type Config struct {
 	CORSAllowedOrigins     []string      `mapstructure:"CORS_ALLOWED_ORIGINS"`
 	LogLevel               string        `mapstructure:"LOG_LEVEL"`
 	LogFormat              string        `mapstructure:"LOG_FORMAT"`
+	LogPrettyJSON          bool          `mapstructure:"LOG_PRETTY_JSON"`
+	LogRequestBody         bool          `mapstructure:"LOG_REQUEST_BODY"`
+	LogResponseBody        bool          `mapstructure:"LOG_RESPONSE_BODY"`
+	LogMaxBodySize         int64         `mapstructure:"LOG_MAX_BODY_SIZE"`
 }
 ```
 
@@ -68,10 +72,16 @@ type Config struct {
 | `JWTSecretKey` | `JWT_SECRET_KEY` | `string` | *(blank — set per environment)* |
 | `JWTAccessTokenDuration` | `JWT_ACCESS_TOKEN_DURATION` | `time.Duration` | `15m` |
 | `CORSAllowedOrigins` | `CORS_ALLOWED_ORIGINS` | `[]string` | *(blank; comma-separated when set, e.g. `http://localhost:3000,http://localhost:5173`)* |
-| `LogLevel` | `LOG_LEVEL` | `string` | `info` — see [docs/LOGGING.md](LOGGING.md) |
+| `LogLevel` | `LOG_LEVEL` | `string` | `debug` — see [docs/LOGGING.md](LOGGING.md) |
 | `LogFormat` | `LOG_FORMAT` | `string` | `json` — see [docs/LOGGING.md](LOGGING.md) |
+| `LogPrettyJSON` | `LOG_PRETTY_JSON` | `bool` | `true` — see [docs/LOGGING.md](LOGGING.md) §7 |
+| `LogRequestBody` | `LOG_REQUEST_BODY` | `bool` | `true` — see [docs/LOGGING.md](LOGGING.md) §7 |
+| `LogResponseBody` | `LOG_RESPONSE_BODY` | `bool` | `true` — see [docs/LOGGING.md](LOGGING.md) §7 |
+| `LogMaxBodySize` | `LOG_MAX_BODY_SIZE` | `int64` | `1048576` — see [docs/LOGGING.md](LOGGING.md) §7 |
 
-`LogLevel`/`LogFormat` are the two exceptions to "the struct itself does zero validation" below — `internal/logger.New` (not this package) treats an empty or unrecognized value as `"info"`/`"json"` rather than erroring, so a typo'd `LOG_LEVEL` silently falls back to the default level instead of failing config load.
+`LogLevel`/`LogFormat`/`LogPrettyJSON`/`LogRequestBody`/`LogResponseBody`/`LogMaxBodySize` are all exceptions to "the struct itself does zero validation" below — `internal/logger.New`/`internal/api/logging_middleware.go` (not this package) treat an empty, unrecognized, or zero value as a safe default rather than erroring, so a typo'd `LOG_LEVEL` or an unset `LOG_MAX_BODY_SIZE` silently falls back to a default instead of failing config load.
+
+**Worth flagging:** `LogPrettyJSON`/`LogRequestBody`/`LogResponseBody` decode from the string `"true"`/`"false"` an env var actually carries because Viper's `defaultDecoderConfig` sets `mapstructure.DecoderConfig.WeaklyTypedInput: true` — the same setting that lets a numeric-looking string decode into `LogMaxBodySize int64`. `LoadConfig`'s own `viper.DecodeHook(...)` option (Section 3) only overwrites `DecoderConfig.DecodeHook`, not `WeaklyTypedInput`, so this keeps working even with a custom hook — but it's exactly the kind of implicit behavior Section 0's second gotcha warns about.
 
 **If you're new to `mapstructure`:** it's the library Viper unmarshals *through* — the tag name is a `mapstructure` requirement, not a Viper one, and it has nothing to do with `encoding/json`. Writing `json:"DB_SOURCE"` here compiles fine and does nothing; `viper.Unmarshal` never looks at it. This is the single most common mistake when adding a field: add it, tag it wrong (or not at all), and you get a zero value with `err == nil` — no crash, no warning, the field is just always empty.
 
@@ -215,7 +225,7 @@ This is intentional per the comment, and matches a server-to-server deployment w
 Any real environment variable with a matching name (`DB_SOURCE=...` set by the shell, Docker, or a deploy platform) overrides whatever `app.env` says, with no extra code — that's `AutomaticEnv()` plus the `BindEnv` loop from Section 3 working together. In practice:
 
 - **Local dev**: [app.env](../app.env) (git-ignored — see [.gitignore:27-30](../../../.gitignore#L27-L30), which excludes `.env`, `app.env`, and `*.env`) holds real values. [app.env.example](../app.env.example) is the checked-in template documenting the required keys, with everything blank except `JWT_ACCESS_TOKEN_DURATION=15m`.
-- **Production / Docker**: the `core-services` service in [docker-compose.yaml](../../../docker-compose.yaml) sets all six values as plain `environment:` entries and mounts no file at all.
+- **Production / Docker**: the `core-services` service in [docker-compose.yaml](../../../docker-compose.yaml) sets the original six values as plain `environment:` entries and mounts no file at all. It doesn't set `LOG_PRETTY_JSON`/`LOG_REQUEST_BODY`/`LOG_RESPONSE_BODY`/`LOG_MAX_BODY_SIZE` — all four default to off/unset (compact JSON, no body capture) when absent, which is the safe choice for this deployment as-is; see [docs/LOGGING.md](LOGGING.md) §7 before turning body capture on here.
 
 There is exactly one loader (`LoadConfig`) for both cases — which is also exactly the setup that triggers the `AutomaticEnv()` pitfall above: it only reproduces when there is no config file, i.e. the production path, so it's easy to develop and test entirely against the `app.env` path and never see it.
 
@@ -236,9 +246,9 @@ Two pieces take a `Config` value as a parameter but contain no loading, merging,
 **Local dev (`app.env` present):**
 ```
 main() → LoadConfig(".")
-  → viper reads app.env into memory (6 keys now known to viper)
-  → AutomaticEnv() can now match any of those 6 names against real env vars, which win if set
-  → BindEnv loop (redundant here, but harmless — same 6 keys)
+  → viper reads app.env into memory (10 keys now known to viper)
+  → AutomaticEnv() can now match any of those 10 names against real env vars, which win if set
+  → BindEnv loop (redundant here, but harmless — same 10 keys)
   → Unmarshal (duration + slice hooks) → Config{...} fully populated
   → threaded into connectDB(cfg) and api.NewServer(store, cfg)
 ```
@@ -248,8 +258,8 @@ main() → LoadConfig(".")
 main() → LoadConfig(".")
   → viper.ReadInConfig() → ConfigFileNotFoundError, swallowed
   → viper knows 0 keys — AutomaticEnv() alone would find nothing here
-  → BindEnv loop registers all 6 mapstructure-tagged keys explicitly (the fix)
-  → AutomaticEnv() can now match those 6 names against docker-compose's environment: entries
+  → BindEnv loop registers all 10 mapstructure-tagged keys explicitly (the fix)
+  → AutomaticEnv() can now match those 10 names against docker-compose's environment: entries
   → Unmarshal (duration + slice hooks) → Config{...} fully populated
   → threaded into connectDB(cfg) and api.NewServer(store, cfg)
 ```
@@ -266,5 +276,9 @@ Both flows end at the same `Config{...}` value and the same two call sites — t
 | `JWT_SECRET_KEY` | `JWTSecretKey` | `string` | *(blank)* | Yes — rejected below 32 chars | [server.go:40](../internal/api/server.go#L40), [jwt_maker.go:21-23](../internal/token/jwt_maker.go#L21-L23) |
 | `JWT_ACCESS_TOKEN_DURATION` | `JWTAccessTokenDuration` | `time.Duration` | `15m` | **Not enforced** — unset silently decodes to `0s` | [auth_router.go:61,70,154,163](../internal/api/auth_router.go#L61) |
 | `CORS_ALLOWED_ORIGINS` | `CORSAllowedOrigins` | `[]string` (comma-separated) | *(blank)* | No — blank deliberately disables CORS | [server.go:48,88-100](../internal/api/server.go#L48) |
-| `LOG_LEVEL` | `LogLevel` | `string` | `info` | No — empty/unrecognized falls back to `info` | [internal/logger/logger.go](../internal/logger/logger.go) |
+| `LOG_LEVEL` | `LogLevel` | `string` | `debug` | No — empty/unrecognized falls back to `info` | [internal/logger/logger.go](../internal/logger/logger.go) |
 | `LOG_FORMAT` | `LogFormat` | `string` | `json` | No — anything but `text` falls back to `json` | [internal/logger/logger.go](../internal/logger/logger.go) |
+| `LOG_PRETTY_JSON` | `LogPrettyJSON` | `bool` | `true` | No — false/unset keeps compact JSON | [internal/logger/pretty_handler.go](../internal/logger/pretty_handler.go) |
+| `LOG_REQUEST_BODY` | `LogRequestBody` | `bool` | `true` | No — false/unset disables request body capture | [internal/api/logging_middleware.go](../internal/api/logging_middleware.go) |
+| `LOG_RESPONSE_BODY` | `LogResponseBody` | `bool` | `true` | No — false/unset disables response body capture | [internal/api/logging_middleware.go](../internal/api/logging_middleware.go) |
+| `LOG_MAX_BODY_SIZE` | `LogMaxBodySize` | `int64` (bytes) | `1048576` | No — zero/unset falls back to 1MiB | [internal/api/logging_middleware.go](../internal/api/logging_middleware.go) |

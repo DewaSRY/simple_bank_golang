@@ -19,6 +19,9 @@ import (
 //   - LOG_FORMAT: "json" (default) | "text". JSON is what a log aggregator
 //     (CloudWatch, Loki, ...) expects; "text" is easier to read against a
 //     local terminal.
+//   - LOG_PRETTY_JSON: when true and LOG_FORMAT is "json" (or unset),
+//     indents every record instead of the usual one-line-per-record form —
+//     for a local dev terminal, not a log aggregator. Ignored for "text".
 //
 // At "debug" level, records also carry the source file:line they were
 // logged from (slog's AddSource), since that's the situation where you're
@@ -32,9 +35,12 @@ func New(cfg config.Config) *slog.Logger {
 	}
 
 	var handler slog.Handler
-	if strings.EqualFold(cfg.LogFormat, "text") {
+	switch {
+	case strings.EqualFold(cfg.LogFormat, "text"):
 		handler = slog.NewTextHandler(os.Stdout, opts)
-	} else {
+	case cfg.LogPrettyJSON:
+		handler = newPrettyHandler(os.Stdout, opts)
+	default:
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	}
 

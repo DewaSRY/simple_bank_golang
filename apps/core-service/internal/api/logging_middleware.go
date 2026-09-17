@@ -1,17 +1,29 @@
 package api
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 
+	config "github.com/DewaSRY/core-service/internal/config"
+	corelog "github.com/DewaSRY/core-service/internal/logger"
 	"github.com/DewaSRY/core-service/internal/token"
 )
+
+// defaultMaxLoggedBodySize is the fallback for config.Config.LogMaxBodySize
+// when it's zero/unset — see effectiveMaxBodySize.
+const defaultMaxLoggedBodySize int64 = 1 << 20 // 1MiB
 
 const (
 	requestIDHeader     = "X-Request-Id"
@@ -61,50 +73,234 @@ func loggerFromContext(ctx *gin.Context, base *slog.Logger) *slog.Logger {
 	return base.With(slog.String("request_id", getRequestID(ctx)))
 }
 
-// loggingMiddleware logs one structured line per request after it completes,
-// so every request is accounted for and can be correlated by request_id with
-// whatever errorHandlerMiddleware/recoveryMiddleware logged for it. Level
-// scales with outcome: 5xx responses log at Error (something broke and needs
-// looking at), 4xx at Warn (a caller did something invalid, less urgent),
-// everything else at Info.
-func loggingMiddleware(log *slog.Logger) gin.HandlerFunc {
+func loggingMiddleware(log *slog.Logger, cfg config.Config) gin.HandlerFunc {
+	maxBodySize := effectiveMaxBodySize(cfg)
+
 	return func(ctx *gin.Context) {
 		start := time.Now()
-		path := ctx.Request.URL.Path
+
+		requestURL := ctx.Request.URL.Path
 		if raw := ctx.Request.URL.RawQuery; raw != "" {
-			path += "?" + raw
+			requestURL += "?" + raw
+		}
+
+		var reqBody any
+		if cfg.LogRequestBody {
+			reqBody = captureRequestBody(ctx.Request, maxBodySize)
+		}
+
+		var respWriter *bodyLogWriter
+		if cfg.LogResponseBody {
+			respWriter = &bodyLogWriter{ResponseWriter: ctx.Writer, maxBytes: int(maxBodySize)}
+			ctx.Writer = respWriter
 		}
 
 		ctx.Next()
 
 		status := ctx.Writer.Status()
-		attrs := []any{
-			slog.String("request_id", getRequestID(ctx)),
+		respHeaders := corelog.RedactHeaders(ctx.Writer.Header())
+
+		reqAttrs := []any{
 			slog.String("method", ctx.Request.Method),
-			slog.String("path", path),
+			slog.String("url", requestURL),
+			slog.String("path", ctx.Request.URL.Path),
+			slog.Any("query", ctx.Request.URL.Query()),
+			slog.Any("headers", corelog.RedactHeaders(ctx.Request.Header)),
+			slog.Any("params", routeParams(ctx)),
+		}
+		if cfg.LogRequestBody {
+			reqAttrs = append(reqAttrs, slog.Any("body", reqBody))
+		}
+
+		respAttrs := []any{
 			slog.Int("status", status),
-			slog.Duration("latency", time.Since(start)),
-			slog.String("client_ip", ctx.ClientIP()),
+			slog.Any("headers", respHeaders),
+			slog.Int("size", ctx.Writer.Size()),
+		}
+		if cfg.LogResponseBody && respWriter != nil {
+			raw := respWriter.buf.Bytes()
+			truncated := ctx.Writer.Size() > respWriter.buf.Len()
+			respAttrs = append(respAttrs, slog.Any("body", decodeLoggedBody(raw, ctx.Writer.Header().Get("Content-Type"), truncated)))
+		}
+
+		outcome := "success"
+		if status >= http.StatusBadRequest {
+			outcome = "error"
+		}
+
+		attrs := []any{
+			slog.Group("client",
+				slog.String("ip", ctx.ClientIP()),
+				slog.String("user_agent", ctx.Request.UserAgent()),
+			),
+			slog.Group("request", reqAttrs...),
+			slog.Group("response", respAttrs...),
+			slog.Int64("duration_ms", time.Since(start).Milliseconds()),
+			slog.String("status", outcome),
 		}
 		if userID, ok := authenticatedUserID(ctx); ok {
 			attrs = append(attrs, slog.Int64("user_id", userID))
 		}
 
+		reqLog := loggerFromContext(ctx, log)
 		switch {
 		case status >= 500:
-			log.Error("request completed", attrs...)
+			reqLog.Error("request completed", attrs...)
 		case status >= 400:
-			log.Warn("request completed", attrs...)
+			reqLog.Warn("request completed", attrs...)
 		default:
-			log.Info("request completed", attrs...)
+			reqLog.Info("request completed", attrs...)
 		}
 	}
 }
 
-// authenticatedUserID reads the caller's ID off the token payload set by
-// authMiddleware, without panicking on routes that never run it (health,
-// login, register) — unlike getAuthPayload, which is only safe to call from
-// handlers that authMiddleware guarantees ran first.
+// effectiveMaxBodySize applies defaultMaxLoggedBodySize when cfg doesn't set
+// one, the same "zero/unset falls back to a sane default" pattern
+// internal/logger.parseLevel uses for LOG_LEVEL.
+func effectiveMaxBodySize(cfg config.Config) int64 {
+	if cfg.LogMaxBodySize <= 0 {
+		return defaultMaxLoggedBodySize
+	}
+	return cfg.LogMaxBodySize
+}
+
+// routeParams captures Gin's path parameters (e.g. :id) as a plain map so
+// they serialize as a JSON object — {} when the matched route has none,
+// never null, matching how query/headers render.
+func routeParams(ctx *gin.Context) map[string]string {
+	out := make(map[string]string, len(ctx.Params))
+	for _, p := range ctx.Params {
+		out[p.Key] = p.Value
+	}
+	return out
+}
+
+type bodyLogWriter struct {
+	gin.ResponseWriter
+	buf      bytes.Buffer
+	maxBytes int
+}
+
+func (w *bodyLogWriter) Write(b []byte) (int, error) {
+	w.captureForLog(b)
+	return w.ResponseWriter.Write(b)
+}
+
+func (w *bodyLogWriter) WriteString(s string) (int, error) {
+	w.captureForLog([]byte(s))
+	return w.ResponseWriter.WriteString(s)
+}
+
+func (w *bodyLogWriter) captureForLog(b []byte) {
+	remaining := w.maxBytes - w.buf.Len()
+	if remaining <= 0 {
+		return
+	}
+	if len(b) > remaining {
+		b = b[:remaining]
+	}
+	w.buf.Write(b)
+}
+
+func captureRequestBody(req *http.Request, maxBytes int64) any {
+	contentType := req.Header.Get("Content-Type")
+
+	if req.Body == nil || req.Body == http.NoBody {
+		return nil
+	}
+	if isMultipartContentType(contentType) {
+		return placeholder("multipart/form-data body omitted")
+	}
+	if isBinaryContentType(contentType) {
+		return placeholder(fmt.Sprintf("non-text content-type %q omitted", contentType))
+	}
+	if req.ContentLength > maxBytes {
+		return placeholder(fmt.Sprintf("body omitted: %d bytes exceeds configured LOG_MAX_BODY_SIZE", req.ContentLength))
+	}
+
+	peeked, err := io.ReadAll(io.LimitReader(req.Body, maxBytes+1))
+	if err != nil {
+		return placeholder("body unreadable: " + err.Error())
+	}
+
+	// Whatever's left unread on the original body (nothing, unless peeked
+	// hit the maxBytes+1 cap) is chained back on so the handler sees the
+	// exact stream it would have without this middleware.
+	req.Body = io.NopCloser(io.MultiReader(bytes.NewReader(peeked), req.Body))
+
+	truncated := int64(len(peeked)) > maxBytes
+	raw := peeked
+	if truncated {
+		raw = peeked[:maxBytes]
+	}
+	return decodeLoggedBody(raw, contentType, truncated)
+}
+
+// decodeLoggedBody turns raw body bytes into whatever should actually be
+// placed in the log record: a parsed (and redacted) JSON value so it renders
+// as real JSON rather than an escaped string, a plain string for other text
+// content, or a placeholder for empty/binary content so logs never fill up
+// with unreadable bytes.
+func decodeLoggedBody(raw []byte, contentType string, truncated bool) any {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	if strings.Contains(strings.ToLower(contentType), "json") {
+		var parsed any
+		if err := json.Unmarshal(raw, &parsed); err == nil {
+			return corelog.RedactJSONValue(parsed)
+		}
+		// Declared JSON but didn't parse — most likely truncated at
+		// maxBytes. Fall through to the raw-text rendering below so a
+		// snippet is still visible instead of nothing at all.
+	}
+
+	if !utf8.Valid(raw) {
+		return placeholder(fmt.Sprintf("binary content omitted (%d bytes)", len(raw)))
+	}
+
+	text := string(raw)
+	if truncated {
+		text += fmt.Sprintf(" …(truncated at %d bytes)", len(raw))
+	}
+	return text
+}
+
+func isMultipartContentType(contentType string) bool {
+	return strings.HasPrefix(strings.ToLower(strings.TrimSpace(contentType)), "multipart/")
+}
+
+// isBinaryContentType recognizes the common media types not worth buffering
+// for logging (images, archives, PDFs, ...). Anything it doesn't recognize
+// still gets a final safety check in decodeLoggedBody (utf8.Valid) before
+// being rendered as text.
+func isBinaryContentType(contentType string) bool {
+	ct := strings.ToLower(strings.TrimSpace(contentType))
+	switch {
+	case ct == "":
+		return false
+	case strings.HasPrefix(ct, "image/"),
+		strings.HasPrefix(ct, "video/"),
+		strings.HasPrefix(ct, "audio/"),
+		strings.HasPrefix(ct, "font/"):
+		return true
+	case strings.Contains(ct, "octet-stream"),
+		strings.Contains(ct, "pdf"),
+		strings.Contains(ct, "zip"),
+		strings.Contains(ct, "gzip"),
+		strings.Contains(ct, "protobuf"),
+		strings.Contains(ct, "msgpack"):
+		return true
+	default:
+		return false
+	}
+}
+
+func placeholder(msg string) string {
+	return "<" + msg + ">"
+}
+
 func authenticatedUserID(ctx *gin.Context) (int64, bool) {
 	v, ok := ctx.Get(authorizationPayloadKey)
 	if !ok {
@@ -117,10 +313,6 @@ func authenticatedUserID(ctx *gin.Context) (int64, bool) {
 	return payload.ID, true
 }
 
-// recoveryMiddleware replaces gin.Recovery(): it catches a panic anywhere
-// downstream, logs it (with a stack trace, request_id, method and path) at
-// Error level, and renders the same normalized 500 body every other
-// unhandled failure gets, instead of gin's plain-text default page.
 func recoveryMiddleware(log *slog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer func() {
