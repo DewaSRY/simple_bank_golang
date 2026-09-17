@@ -1,3 +1,12 @@
+> **Status: largely implemented.** The yellow→lime→green brand spectrum,
+> separated from theme tokens, is live in `app/globals.css` (`--brand-*`
+> vs `--background`/`--surface`/etc.), and the landing page
+> (`app/[locale]/(public)/page.tsx` + `components/landing/*`) follows this
+> brief's structure (hero, problem, solution, features, how-it-works, final
+> CTA, footer). Re-check against the current UI before treating any specific
+> item below as still open. Kept here as the original task prompt, not as
+> living documentation.
+
 # Role: Senior UI/UX Researcher & Product Designer
 
 You are a **Senior UI/UX Researcher, Product Designer, and Design System Architect** specializing in **modern fintech, digital banking, and financial management applications**.

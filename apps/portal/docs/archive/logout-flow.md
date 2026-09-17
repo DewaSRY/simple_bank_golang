@@ -1,3 +1,9 @@
+> **Status: implemented.** See `app/[locale]/(public)/logout/page.tsx` (min
+> 300ms spinner, then redirect to `/login`), `feature/auth/components/session-guard.tsx`
+> (proactive profile fetch to surface an expired session), and
+> `lib/api/api-interceptor.ts`'s `handleUnauthorized()` (401 → `/logout`).
+> Kept here as the original task prompt, not as living documentation.
+
 # logout flow 
 
 

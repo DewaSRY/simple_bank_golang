@@ -221,13 +221,31 @@ New keys added to `messages/{en,id}/common.json`: `toggleTheme`,
 `LocaleSwitcher` uses, since both are chrome-level controls rather than
 feature-specific text.
 
-Mounted on the home page next to the existing `LocaleSwitcher`
-(`app/[locale]/page.tsx`):
+Mounted next to `LocaleSwitcher` wherever chrome-level nav lives:
+[components/landing/landing-nav.tsx](../components/landing/landing-nav.tsx)
+for the public landing page, and
+[components/navigation/site-header.tsx](../components/navigation/site-header.tsx)
+for the logged-in `(protected)` layout (this moved off the home page
+directly once a real landing page and dashboard shell were built).
 
 ```tsx
 <LocaleSwitcher />
 <ThemeToggle />
 ```
+
+## Brand color tokens
+
+Since this doc was written, `app/globals.css` gained a **brand** token set,
+deliberately separate from the shadcn theme tokens above:
+`--brand`/`--brand-hover`/`--brand-active`/`--brand-soft`/`--brand-foreground`
+and numbered steps `--brand-100`...`--brand-900`, all on a yellow→lime→green
+spectrum (`oklch(... 104)` hue). Each token is redefined under `.dark`, but
+`--brand-500` — the primary brand color — resolves to the **same** value in
+both `:root` and `.dark`, so the brand identity doesn't shift with the
+theme; only the supporting steps (used for hover/active/soft/foreground)
+adjust for contrast. Use `bg-brand`/`text-brand-foreground`/etc. (mapped via
+`@theme inline`, same mechanism as `--color-background` →
+`bg-background`) rather than introducing a new ad-hoc brand color.
 
 ## Adding a new shadcn component
 

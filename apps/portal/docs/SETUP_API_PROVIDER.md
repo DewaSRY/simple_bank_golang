@@ -35,7 +35,8 @@ apiClient (shared axios.create() instance)
    │  one instance, one interceptor attached
    ▼
 ApiInterceptor
-   │  injects Authorization + X-Timezone, blocks build-time requests
+   │  injects Authorization + X-Timezone, blocks build-time requests,
+   │  logs request/response (docs/SETUP_LOGGING.md), 401 → /logout
    ▼
 Backend
 ```
@@ -218,16 +219,32 @@ server where the process' timezone isn't the *user's*). Server-rendered
 requests simply omit the header; the backend should treat a missing
 `X-Timezone` as "unknown" rather than assuming UTC or erroring.
 
+## Response interceptor
+
+`setupResponseInterceptors()` is registered in the constructor alongside
+`setupRequestInterceptors()` and handles two things on every response:
+
+1. **401 → logout.** On a `401`, `handleUnauthorized()` runs
+   `window.location.href = "/logout"` (client-side only — a no-op on the
+   server, since there's nowhere to redirect a static/RSC render to). This
+   closes the gap that used to exist here: a stale/expired session used to
+   fail silently per-screen with no recovery path. `feature/auth/components/session-guard.tsx`
+   pairs with this by calling `useProfileQuery()` on every protected page
+   purely to *trigger* a 401 early if the session is already invalid, rather
+   than waiting for the user's next real action to discover it.
+2. **Structured logging.** Every request/success/failure is logged via
+   `lib/logger.ts` (server-side only) with a `requestId` correlating the
+   three log lines for one call, plus timing and device info. See
+   `docs/SETUP_LOGGING.md` for the full shape and its PII-redaction rules.
+
+`BuildPhaseSkippedError` is passed through unlogged and unhandled by the
+401 check — it's a signal for build-time skips, not a real HTTP failure.
+
 ## Adding a new cross-cutting concern
 
-To add another interceptor behavior (e.g. request ID tracing, a
-retry-on-401-refresh flow), add a private method to `ApiInterceptor` and call
-it from `setupRequestInterceptors`, in the same style as
-`addAuthorizationHeader`/`addClientTimezoneHeader`. Keep it here rather than
-in a resource client — anything that should apply to *every* request belongs
-in the interceptor, not duplicated per client.
-
-For response-side concerns (e.g. centralized 401 → redirect-to-login, error
-normalization), add a `setupResponseInterceptors()` method following the
-same pattern and call it from the constructor alongside
-`setupRequestInterceptors()`.
+To add another interceptor behavior (e.g. a retry-on-401-refresh flow, or a
+new response-side check), add a private method to `ApiInterceptor` and call
+it from `setupRequestInterceptors`/`setupResponseInterceptors`, in the same
+style as `addAuthorizationHeader`/`addClientTimezoneHeader`/`handleUnauthorized`.
+Keep it here rather than in a resource client — anything that should apply
+to *every* request belongs in the interceptor, not duplicated per client.
