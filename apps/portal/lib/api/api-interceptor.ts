@@ -35,6 +35,7 @@ export class ApiInterceptor {
   private isServer(): boolean {
     return typeof window === "undefined";
   }
+
   private isBuildPhase(): boolean {
     return (
       this.isServer() && process.env.NEXT_PHASE === "phase-production-build"
@@ -108,6 +109,8 @@ export class ApiInterceptor {
   private setupResponseInterceptors(): void {
     this.instance.interceptors.response.use(
       async (response) => {
+        console.log("test");
+
         if (typeof window === "undefined") {
           const { default: logger } = await import("@/lib/logger");
           const metadata = response.config?.metadata;

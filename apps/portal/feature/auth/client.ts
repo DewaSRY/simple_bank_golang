@@ -28,6 +28,8 @@ export type ProfileResponse = {
 
 export class AuthClient extends BaseClient {
   login(body: LoginRequest) {
+    console.log("get call", body);
+
     return this.post<CommonSuccessResponse<AuthResponse>>({
       endpoint: "/auth/login",
       body,

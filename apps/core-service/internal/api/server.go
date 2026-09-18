@@ -125,7 +125,7 @@ func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	return cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Timezone"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Timezone", "X-Request-Id"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	})
