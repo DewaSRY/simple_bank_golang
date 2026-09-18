@@ -30,7 +30,7 @@ export function LoginForm() {
     loginMutation.mutate(values, {
       onSuccess: ({ data }) => {
         setClientSessionCookie(data.access_token, data.expires_in);
-        router.push("/dashboard");
+        router.push("/auth-success");
       },
       onError: (error) => {
         const fieldErrors = getApiFieldErrors(error);
