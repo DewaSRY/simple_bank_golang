@@ -97,3 +97,27 @@ export class BaseClient {
     });
   }
 }
+
+export interface ProxyRequestOptions {
+  url: string;
+  method: string;
+  data?: unknown;
+  params?: Record<string, unknown>;
+  headers?: Record<string, string>;
+}
+
+/**
+ * Generic passthrough to `apiClient.request`, used by the proxy route
+ * handler to forward any method/endpoint without going through a specific
+ * feature client. `new BaseClient()` below guarantees the interceptor is
+ * attached even if this is the first thing to touch `apiClient` in a given
+ * server process.
+ */
+export function requestViaApiClient<TResponse = unknown>(
+  options: ProxyRequestOptions,
+): Promise<AxiosResponse<TResponse>> {
+  const { url, method, data, params, headers } = options;
+  return apiClient.request<TResponse>({ url, method, data, params, headers });
+}
+
+new BaseClient();

@@ -109,8 +109,6 @@ export class ApiInterceptor {
   private setupResponseInterceptors(): void {
     this.instance.interceptors.response.use(
       async (response) => {
-        console.log("test");
-
         if (typeof window === "undefined") {
           const { default: logger } = await import("@/lib/logger");
           const metadata = response.config?.metadata;
@@ -137,9 +135,6 @@ export class ApiInterceptor {
         }
 
         const status = error.response?.status;
-        if (status === 401) {
-          await this.handleUnauthorized();
-        }
 
         if (typeof window === "undefined") {
           const { default: logger } = await import("@/lib/logger");
@@ -159,6 +154,12 @@ export class ApiInterceptor {
             request_header: error.config?.headers,
             ...(await this.getRequestDeviceInfo()),
           });
+        }
+
+        // handleUnauthorized() throws on the server (next/navigation's
+        // redirect()), so nothing below this runs for a 401 there.
+        if (status === 401) {
+          await this.handleUnauthorized();
         }
 
         return Promise.reject(error);
@@ -196,10 +197,12 @@ export class ApiInterceptor {
     return "desktop";
   }
   private async handleUnauthorized(): Promise<void> {
-    console.warn("🔒 Unauthorized access detected. Redirecting to logout...");
-
-    if (!this.isServer()) {
-      window.location.href = "/logout";
+    if (this.isServer()) {
+      const { redirect } = await import("@/i18n/redirect");
+      redirect({ href: "/logout" });
+      return;
     }
+
+    window.location.href = "/logout";
   }
 }
