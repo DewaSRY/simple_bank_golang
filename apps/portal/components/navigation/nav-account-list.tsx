@@ -25,7 +25,9 @@ export function NavAccountList() {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{t("yourAccounts")}</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-lg">
+        {t("yourAccounts")}
+      </SidebarGroupLabel>
       <SidebarGroupContent className="flex flex-col gap-0.5">
         {isLoading ? (
           <div className="flex flex-col gap-3 px-2 py-2">
