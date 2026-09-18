@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/DewaSRY/core-service/internal/db/store"
@@ -21,6 +22,14 @@ type AppError struct {
 	Code    string
 	Message string
 	Details []FieldError
+
+	// Cause is the underlying error that led to this AppError, if any. It is
+	// never rendered in the HTTP response (errorBody has no field for it) —
+	// its only job is to give errorHandlerMiddleware something real to log
+	// for 500s, instead of every internal failure showing up in logs as the
+	// same sanitized "internal server error" string with no way to tell one
+	// failure from another.
+	Cause error
 }
 
 func (e *AppError) Error() string {
@@ -64,8 +73,16 @@ func ConflictErr(code, message string) *AppError {
 	return newAppError(http.StatusConflict, code, message)
 }
 
-func InternalErr() *AppError {
-	return newAppError(http.StatusInternalServerError, errCodeInternal, "internal server error")
+// InternalErr builds a sanitized 500 response for an unexpected failure.
+// err is the real underlying error (a DB failure, a token-signing error,
+// ...) — it's never sent to the client, but errorHandlerMiddleware logs it
+// so a 500 is actually debuggable instead of just "internal server error"
+// with no further trace. Always pass the error that triggered this branch,
+// never nil.
+func InternalErr(err error) *AppError {
+	appErr := newAppError(http.StatusInternalServerError, errCodeInternal, "internal server error")
+	appErr.Cause = err
+	return appErr
 }
 
 // fail records the error on the gin context and stops the handler chain.
@@ -82,7 +99,13 @@ func fail(ctx *gin.Context, err *AppError) {
 // whatever fail(ctx, ...) recorded, and defaults to a sanitized 500 for
 // anything that isn't an *AppError — a handler can never accidentally leak
 // raw internal error text just by forgetting to wrap an error.
-func errorHandlerMiddleware() gin.HandlerFunc {
+//
+// Before rendering, it logs the failure via log (request_id/method/path plus
+// whatever the error actually was) — a 500's AppError.Cause included — so a
+// client-visible "internal server error" always has a matching log line to
+// debug from, instead of vanishing the moment the sanitized response is
+// written.
+func errorHandlerMiddleware(log *slog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()
 
@@ -90,8 +113,14 @@ func errorHandlerMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		reqLog := loggerFromContext(ctx, log).With(
+			slog.String("method", ctx.Request.Method),
+			slog.String("path", ctx.Request.URL.Path),
+		)
+
 		var appErr *AppError
 		if errors.As(ctx.Errors.Last().Err, &appErr) {
+			logAppError(reqLog, appErr)
 			ctx.JSON(appErr.Status, errorResponse{Error: errorBody{
 				Code:    appErr.Code,
 				Message: appErr.Message,
@@ -100,11 +129,29 @@ func errorHandlerMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		reqLog.Error("unhandled error", slog.String("error", ctx.Errors.Last().Err.Error()))
 		ctx.JSON(http.StatusInternalServerError, errorResponse{Error: errorBody{
 			Code:    errCodeInternal,
 			Message: "internal server error",
 		}})
 	}
+}
+
+// logAppError logs an *AppError at a level matching its severity: 500s are
+// Error (need investigating — logged with Cause, the real underlying error,
+// never sent to the client) and everything else is Warn (a normal
+// client-caused failure, worth seeing but not paging anyone over).
+func logAppError(log *slog.Logger, appErr *AppError) {
+	if appErr.Status < http.StatusInternalServerError {
+		log.Warn("request failed", slog.Int("status", appErr.Status), slog.String("code", appErr.Code), slog.String("message", appErr.Message))
+		return
+	}
+
+	attrs := []any{slog.Int("status", appErr.Status), slog.String("code", appErr.Code)}
+	if appErr.Cause != nil {
+		attrs = append(attrs, slog.String("cause", appErr.Cause.Error()))
+	}
+	log.Error("request failed", attrs...)
 }
 
 // transferAppError maps a transferTx/depositTx failure to an AppError. This
@@ -130,6 +177,6 @@ func transferAppError(err error) *AppError {
 	case errors.As(err, &pqErr) && pqErr.Code.Name() == "foreign_key_violation":
 		return BadRequestErr(errCodeNotFound, "account not found")
 	default:
-		return InternalErr()
+		return InternalErr(err)
 	}
 }

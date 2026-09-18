@@ -7,6 +7,8 @@ import {
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { AccountList } from "@/components/dashboard/account-list";
+import { queryKeys } from "@/feature/account/hooks/query";
+import { accountClient } from "@/feature/account/client";
 
 interface props extends PageProps<"/[locale]/dashboard"> {
   searchParams: Promise<{ search?: string }>;
@@ -23,8 +25,18 @@ export default async function DashboardPage({ params }: props) {
 
   const queryClient = new QueryClient();
 
+  // Matches AccountList's own useAccounts({ page: 1, limit: 10 }) call
+  // exactly, since TanStack Query hashes the params object into the cache
+  // key.
+  const query = { page: 1, limit: 10 };
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.list(query),
+    queryFn: () =>
+      accountClient.listMeAccounts(query).then((res) => res.data.data),
+  });
+
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-4 py-6 font-sans dark:bg-black sm:px-6">
+    <div className="flex flex-1 flex-col bg-background px-4 py-6 font-sans sm:px-6">
       <div className="mx-auto w-full max-w-6xl">
         <div className="flex w-full items-center justify-between">
           <div>

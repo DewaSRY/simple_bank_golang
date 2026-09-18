@@ -13,6 +13,11 @@ output "app_url" {
   value       = "http://${aws_instance.core_service.public_ip}:${var.app_port}"
 }
 
+output "app_swagger_url" {
+  description = "URL to reach the core-service Swagger API"
+  value       = "http://${aws_instance.core_service.public_ip}:${var.app_port}/swagger/index.html#/"
+}
+
 output "ssh_command" {
   description = "Command to SSH into the instance"
   value       = "ssh -i ${local_file.private_key.filename} ec2-user@${aws_instance.core_service.public_ip}"

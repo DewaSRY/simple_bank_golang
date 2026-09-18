@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
-	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -27,10 +28,11 @@ const (
 // the service tolerate the DB not being ready yet (e.g. container startup
 // order) while still failing fast on a genuinely bad/unreachable database
 // instead of only discovering it on the first request.
-func connectDB(cfg config.Config) *sql.DB {
+func connectDB(cfg config.Config, logger *slog.Logger) *sql.DB {
 	conn, err := sql.Open(cfg.DBDriver, cfg.DBSource)
 	if err != nil {
-		log.Fatal("cannot open db:", err)
+		logger.Error("cannot open db", "error", err)
+		os.Exit(1)
 	}
 
 	conn.SetMaxOpenConns(DBMaxOpenConns)
@@ -48,13 +50,14 @@ func connectDB(cfg config.Config) *sql.DB {
 			return conn
 		}
 
-		log.Printf("cannot ping db (attempt %d/%d): %v", attempt, DBConnectRetries, pingErr)
+		logger.Warn("cannot ping db", "attempt", attempt, "max_attempts", DBConnectRetries, "error", pingErr)
 		if attempt < DBConnectRetries {
 			time.Sleep(DBConnectRetryInterval)
 		}
 	}
 
 	conn.Close()
-	log.Fatalf("cannot connect to db after %d attempts: %v", DBConnectRetries, pingErr)
+	logger.Error("cannot connect to db, giving up", "attempts", DBConnectRetries, "error", pingErr)
+	os.Exit(1)
 	return nil
 }

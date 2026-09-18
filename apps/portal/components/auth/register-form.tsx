@@ -49,7 +49,7 @@ export function RegisterForm() {
         {
           onSuccess: ({ data }) => {
             setClientSessionCookie(data.access_token, data.expires_in);
-            router.push("/dashboard");
+            router.push("/auth-success");
           },
         },
       );
@@ -76,6 +76,7 @@ export function RegisterForm() {
           name="username"
           label={t("username")}
           autoComplete="username"
+          placeholder={t("username")}
         />
 
         <InputField
@@ -84,6 +85,7 @@ export function RegisterForm() {
           type="email"
           label={t("email")}
           autoComplete="email"
+          placeholder={t("email")}
         />
 
         <PasswordField
@@ -91,6 +93,7 @@ export function RegisterForm() {
           name="password"
           label={t("password")}
           autoComplete="new-password"
+          placeholder={t("password")}
         />
 
         <PasswordField
@@ -98,6 +101,7 @@ export function RegisterForm() {
           name="confirmPassword"
           label={t("confirmPassword")}
           autoComplete="new-password"
+          placeholder={t("confirmPassword")}
         />
       </div>
 
@@ -107,13 +111,16 @@ export function RegisterForm() {
         </p>
       )}
 
-      <Button type="submit" size="lg" className="h-10" disabled={isPending}>
+      <Button type="submit" size="lg" className="h-11" disabled={isPending}>
         {isPending ? t("registering") : t("register")}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         {t("alreadyHaveAccount")}{" "}
-        <Link href="/login" className="font-medium text-foreground hover:underline">
+        <Link
+          href="/login"
+          className="font-medium text-foreground hover:underline"
+        >
           {t("login")}
         </Link>
       </p>

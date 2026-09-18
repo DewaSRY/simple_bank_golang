@@ -43,8 +43,6 @@ docker-build:
 	docker build -t $(IMAGE_NAME):latest .
 
 
-
-
 docker-run:
 	docker run --name $(CONTAINER_NAME) -p 8080:8080 -v $(CURDIR)/app.env:/app/app.env:ro $(IMAGE_NAME):latest
 
@@ -55,14 +53,12 @@ docker-stop:
 DEP_IMAGE_NAME := sdewa/core-service-dep
 DEP_PLATFORM := linux/amd64
 
-# EC2 runs x86_64, so the dep image must target linux/amd64 regardless of
-# the host arch (e.g. Apple Silicon) building it — plain `docker build` only
-# builds for the host arch and produces a manifest EC2 can't pull.
+
 docker-dep-build:
-	docker buildx build --platform $(DEP_PLATFORM) -t $(DEP_IMAGE_NAME):latest --load .
+	docker buildx build --platform $(DEP_PLATFORM) -t $(DEP_IMAGE_NAME):latest --load -f Dockerfile.prod .
 
 docker-dep-push:
-	docker buildx build --platform $(DEP_PLATFORM) -t $(DEP_IMAGE_NAME):latest --push .
+	docker buildx build --platform $(DEP_PLATFORM) -t $(DEP_IMAGE_NAME):latest --push -f Dockerfile.prod .
 
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency

@@ -59,7 +59,7 @@ func (server *Server) deposit(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -81,7 +81,7 @@ func (server *Server) deposit(ctx *gin.Context) {
 
 	accountEntries, err := server.store.AccountEntriesByAccountId(ctx, result.Entry.ID)
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -148,7 +148,7 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -159,7 +159,7 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 		EntryType:   sql.NullString{},
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -205,7 +205,7 @@ func (server *Server) listRecentTransferDestinations(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -221,7 +221,7 @@ func (server *Server) listRecentTransferDestinations(ctx *gin.Context) {
 		OffsetCount:   query.offset(),
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -273,7 +273,7 @@ func (server *Server) listAccountTransactionHistory(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -304,7 +304,7 @@ func (server *Server) listAccountTransactionHistory(ctx *gin.Context) {
 		LimitCount:  query.Limit,
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -314,7 +314,7 @@ func (server *Server) listAccountTransactionHistory(ctx *gin.Context) {
 		PeriodEnd:   periodEnd,
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 

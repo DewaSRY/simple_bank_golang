@@ -5,9 +5,27 @@ import { Star, Wallet } from "lucide-react";
 import { ScrollReveal } from "./scroll-reveal";
 
 const MOCK_ACCOUNTS = [
-  { name: "Main account", number: "SB-000482193", balance: "24,650.00", currency: "USD", main: true },
-  { name: "Savings", number: "SB-000482207", balance: "8,120.50", currency: "USD", main: false },
-  { name: "Travel", number: "SB-000482318", balance: "1,340.00", currency: "EUR", main: false },
+  {
+    name: "Main account",
+    number: "SB-000482193",
+    balance: "24,650.00",
+    currency: "USD",
+    main: true,
+  },
+  {
+    name: "Savings",
+    number: "SB-000482207",
+    balance: "8,120.50",
+    currency: "USD",
+    main: false,
+  },
+  {
+    name: "Travel",
+    number: "SB-000482318",
+    balance: "1,340.00",
+    currency: "EUR",
+    main: false,
+  },
 ];
 
 export function SolutionSection() {
@@ -31,7 +49,7 @@ export function SolutionSection() {
         <ScrollReveal delay={0.1} y={24} className="w-full">
           <div className="rounded-2xl bg-card p-4 ring-1 ring-foreground/10 shadow-lg sm:p-5">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold">{t("yourAccounts")}</p>
+              <p className="text-xl font-semibold">{t("yourAccounts")}</p>
               <Wallet className="size-4 text-muted-foreground" aria-hidden />
             </div>
             <div className="flex flex-col gap-2">
@@ -49,7 +67,7 @@ export function SolutionSection() {
                         {account.name}
                         {account.main && (
                           <Star
-                            className="size-3 shrink-0 fill-amber-400 text-amber-400"
+                            className="size-3 shrink-0 fill-warning text-warning"
                             aria-hidden
                           />
                         )}

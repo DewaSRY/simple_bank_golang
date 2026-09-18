@@ -70,3 +70,15 @@ variable "cors_allowed_origins" {
   type        = string
   default     = ""
 }
+
+variable "log_level" {
+  description = "Log level for the application, passed through as LOG_LEVEL (e.g. debug, info, warn, error)"
+  type        = string
+  default     = "info"
+}
+
+variable "log_format" {
+  description = "Log format for the application, passed through as LOG_FORMAT (e.g. json, text)"
+  type        = string
+  default     = "json"
+}

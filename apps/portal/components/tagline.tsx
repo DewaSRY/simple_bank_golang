@@ -8,7 +8,7 @@ export function Tagline() {
       i18nKey="tagline"
       ns="common"
       components={{
-        brand: <span className="text-zinc-500 dark:text-zinc-400" />,
+        brand: <span className="text-primary" />,
       }}
     />
   );

@@ -10,10 +10,6 @@ import { InlineScript } from "@/components/inline-script";
 import { TopProgressBar } from "@/components/common/top-progress-bar";
 import "../globals.css";
 
-// Runs during HTML parsing, before first paint, to apply the persisted
-// theme class ahead of hydration. See `preventing-flash-before-hydration`
-// in the Next.js docs — this app's Next.js version warns in dev when a
-// <script> tag skips the InlineScript type dance below.
 const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"system";var d=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;if(d==="dark"){e.classList.add("dark")}else{e.classList.remove("dark")}e.style.colorScheme=d}catch(e){}})()`;
 
 const geistSans = Geist({

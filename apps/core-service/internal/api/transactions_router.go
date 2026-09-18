@@ -52,7 +52,7 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -77,7 +77,7 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 
 	accountEntries, err := server.store.AccountEntriesByAccountId(ctx, result.FromEntry.ID)
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 

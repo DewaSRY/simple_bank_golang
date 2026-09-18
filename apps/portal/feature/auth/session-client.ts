@@ -11,3 +11,7 @@ export function setClientSessionCookie(token: string, maxAgeSeconds: number) {
     token,
   )}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax${secure}`;
 }
+
+export function clearClientSessionCookie() {
+  document.cookie = `${SESSION_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
+}

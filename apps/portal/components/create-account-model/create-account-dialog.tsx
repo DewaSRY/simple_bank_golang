@@ -41,7 +41,7 @@ export function CreateAccountDialog({ open, setOpen }: props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm px-4">
+      <DialogContent className="lg:min-w-4xl px-4">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

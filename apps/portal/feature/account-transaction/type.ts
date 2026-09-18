@@ -3,6 +3,7 @@ export interface AccountEntriesResponse {
   account_name: string;
   account_number: string;
   amount: string;
+  description: string;
   id: number;
   is_main: boolean;
   to_account_id: number;

@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountDetailLoading() {
   return (
-    <main className="flex flex-1 flex-col bg-zinc-50 px-4 py-6 dark:bg-black sm:px-6">
+    <main className="flex flex-1 flex-col bg-background px-4 py-6 sm:px-6">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <Skeleton className="h-5 w-36" />
 

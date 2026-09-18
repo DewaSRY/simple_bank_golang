@@ -5,6 +5,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -71,7 +73,7 @@ func newTestServerWithStorer(t *testing.T, storer store.Storer) *Server {
 		JWTAccessTokenDuration: time.Minute,
 	}
 
-	server, err := NewServer(storer, cfg)
+	server, err := NewServer(storer, cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	require.NoError(t, err)
 	return server
 }

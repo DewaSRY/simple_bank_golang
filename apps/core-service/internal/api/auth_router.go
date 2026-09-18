@@ -51,7 +51,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 			fail(ctx, UnauthorizedErr("invalid username or password"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -62,7 +62,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 
 	accessToken, _, err := server.tokenMaker.CreateToken(user.ID, user.Username, user.Email, server.config.JWTAccessTokenDuration)
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -112,14 +112,14 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		return
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
 	// Check if the username already exists
 	usernameExists, err := server.store.CheckIsUsernameExist(ctx, req.Username)
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 	if usernameExists {
@@ -130,7 +130,7 @@ func (server *Server) registerUser(ctx *gin.Context) {
 	// Hash the password
 	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -148,7 +148,7 @@ func (server *Server) registerUser(ctx *gin.Context) {
 			fail(ctx, ConflictErr(errCodeConflict, "username or email already exists"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -161,14 +161,14 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		IsMain: true,
 	})
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
 	// create access token for the new user
 	accessToken, _, err := server.tokenMaker.CreateToken(user.ID, user.Username, user.Email, server.config.JWTAccessTokenDuration)
 	if err != nil {
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
@@ -207,7 +207,7 @@ func (server *Server) GetProfile(ctx *gin.Context) {
 			fail(ctx, NotFoundErr("user not found"))
 			return
 		}
-		fail(ctx, InternalErr())
+		fail(ctx, InternalErr(err))
 		return
 	}
 
