@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
-import { QueryClient } from "@tanstack/react-query";
+import {
+  QueryClient,
+  HydrationBoundary,
+  dehydrate,
+} from "@tanstack/react-query";
 import { verifySession } from "@/feature/auth/dal";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -25,13 +29,19 @@ export default async function ProtectedLayout({
 
   const queryClient = new QueryClient();
 
+  // Matches NavAccountList's own useAccounts({ page: 1, limit: 10, name: "" })
+  // call exactly, since TanStack Query hashes the params object into the
+  // cache key — a mismatched shape here would prefetch a key the sidebar
+  // never reads and it would fall back to fetching client-side anyway.
   const query = {
     page: 1,
     limit: 10,
+    name: "",
   };
   await queryClient.prefetchQuery({
     queryKey: queryKeys.list(query),
-    queryFn: () => accountClient.listMeAccounts(query).then((res) => res.data),
+    queryFn: () =>
+      accountClient.listMeAccounts(query).then((res) => res.data.data),
   });
 
   return (
@@ -43,13 +53,15 @@ export default async function ProtectedLayout({
         } as React.CSSProperties
       }
     >
-      <SessionGuard />
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader locale={locale} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <SessionGuard />
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader locale={locale} />
 
-        {children}
-      </SidebarInset>
+          {children}
+        </SidebarInset>
+      </HydrationBoundary>
     </SidebarProvider>
   );
 }
