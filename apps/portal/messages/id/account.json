@@ -37,10 +37,13 @@
   "noEntriesTitle": "Belum ada entri",
   "noEntriesDescription": "Transaksi untuk rekening ini akan muncul di sini.",
   "entryColumn": "Entri",
+  "transactionType": "Jenis Transaksi",
   "amountColumn": "Jumlah",
   "mainAccount": "Rekening utama",
   "deposit": "Setoran",
   "withdrawal": "Penarikan",
   "toEntry": "Ke {{name}}",
-  "fromEntry": "Dari {{name}}"
+  "fromEntry": "Dari {{name}}",
+  "toAccountNumber": "Ke rekening {{number}}",
+  "fromAccountNumber": "Dari rekening {{number}}"
 }

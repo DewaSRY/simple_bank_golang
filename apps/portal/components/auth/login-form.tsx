@@ -55,6 +55,7 @@ export function LoginForm() {
           name="email"
           label={t("email")}
           autoComplete="email"
+          placeholder={t("email")}
         />
 
         <PasswordField
@@ -62,6 +63,7 @@ export function LoginForm() {
           name="password"
           label={t("password")}
           autoComplete="current-password"
+          placeholder={t("password")}
         />
       </div>
 
@@ -74,7 +76,7 @@ export function LoginForm() {
       <Button
         type="submit"
         size="lg"
-        className="h-10"
+        className="h-11"
         disabled={loginMutation.isPending}
       >
         {loginMutation.isPending ? t("loggingIn") : t("login")}
@@ -82,7 +84,10 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         {t("noAccount")}{" "}
-        <Link href="/register" className="font-medium text-foreground hover:underline">
+        <Link
+          href="/register"
+          className="font-medium text-foreground hover:underline"
+        >
           {t("createAccount")}
         </Link>
       </p>

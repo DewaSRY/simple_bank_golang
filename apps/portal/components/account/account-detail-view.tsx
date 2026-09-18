@@ -23,36 +23,12 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const {
-    data: accountEntries,
-    isLoading: accountEntriesLoading,
-    isError: accountEntriesError,
-  } = useAccountEntries(accountId, { page: 1, limit: 25 });
-
-  const {
     data: accountDetail,
     isLoading: accountDetailLoading,
     isError: accountDetailError,
   } = useAccountDetail(accountId);
 
   const account = accountDetail?.data;
-
-  if (accountEntriesLoading || accountDetailLoading) {
-    return (
-      <AccountStateMessage
-        title={t("loadingTitle")}
-        description={t("loadingDescription")}
-      />
-    );
-  }
-
-  if (accountEntriesError || accountDetailError) {
-    return (
-      <AccountStateMessage
-        title={t("loadErrorTitle")}
-        description={t("loadErrorDescription")}
-      />
-    );
-  }
 
   if (!account) {
     return (
@@ -108,7 +84,6 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
           accountName={account.name}
           accountId={accountId}
           currency={account.currency}
-          entries={accountEntries?.data ?? []}
         />
       </div>
     </main>

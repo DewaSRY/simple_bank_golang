@@ -238,14 +238,29 @@ directly once a real landing page and dashboard shell were built).
 Since this doc was written, `app/globals.css` gained a **brand** token set,
 deliberately separate from the shadcn theme tokens above:
 `--brand`/`--brand-hover`/`--brand-active`/`--brand-soft`/`--brand-foreground`
-and numbered steps `--brand-100`...`--brand-900`, all on a yellow→lime→green
-spectrum (`oklch(... 104)` hue). Each token is redefined under `.dark`, but
-`--brand-500` — the primary brand color — resolves to the **same** value in
-both `:root` and `.dark`, so the brand identity doesn't shift with the
-theme; only the supporting steps (used for hover/active/soft/foreground)
-adjust for contrast. Use `bg-brand`/`text-brand-foreground`/etc. (mapped via
-`@theme inline`, same mechanism as `--color-background` →
-`bg-background`) rather than introducing a new ad-hoc brand color.
+and numbered steps `--brand-100`...`--brand-900`, on a golden-yellow
+spectrum (`oklch(... ~94)` hue) anchored on the brand hex `#FFD51E`.
+Each token is redefined under `.dark`, and `--brand-500` — the primary
+brand color — resolves to the **same** `oklch(0.883 0.176 93.958)`
+(`#FFD51E`) in both `:root` and `.dark`, so the brand identity doesn't
+shift with the theme; only the supporting steps (used for
+hover/active/soft/foreground) adjust for contrast. (An earlier
+yellow→lime→green version of this block had `--brand-500` diverge between
+themes — `#3BC914` in `:root` vs. `oklch(0.962 0.116 104)` in `.dark`, two
+unrelated colors — despite this doc's claim; a since-reverted orange
+rewrite fixed that, and the current `#FFD51E` scale keeps `--brand-500`
+constant across themes too.) `--primary`/`--ring`/`--accent`/the
+`sidebar-*` equivalents/`--chart-1`/`--chart-2` share the same yellow hue
+so the rendered UI (buttons, focus rings, sidebar highlights) matches the
+brand tokens — see e.g. `components/tagline.tsx`, which renders the brand
+word via `text-primary`. Because `#FFD51E` is a light, high-luma yellow,
+every `*-foreground` paired with it uses dark text (white text on this
+scale fails WCAG contrast at every step) — this is why `--primary` and
+`--brand-500` are the same value in `.dark` too, rather than the lighter
+"bump up a step for dark backgrounds" trick used for a darker brand color.
+Use `bg-brand`/`text-brand-foreground`/etc. (mapped via `@theme inline`,
+same mechanism as `--color-background` → `bg-background`) rather than
+introducing a new ad-hoc brand color.
 
 ## Adding a new shadcn component
 

@@ -40,7 +40,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* Brand identity — yellow → lime → green spectrum, consistent across themes */
+  /* Brand identity — golden yellow (#FFD51E), consistent across themes */
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-active: var(--brand-active);
@@ -75,40 +75,44 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.68 0.15 104);
-  --primary-foreground: oklch(0.22 0.03 104);
+  --primary: oklch(0.883 0.176 93.958);
+  --primary-foreground: oklch(0.2 0.04 94);
   --secondary: oklch(0.965 0.006 104);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.965 0.006 104);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0.045 104);
-  --accent-foreground: oklch(0.28 0.05 104);
+  --accent: oklch(0.97 0.045 94);
+  --accent-foreground: oklch(0.28 0.05 94);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0.004 104);
   --input: oklch(0.922 0.004 104);
-  --ring: oklch(0.68 0.15 104);
-  --chart-1: oklch(0.68 0.15 104);
-  --chart-2: oklch(0.28 0.05 104);
+  --ring: oklch(0.883 0.176 93.958);
+  --chart-1: oklch(0.883 0.176 93.958);
+  --chart-2: oklch(0.28 0.05 94);
   --chart-3: oklch(0.77 0.15 75);
   --chart-4: oklch(0.6 0.15 155);
   --chart-5: oklch(0.5 0.01 104);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0.004 104);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.68 0.15 104);
-  --sidebar-primary-foreground: oklch(0.22 0.03 104);
-  --sidebar-accent: oklch(0.97 0.045 104);
-  --sidebar-accent-foreground: oklch(0.28 0.05 104);
+  --sidebar-primary: oklch(0.883 0.176 93.958);
+  --sidebar-primary-foreground: oklch(0.2 0.04 94);
+  --sidebar-accent: oklch(0.97 0.045 94);
+  --sidebar-accent-foreground: oklch(0.28 0.05 94);
   --sidebar-border: oklch(0.922 0.004 104);
-  --sidebar-ring: oklch(0.68 0.15 104);
+  --sidebar-ring: oklch(0.883 0.176 93.958);
 
-  /* #FFF799 */
-  --brand-100: oklch(0.97 0.045 104);
-  --brand-300: oklch(0.9 0.1 104);
-  --brand-500: oklch(0.962 0.116 104);
-  --brand-600: oklch(0.85 0.13 104);
-  --brand-700: oklch(0.68 0.15 104);
-  --brand-900: oklch(0.28 0.05 104);
+  /* Golden-yellow scale anchored on #FFD51E (Tailwind's yellow oklch steps
+     for the tints/shades); --brand-500 is the fixed identity color — the
+     exact FFD51E hex — and is intentionally identical in .dark below.
+     Foreground pairs use dark text throughout: white text on any step of
+     this scale fails WCAG contrast (yellow is simply too light for it). */
+  --brand-100: oklch(0.973 0.071 103.193);
+  --brand-300: oklch(0.905 0.182 98.111);
+  --brand-500: oklch(0.883 0.176 93.958);
+  --brand-600: oklch(0.681 0.162 75.834);
+  --brand-700: oklch(0.554 0.135 66.442);
+  --brand-900: oklch(0.421 0.095 57.708);
   --brand: var(--brand-500);
   --brand-hover: var(--brand-600);
   --brand-active: var(--brand-700);
@@ -128,39 +132,41 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.26 0.016 104);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.962 0.116 104);
-  --primary-foreground: oklch(0.2 0.035 104);
+  --primary: oklch(0.883 0.176 93.958);
+  --primary-foreground: oklch(0.2 0.04 94);
   --secondary: oklch(0.28 0.016 104);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.28 0.016 104);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.3 0.05 104);
-  --accent-foreground: oklch(0.95 0.05 104);
+  --accent: oklch(0.3 0.05 94);
+  --accent-foreground: oklch(0.95 0.05 94);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.962 0.116 104);
-  --chart-1: oklch(0.962 0.116 104);
-  --chart-2: oklch(0.85 0.13 104);
+  --ring: oklch(0.883 0.176 93.958);
+  --chart-1: oklch(0.883 0.176 93.958);
+  --chart-2: oklch(0.95 0.05 94);
   --chart-3: oklch(0.8 0.16 80);
   --chart-4: oklch(0.72 0.17 155);
   --chart-5: oklch(0.708 0 0);
   --sidebar: oklch(0.2 0.014 104);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.962 0.116 104);
-  --sidebar-primary-foreground: oklch(0.2 0.035 104);
-  --sidebar-accent: oklch(0.3 0.05 104);
-  --sidebar-accent-foreground: oklch(0.95 0.05 104);
+  --sidebar-primary: oklch(0.883 0.176 93.958);
+  --sidebar-primary-foreground: oklch(0.2 0.04 94);
+  --sidebar-accent: oklch(0.3 0.05 94);
+  --sidebar-accent-foreground: oklch(0.95 0.05 94);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.962 0.116 104);
+  --sidebar-ring: oklch(0.883 0.176 93.958);
 
-  /* #FFF799 */
-  --brand-100: oklch(0.27 0.05 104);
-  --brand-300: oklch(0.42 0.1 104);
-  --brand-500: oklch(0.962 0.116 104);
-  --brand-600: oklch(0.88 0.13 104);
-  --brand-700: oklch(0.75 0.15 104);
-  --brand-900: oklch(0.95 0.05 104);
+  /* --brand-500 matches :root exactly — the one fixed identity color.
+     100/300 darken into muted dark-mode tints, 900 flips light so it still
+     reads as foreground text on the (now dark) brand-soft background. */
+  --brand-100: oklch(0.35 0.05 98);
+  --brand-300: oklch(0.53 0.15 96);
+  --brand-500: oklch(0.883 0.176 93.958);
+  --brand-600: oklch(0.665 0.14 78);
+  --brand-700: oklch(0.551 0.12 68);
+  --brand-900: oklch(0.92 0.06 90);
   --brand: var(--brand-500);
   --brand-hover: var(--brand-600);
   --brand-active: var(--brand-700);
