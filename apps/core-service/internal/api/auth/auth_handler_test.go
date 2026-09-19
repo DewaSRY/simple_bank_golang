@@ -27,36 +27,6 @@ import (
 
 const testSecretKey = "12345678901234567890123456789012"
 
-// mockStorer adapts a *mockdb.MockStorer (generated only from sqlc.Querier)
-// into the store.Storer interface Handler.Store requires, which additionally
-// needs the hand-written store transactions. Each transaction method has an
-// optional override func so a test can assert on its args/control its
-// result; tests that don't care about a given transaction get a harmless
-// zero result.
-type mockStorer struct {
-	*mockdb.MockStorer
-	createAccountTxFunc func(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
-}
-
-func (m *mockStorer) TransferTx(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error) {
-	return store.TransferTxResult{}, nil
-}
-
-func (m *mockStorer) CreateAccountTx(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error) {
-	if m.createAccountTxFunc != nil {
-		return m.createAccountTxFunc(ctx, arg)
-	}
-	return db.Account{}, nil
-}
-
-func (m *mockStorer) DepositTx(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error) {
-	return store.DepositTxResult{}, nil
-}
-
-func (m *mockStorer) DeleteAccountTx(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
-	return store.DeleteAccountTxResult{}, nil
-}
-
 type errorResponse struct {
 	Error struct {
 		Code    string `json:"code"`
@@ -127,6 +97,14 @@ func TestRegisterUser(t *testing.T) {
 						require.Equal(t, validReq.Email, arg.Email)
 						require.NoError(t, util.CheckPassword(validReq.Password, arg.HashedPassword))
 						return db.CreateUserRow{ID: 1, Username: arg.Username, Email: arg.Email, CreatedAt: time.Now()}, nil
+					},
+				)
+				q.EXPECT().CreateAccountTx(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(_ context.Context, arg store.CreateAccountTxParams) (db.Account, error) {
+						require.Equal(t, int64(1), arg.UserID.Int64)
+						require.Equal(t, "Main Account", arg.Name)
+						require.True(t, arg.IsMain)
+						return db.Account{ID: 1, UserID: arg.UserID, IsMain: true, Name: sql.NullString{String: arg.Name, Valid: true}}, nil
 					},
 				)
 			},
@@ -246,6 +224,19 @@ func TestRegisterUser(t *testing.T) {
 			},
 		},
 		{
+			name: "returns 500 when creating the main account fails",
+			body: validReq,
+			buildStubs: func(q *mockdb.MockStorer) {
+				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
+				q.EXPECT().CheckIsUsernameExist(gomock.Any(), validReq.Username).Return(false, nil)
+				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(db.CreateUserRow{ID: 1, Username: validReq.Username, Email: validReq.Email}, nil)
+				q.EXPECT().CreateAccountTx(gomock.Any(), gomock.Any()).Return(db.Account{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
 			name: "rejects a request missing required fields without touching the db",
 			body: registerUserRequest{Email: "dewa@example.com", Password: "password123", PasswordConfirm: "password123"},
 			buildStubs: func(q *mockdb.MockStorer) {
@@ -267,7 +258,7 @@ func TestRegisterUser(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router := newTestRouter(newTestHandler(t, &mockStorer{MockStorer: q}))
+			router := newTestRouter(newTestHandler(t, q))
 			recorder := doRegisterRequest(t, router, tc.body)
 			tc.checkResponse(t, recorder)
 		})
@@ -374,7 +365,7 @@ func TestLoginUser(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router := newTestRouter(newTestHandler(t, &mockStorer{MockStorer: q}))
+			router := newTestRouter(newTestHandler(t, q))
 			recorder := doLoginRequest(t, router, tc.body)
 			tc.checkResponse(t, recorder)
 		})
@@ -480,7 +471,7 @@ func TestGetProfile(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			h := newTestHandler(t, &mockStorer{MockStorer: q})
+			h := newTestHandler(t, q)
 			router := newTestRouter(h)
 			recorder := doGetProfileRequest(t, router, tc.authHeader(t, h))
 			tc.checkResponse(t, recorder)

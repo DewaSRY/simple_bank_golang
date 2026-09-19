@@ -8,9 +8,12 @@ db-down:
 test: db-up
 	go test -v ./...
 
-test-router-coverage:
+test-failed: 
+	@go test -v ./... 2>&1 | grep -E "^(--- FAIL|FAIL)" || echo "All tests passed"
+
+test-coverage:
 	go test -v -coverprofile=coverage.out -covermode=atomic ./internal/api/...
-	go tool cover -func=coverage.out
+
 
 server:
 	go run ./cmd/server
@@ -86,4 +89,4 @@ tf-output:
 tf-destroy:
 	terraform -chdir=$(TF_DIR) destroy
 
-.PHONY: db-up db-down test test-router-coverage server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop docker-dep-build docker-dep-push swag-gen tf-init tf-fmt tf-validate tf-plan tf-apply tf-output tf-destroy
+.PHONY: db-up db-down test test-failed test-router-coverage server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop docker-dep-build docker-dep-push swag-gen tf-init tf-fmt tf-validate tf-plan tf-apply tf-output tf-destroy

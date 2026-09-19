@@ -31,40 +31,6 @@ const (
 	testEmail     = "dewa@example.com"
 )
 
-// mockStorer adapts a *mockdb.MockStorer (generated only from sqlc.Querier)
-// into the store.Storer interface Handler.Store requires, which additionally
-// needs the hand-written store transactions. Each transaction method has an
-// optional override func so a test can assert on its args/control its
-// result; tests that don't care about a given transaction get a harmless
-// zero result.
-type mockStorer struct {
-	*mockdb.MockStorer
-	createAccountTxFunc func(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
-	deleteAccountTxFunc func(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error)
-}
-
-func (m *mockStorer) TransferTx(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error) {
-	return store.TransferTxResult{}, nil
-}
-
-func (m *mockStorer) CreateAccountTx(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error) {
-	if m.createAccountTxFunc != nil {
-		return m.createAccountTxFunc(ctx, arg)
-	}
-	return db.Account{}, nil
-}
-
-func (m *mockStorer) DepositTx(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error) {
-	return store.DepositTxResult{}, nil
-}
-
-func (m *mockStorer) DeleteAccountTx(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
-	if m.deleteAccountTxFunc != nil {
-		return m.deleteAccountTxFunc(ctx, arg)
-	}
-	return store.DeleteAccountTxResult{}, nil
-}
-
 func itoa(id int64) string {
 	return strconv.FormatInt(id, 10)
 }
@@ -121,19 +87,21 @@ func TestCreateAccount(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          createAccountRequest
-		buildStorer   func(t *testing.T, storer *mockStorer)
+		buildStubs    func(t *testing.T, q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "creates a non-main account owned by the authenticated user",
 			body: createAccountRequest{Name: "Savings", Description: "for later"},
-			buildStorer: func(t *testing.T, storer *mockStorer) {
-				storer.createAccountTxFunc = func(_ context.Context, arg store.CreateAccountTxParams) (db.Account, error) {
-					require.Equal(t, testUserID, arg.UserID.Int64)
-					require.Equal(t, "Savings", arg.Name)
-					require.False(t, arg.IsMain)
-					return db.Account{ID: 2, Balance: "0", Currency: "IDR", UserID: arg.UserID, Name: sql.NullString{String: arg.Name, Valid: true}}, nil
-				}
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
+				q.EXPECT().CreateAccountTx(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(_ context.Context, arg store.CreateAccountTxParams) (db.Account, error) {
+						require.Equal(t, testUserID, arg.UserID.Int64)
+						require.Equal(t, "Savings", arg.Name)
+						require.False(t, arg.IsMain)
+						return db.Account{ID: 2, Balance: "0", Currency: "IDR", UserID: arg.UserID, Name: sql.NullString{String: arg.Name, Valid: true}}, nil
+					},
+				)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -142,11 +110,8 @@ func TestCreateAccount(t *testing.T) {
 		{
 			name: "rejects a request missing the required name",
 			body: createAccountRequest{Description: "no name"},
-			buildStorer: func(t *testing.T, storer *mockStorer) {
-				storer.createAccountTxFunc = func(_ context.Context, arg store.CreateAccountTxParams) (db.Account, error) {
-					t.Fatal("CreateAccountTx should not be called")
-					return db.Account{}, nil
-				}
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
+				q.EXPECT().CreateAccountTx(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -158,10 +123,9 @@ func TestCreateAccount(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			q := mockdb.NewMockStorer(ctrl)
-			storer := &mockStorer{MockStorer: q}
-			tc.buildStorer(t, storer)
+			tc.buildStubs(t, q)
 
-			router, tokenMaker := newTestRouter(t, storer)
+			router, tokenMaker := newTestRouter(t, q)
 			recorder := doAuthenticatedRequest(t, router, http.MethodPost, "/api/v1/accounts", tc.body, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
 		})
@@ -243,7 +207,7 @@ func TestUpdateAccount(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
+			router, tokenMaker := newTestRouter(t, q)
 			path := "/api/v1/accounts/" + itoa(existingAccount.ID)
 			recorder := doAuthenticatedRequest(t, router, http.MethodPut, path, tc.body, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
@@ -322,7 +286,7 @@ func TestDetailAccount(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
+			router, tokenMaker := newTestRouter(t, q)
 			path := "/api/v1/accounts/" + itoa(accountID)
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, path, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
@@ -395,7 +359,7 @@ func TestListmeAccounts(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
+			router, tokenMaker := newTestRouter(t, q)
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, "/api/v1/accounts/me"+tc.query, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
 		})
@@ -462,7 +426,7 @@ func TestSearchAccountByNumber(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
+			router, tokenMaker := newTestRouter(t, q)
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, "/api/v1/accounts/search-by-number"+tc.query, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
 		})
@@ -476,21 +440,20 @@ func TestDeleteAccount(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		buildStubs    func(q *mockdb.MockStorer)
-		buildStorer   func(storer *mockStorer)
+		buildStubs    func(t *testing.T, q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "deletes a zero-balance account with no sweep",
-			buildStubs: func(q *mockdb.MockStorer) {
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
-			},
-			buildStorer: func(storer *mockStorer) {
-				storer.deleteAccountTxFunc = func(_ context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
-					require.Equal(t, accountID, arg.AccountID)
-					require.Equal(t, testUserID, arg.UserID)
-					return store.DeleteAccountTxResult{Account: db.Account{ID: accountID}}, nil
-				}
+				q.EXPECT().DeleteAccountTx(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(_ context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
+						require.Equal(t, accountID, arg.AccountID)
+						require.Equal(t, testUserID, arg.UserID)
+						return store.DeleteAccountTxResult{Account: db.Account{ID: accountID}}, nil
+					},
+				)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -504,16 +467,12 @@ func TestDeleteAccount(t *testing.T) {
 		},
 		{
 			name: "deletes a positive-balance account and reports the sweep destination",
-			buildStubs: func(q *mockdb.MockStorer) {
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
-			},
-			buildStorer: func(storer *mockStorer) {
-				storer.deleteAccountTxFunc = func(_ context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
-					return store.DeleteAccountTxResult{
-						Account:       db.Account{ID: accountID},
-						SweepTransfer: &db.Transfer{ID: 1, FromAccountID: accountID, ToAccountID: 2},
-					}, nil
-				}
+				q.EXPECT().DeleteAccountTx(gomock.Any(), gomock.Any()).Return(store.DeleteAccountTxResult{
+					Account:       db.Account{ID: accountID},
+					SweepTransfer: &db.Transfer{ID: 1, FromAccountID: accountID, ToAccountID: 2},
+				}, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -528,13 +487,9 @@ func TestDeleteAccount(t *testing.T) {
 		},
 		{
 			name: "rejects deleting the main account with a conflict",
-			buildStubs: func(q *mockdb.MockStorer) {
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
-			},
-			buildStorer: func(storer *mockStorer) {
-				storer.deleteAccountTxFunc = func(_ context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
-					return store.DeleteAccountTxResult{}, store.ErrCannotDeleteMainAccount
-				}
+				q.EXPECT().DeleteAccountTx(gomock.Any(), gomock.Any()).Return(store.DeleteAccountTxResult{}, store.ErrCannotDeleteMainAccount)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusConflict, recorder.Code)
@@ -542,22 +497,22 @@ func TestDeleteAccount(t *testing.T) {
 		},
 		{
 			name: "returns 404 when the account does not exist",
-			buildStubs: func(q *mockdb.MockStorer) {
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
+				q.EXPECT().DeleteAccountTx(gomock.Any(), gomock.Any()).Times(0)
 			},
-			buildStorer: func(storer *mockStorer) {},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
 			},
 		},
 		{
 			name: "rejects deleting an account owned by another user",
-			buildStubs: func(q *mockdb.MockStorer) {
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
 					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
+				q.EXPECT().DeleteAccountTx(gomock.Any(), gomock.Any()).Times(0)
 			},
-			buildStorer: func(storer *mockStorer) {},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusForbidden, recorder.Code)
 			},
@@ -568,12 +523,9 @@ func TestDeleteAccount(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			q := mockdb.NewMockStorer(ctrl)
-			tc.buildStubs(q)
+			tc.buildStubs(t, q)
 
-			storer := &mockStorer{MockStorer: q}
-			tc.buildStorer(storer)
-
-			router, tokenMaker := newTestRouter(t, storer)
+			router, tokenMaker := newTestRouter(t, q)
 			path := "/api/v1/accounts/" + itoa(accountID)
 			recorder := doAuthenticatedRequest(t, router, http.MethodDelete, path, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
