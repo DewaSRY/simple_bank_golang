@@ -7,10 +7,7 @@ import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { createAccountSchema } from "@/feature/account/schema";
-import {
-  scrollToFirstError,
-  zodResolverTranslate,
-} from "@/feature/account/form";
+import { scrollToFirstError, zodResolverTranslate } from "@/lib/form";
 import type { AccountWithUserName } from "@/feature/account/type";
 
 import { useEditAccountStore } from "./store";

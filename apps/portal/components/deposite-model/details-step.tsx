@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { scrollToFirstError, zodResolverTranslate } from "@/feature/account/form";
+import { scrollToFirstError, zodResolverTranslate } from "@/lib/form";
 import {
   depositSchema,
   type DepositFormValues,
@@ -28,7 +28,10 @@ export function DetailsStep() {
 
   const onSubmit = form.handleSubmit(
     (data) => {
-      setDetails({ amount: Number(data.amount), description: data.description });
+      setDetails({
+        amount: Number(data.amount),
+        description: data.description,
+      });
       setStep("preview");
     },
     (errors) => scrollToFirstError(errors),

@@ -5,6 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "@/i18n/navigation";
+import { AuthBackdrop } from "@/components/auth/auth-backdrop";
 
 const REDIRECT_DELAY_MS = 1000;
 
@@ -21,20 +22,7 @@ export function AuthSuccessBanner() {
   }, []);
 
   return (
-    <div className="relative flex min-h-screen flex-1 items-center justify-center overflow-hidden bg-background">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,var(--brand-soft),transparent_60%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-24 top-1/3 size-72 animate-pulse rounded-full bg-brand/20 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-24 bottom-1/3 size-72 animate-pulse rounded-full bg-brand-300/20 blur-3xl [animation-delay:300ms]"
-      />
-
+    <AuthBackdrop>
       <div className="relative flex flex-col items-center gap-6 px-6 text-center">
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
@@ -62,6 +50,6 @@ export function AuthSuccessBanner() {
           <div className="h-full w-full origin-left animate-[logout-progress_600ms_ease-out_forwards] rounded-full bg-brand" />
         </div>
       </div>
-    </div>
+    </AuthBackdrop>
   );
 }

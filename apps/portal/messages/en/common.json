@@ -27,6 +27,9 @@
   "close": "Close",
   "loading": "Loading…",
   "tryAgain": "Try again",
+  "leave": "Leave",
+  "unsavedChangesTitle": "Unsaved changes",
+  "unsavedChangesDescription": "You have unsaved changes. If you leave now, they will be lost.",
   "availableBalance": "Available balance",
   "searchPlaceholder": "Search...",
   "error": {

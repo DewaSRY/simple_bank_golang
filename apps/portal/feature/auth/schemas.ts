@@ -24,6 +24,6 @@ export function createRegisterSchema(t: Translate) {
     });
 }
 
-export type RegisterFormValues = z.infer<
+export type RegisterFormScreenValues = z.infer<
   ReturnType<typeof createRegisterSchema>
 >;

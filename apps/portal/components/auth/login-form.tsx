@@ -15,6 +15,7 @@ import {
 } from "@/feature/auth/schemas";
 import { setClientSessionCookie } from "@/feature/auth/session-client";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
+import { zodResolverTranslate } from "@/lib/form";
 
 export function LoginForm() {
   const { t } = useTranslation("auth");
@@ -22,7 +23,7 @@ export function LoginForm() {
   const loginMutation = useLoginMutation();
 
   const form = useForm<LoginFormValues>({
-    resolver: zodResolver(useMemo(() => createLoginSchema(t), [t])),
+    resolver: zodResolverTranslate(createLoginSchema(t), t),
     defaultValues: { email: "", password: "" },
   });
 

@@ -10,10 +10,7 @@ import {
   createAccountSchema,
   CreateAccountFormValues,
 } from "@/feature/account/schema";
-import {
-  scrollToFirstError,
-  zodResolverTranslate,
-} from "@/feature/account/form";
+import { scrollToFirstError, zodResolverTranslate } from "@/lib/form";
 
 import { useCreateAccountStore } from "./store";
 

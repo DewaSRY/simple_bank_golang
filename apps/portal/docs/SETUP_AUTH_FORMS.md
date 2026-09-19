@@ -6,6 +6,7 @@ React Hook Form + Zod, submission with the TanStack Query mutations from
 the earlier `useActionState` + Server Action approach.
 
 Files:
+
 - [feature/auth/schemas.ts](../feature/auth/schemas.ts) — Zod schemas, built
   as functions of a translator so validation messages are localized.
 - [components/form/input-field.tsx](../components/form/input-field.tsx),
@@ -29,12 +30,12 @@ The session cookie (`feature/auth/constants.ts`'s `SESSION_COOKIE_NAME`) is
 deliberately **not** `httpOnly` — `ApiInterceptor` reads it via
 `document.cookie` for every client-side API call (see
 `SETUP_API_PROVIDER.md`). That decision only pays off if login/register can
-also *write* the cookie from the browser, which a Server Action can't do
+also _write_ the cookie from the browser, which a Server Action can't do
 without a full form post + redirect round-trip. So the forms moved fully
 client-side:
 
 ```
-LoginForm / RegisterForm (Client Component)
+LoginForm / RegisterFormScreen (Client Component)
    │  useForm + zodResolver(createLoginSchema(t))
    ▼
 React Hook Form
@@ -117,7 +118,9 @@ const onSubmit = form.handleSubmit((values) => {
         }
         return;
       }
-      form.setError("root", { message: getApiErrorMessage(error, t("loginError")) });
+      form.setError("root", {
+        message: getApiErrorMessage(error, t("loginError")),
+      });
     },
   });
 });
@@ -130,7 +133,7 @@ functionally but pointless churn.
 
 `getApiFieldErrors`/`getApiErrorMessage` (`lib/api/error.ts`) are unchanged
 from the Server Action version — they parse the same backend error shape.
-The only thing that changed is *where* they're called from and how the
+The only thing that changed is _where_ they're called from and how the
 result reaches the UI: `form.setError(field, { message })` per backend
 field error, or `form.setError("root", { message })` for a non-field error,
 both surfaced through React Hook Form's `formState.errors` instead of a
@@ -160,7 +163,7 @@ the form component itself, unlike the old manual
 page — that was needed because the old `/auth/register` endpoint didn't
 return credentials. It now does: `authClient.register()` resolves to the
 same `AuthResponse` shape (`access_token`/`expires_in`/`token_type`) as
-`authClient.login()`, so `RegisterForm` only needs the one mutation:
+`authClient.login()`, so `RegisterFormScreen` only needs the one mutation:
 
 ```ts
 const onSubmit = form.handleSubmit(async (values) => {
@@ -183,7 +186,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     const fieldErrors = getApiFieldErrors(error);
     if (fieldErrors) {
       for (const [field, message] of Object.entries(fieldErrors)) {
-        form.setError(field as keyof RegisterFormValues, { message });
+        form.setError(field as keyof RegisterFormScreenValues, { message });
       }
       return;
     }
@@ -197,7 +200,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 A single `try`/`catch` is enough now: there's no second network call whose
 failure would mean something different from the first, so there's no
 "registration succeeded but the follow-up login failed" case to route to
-`/login` for anymore. `RegisterForm` still declares `useLoginMutation()` and
+`/login` for anymore. `RegisterFormScreen` still declares `useLoginMutation()` and
 folds `loginMutation.isPending` into the button's combined `isPending` —
 that mutation is never actually triggered by the current submit handler, a
 leftover from the chained-login version worth cleaning up if you touch this

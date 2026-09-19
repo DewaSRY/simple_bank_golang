@@ -27,6 +27,9 @@
   "close": "Tutup",
   "loading": "Memuat…",
   "tryAgain": "Coba lagi",
+  "leave": "Tinggalkan",
+  "unsavedChangesTitle": "Perubahan belum disimpan",
+  "unsavedChangesDescription": "Anda memiliki perubahan yang belum disimpan. Jika Anda keluar sekarang, perubahan tersebut akan hilang.",
   "availableBalance": "Saldo tersedia",
   "searchPlaceholder": "Cari...",
   "error": {
