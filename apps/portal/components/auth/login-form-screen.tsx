@@ -12,7 +12,6 @@ import {
   createLoginSchema,
   type LoginFormScreenValues,
 } from "@/feature/auth/schemas";
-import { setClientSessionCookie } from "@/feature/auth/session-client";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 import { zodResolverTranslate } from "@/lib/form";
 
@@ -30,8 +29,7 @@ export function LoginFormScreen() {
 
   const onSubmit = form.handleSubmit((values) => {
     loginMutation.mutate(values, {
-      onSuccess: ({ data }) => {
-        setClientSessionCookie(data.access_token, data.expires_in);
+      onSuccess: () => {
         router.push("/auth-success");
       },
       onError: (error) => {

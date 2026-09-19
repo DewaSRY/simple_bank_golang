@@ -201,6 +201,16 @@ not derived from URL search params via this file yet.
 
 ## Section 5 — Mutations: the auth feature (`feature/auth/hooks/query.ts`)
 
+> **Updated by the full-SSR migration** (`docs/MIGRATION_TO_FULL_SSR.md`):
+> `mutationFn`/`queryFn` below now call a `"use server"` action
+> (`feature/auth/actions.ts`'s `loginAction`/`registerAction`/`getProfileAction`)
+> instead of `authClient` directly, and unwrap via
+> `unwrapActionResult` (`lib/api/action-result.ts`) instead of a plain
+> `.then((response) => response.data)`. The shape and the "Rough edges" below
+> are otherwise unchanged — the browser still never sees a cache-invalidation
+> call after login/register, it just also never touches `../core-service`
+> directly anymore.
+
 **Problem it solves:** login/register aren't cacheable reads — they're
 one-shot writes a form submits. `useMutation` covers this shape, distinct
 from the read+prefetch shape in Section 3.

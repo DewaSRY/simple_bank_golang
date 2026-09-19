@@ -1,5 +1,6 @@
 import { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { SESSION_COOKIE_NAME } from "@/feature/auth/constants";
+import { TIMEZONE_COOKIE_NAME } from "@/lib/api/constants";
 
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
@@ -53,7 +54,7 @@ export class ApiInterceptor {
       config.headers["X-Request-Id"] = requestId;
 
       await this.addAuthorizationHeader(config);
-      this.addClientTimezoneHeader(config);
+      await this.addTimezoneHeader(config);
 
       if (typeof window === "undefined") {
         const { default: logger } = await import("@/lib/logger");
@@ -72,27 +73,24 @@ export class ApiInterceptor {
     });
   }
 
+  // Every request now originates from a Server Action or Server Component
+  // (docs/MIGRATION_TO_FULL_SSR.md Phases 1-3), so `isServer()` is always
+  // true at this point — the document.cookie fallback this used to have for
+  // browser-driven requests is gone (Phase 4).
   private async addAuthorizationHeader(
     config: InternalAxiosRequestConfig,
   ): Promise<void> {
     let token = "";
 
-    if (this.isServer()) {
-      try {
-        const { cookies } = await import("next/headers");
-        const cookieStore = await cookies();
-        token = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
-      } catch (error) {
-        // Next bails routes out of static generation by throwing here when cookies()
-        if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
-          throw error;
-        }
+    try {
+      const { cookies } = await import("next/headers");
+      const cookieStore = await cookies();
+      token = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
+    } catch (error) {
+      // Next bails routes out of static generation by throwing here when cookies()
+      if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
+        throw error;
       }
-    } else {
-      const match = document.cookie.match(
-        new RegExp(`(?:^|;\\s*)${SESSION_COOKIE_NAME}=([^;]*)`),
-      );
-      token = match ? decodeURIComponent(match[1]) : "";
     }
 
     if (token) {
@@ -100,10 +98,24 @@ export class ApiInterceptor {
     }
   }
 
-  private addClientTimezoneHeader(config: InternalAxiosRequestConfig): void {
-    if (this.isServer()) return;
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    config.headers["X-Timezone"] = timezone;
+  // The timezone can no longer be read from `Intl`/`document` at request
+  // time (the request runs on the server), so it's read back from the
+  // cookie lib/timezone-sync.tsx writes on first client render.
+  private async addTimezoneHeader(
+    config: InternalAxiosRequestConfig,
+  ): Promise<void> {
+    try {
+      const { cookies } = await import("next/headers");
+      const cookieStore = await cookies();
+      const timezone = cookieStore.get(TIMEZONE_COOKIE_NAME)?.value;
+      if (timezone) {
+        config.headers["X-Timezone"] = timezone;
+      }
+    } catch (error) {
+      if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
+        throw error;
+      }
+    }
   }
 
   private setupResponseInterceptors(): void {

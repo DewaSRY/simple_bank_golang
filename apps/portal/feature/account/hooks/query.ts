@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { accountClient } from "@/feature/account/client";
 import type {
   AccountResponse,
   RequestAccountbody,
@@ -10,6 +9,12 @@ import type {
   CommonSuccessResponse,
   PaginationParams,
 } from "@/feature/common/type";
+import { unwrapActionResult } from "@/lib/api/action-result";
+import {
+  createAccountAction,
+  listMeAccountsAction,
+  searchAccountByNumberAction,
+} from "../actions";
 
 /**
  * Centralized query keys for the account feature.
@@ -25,10 +30,7 @@ export const queryKeys = {
 export function useAccounts(params: SearchMeAccountsParams) {
   return useQuery({
     queryKey: queryKeys.list(params),
-    queryFn: () =>
-      accountClient
-        .listMeAccounts(params)
-        .then((response) => response.data.data),
+    queryFn: () => listMeAccountsAction(params).then(unwrapActionResult),
   });
 }
 
@@ -39,8 +41,7 @@ export const useCreateAccountMutation = () => {
     Error,
     RequestAccountbody
   >({
-    mutationFn: (body) =>
-      accountClient.createAccount(body).then((response) => response.data),
+    mutationFn: (body) => createAccountAction(body).then(unwrapActionResult),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.all,
@@ -56,9 +57,7 @@ export function useSearchAccountByNumber(
   return useQuery({
     queryKey: queryKeys.searchByNumber(params),
     queryFn: () =>
-      accountClient
-        .searchAccountByNumber(params)
-        .then((response) => response.data.data),
+      searchAccountByNumberAction(params).then(unwrapActionResult),
     enabled: options.enabled ?? true,
   });
 }

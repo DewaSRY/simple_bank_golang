@@ -22,6 +22,7 @@ adding one).
 | [SETUP_NAVIGATION_GUARD.md](SETUP_NAVIGATION_GUARD.md) | "Unsaved changes" navigation guard: global store, shared confirm dialog, `beforeunload`, back/forward interception, `GuardedLink` |
 | [SETUP_FAVICON.md](SETUP_FAVICON.md) | Favicon/icon/apple-icon file conventions, the web app manifest, favicon.io asset provenance |
 | [CREATE_ACCOUNT_MODAL.md](CREATE_ACCOUNT_MODAL.md) | `components/create-account-model/*`: the two-step create-account wizard, its Zustand store, and its navigation-guard wiring |
+| [MIGRATION_TO_FULL_SSR.md](MIGRATION_TO_FULL_SSR.md) | Not-yet-implemented plan for moving all backend calls (mutations + interactive reads) server-side via Server Actions, so the browser never talks to `../core-service` directly, and the session cookie can become `httpOnly` |
 
 ## Meta
 

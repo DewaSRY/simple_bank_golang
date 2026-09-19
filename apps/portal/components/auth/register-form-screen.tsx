@@ -17,7 +17,6 @@ import {
   createRegisterSchema,
   type RegisterFormScreenValues,
 } from "@/feature/auth/schemas";
-import { setClientSessionCookie } from "@/feature/auth/session-client";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 import { BrandBanner } from "./brand-banner";
 
@@ -69,8 +68,7 @@ export function RegisterFormScreen() {
           password_confirm: values.confirmPassword,
         },
         {
-          onSuccess: ({ data }) => {
-            setClientSessionCookie(data.access_token, data.expires_in);
+          onSuccess: () => {
             setGuard(false);
             router.push("/auth-success");
           },

@@ -13,7 +13,8 @@ import { SiteHeader } from "@/components/navigation/site-header";
 import { SessionGuard } from "@/feature/auth/components/session-guard";
 
 import { queryKeys } from "@/feature/account/hooks/query";
-import { accountClient } from "@/feature/account/client";
+import { listMeAccountsAction } from "@/feature/account/actions";
+import { unwrapActionResult } from "@/lib/api/action-result";
 
 export default async function ProtectedLayout({
   children,
@@ -40,8 +41,7 @@ export default async function ProtectedLayout({
   };
   await queryClient.prefetchQuery({
     queryKey: queryKeys.list(query),
-    queryFn: () =>
-      accountClient.listMeAccounts(query).then((res) => res.data.data),
+    queryFn: () => listMeAccountsAction(query).then(unwrapActionResult),
   });
 
   return (

@@ -7,9 +7,10 @@ import {
 import { isAppLocale } from "@/i18n/settings";
 
 import { queryKeys as accountQueryKeys } from "@/feature/account-manage/hooks/query";
-import { accountManageClient as accountApiClient } from "@/feature/account-manage/client";
+import { detailAccountAction } from "@/feature/account-manage/actions";
 import { queryKeys as accountTransactionQueryKeys } from "@/feature/account-transaction/hooks/query";
-import { accountTransactionClient } from "@/feature/account-transaction/client";
+import { getAccountEntriesAction } from "@/feature/account-transaction/actions";
+import { unwrapActionResult } from "@/lib/api/action-result";
 
 import { AccountDetailView } from "@/components/account/account-detail-view";
 import { ParamsSearchParams, parseIntParam } from "@/feature/common/params";
@@ -48,18 +49,15 @@ export default async function AccountDetailPage({
       page: page,
     }),
     queryFn: () =>
-      accountTransactionClient
-        .getAccountEntries(accountId, {
-          limit: limit,
-          page: page,
-        })
-        .then((res) => res.data),
+      getAccountEntriesAction(accountId, {
+        limit: limit,
+        page: page,
+      }).then(unwrapActionResult),
   });
 
   await queryClient.prefetchQuery({
     queryKey: accountQueryKeys.manageAccount(accountId),
-    queryFn: () =>
-      accountApiClient.detailAccount(accountId).then((res) => res.data),
+    queryFn: () => detailAccountAction(accountId).then(unwrapActionResult),
   });
 
   return (
