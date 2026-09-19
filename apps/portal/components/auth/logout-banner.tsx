@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLogoutMutation } from "@/feature/auth/hooks/query";
+import { useLogoutMutation } from "@/feature/auth";
 import type { AppLocale } from "@/i18n/settings";
 import { AuthBackdrop } from "@/components/auth/auth-backdrop";
 

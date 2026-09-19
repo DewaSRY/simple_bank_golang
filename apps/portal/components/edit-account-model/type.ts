@@ -1,4 +1,4 @@
-import type { RequestAccountbody } from "@/feature/account/type";
+import type { RequestAccountbody } from "@/feature/account";
 
 export type EditAccountStep = "form" | "preview";
 

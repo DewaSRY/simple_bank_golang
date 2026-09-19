@@ -2,12 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { runServerAction, type ActionResult } from "@/lib/api/action-result";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+import type { CommonSuccessResponse } from "@/feature/common";
 import type {
   AccountResponse,
   AccountWithUserName,
   RequestAccountbody,
-} from "@/feature/account/type";
+} from "@/feature/account";
 import { accountManageClient } from "./client";
 import type { DeleteAccountResponse } from "./type";
 

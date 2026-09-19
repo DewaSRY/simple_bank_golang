@@ -1,11 +1,11 @@
 import { BaseClient } from "../../lib/api/base-client";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+import type { CommonSuccessResponse } from "@/feature/common";
 import type { DeleteAccountResponse } from "./type";
 import type {
   RequestAccountbody,
   AccountWithUserName,
   AccountResponse,
-} from "@/feature/account/type";
+} from "@/feature/account";
 
 export class AccountManageClient extends BaseClient {
   detailAccount(id: number) {

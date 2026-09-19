@@ -6,7 +6,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { scrollToFirstError } from "@/lib/form";
-import type { DepositFormValues } from "@/feature/account-transaction/schema";
+import type { DepositFormValues } from "@/feature/account-transaction";
 
 import type { DepositeForm } from "./deposite-dialog";
 import { useDepositeStore } from "./store";

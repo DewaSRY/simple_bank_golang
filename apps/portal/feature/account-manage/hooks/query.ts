@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { RequestAccountbody } from "@/feature/account/type";
+import type { RequestAccountbody } from "@/feature/account";
 import { unwrapActionResult } from "@/lib/api/action-result";
 import {
   deleteAccountAction,

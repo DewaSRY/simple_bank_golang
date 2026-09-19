@@ -1,20 +1,4 @@
-import type { AccountEntriesResponse } from "../account/type";
-
-export function formatAccountAmount(
-  amount: string,
-  currency: string = "IDR",
-  signed = false,
-) {
-  const value = Number(amount);
-  if (Number.isNaN(value)) return amount;
-
-  return `${signed && value > 0 ? "+" : ""}${new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)}`;
-}
+import type { AccountEntriesResponse } from "./type";
 
 export function isIncomingEntry(
   entry: AccountEntriesResponse,

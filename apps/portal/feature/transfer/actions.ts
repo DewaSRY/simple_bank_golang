@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { runServerAction, type ActionResult } from "@/lib/api/action-result";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+import type { CommonSuccessResponse } from "@/feature/common";
 import { transferClient } from "./client";
 import type { CreateTransferBody, TransferResponse } from "./type";
 

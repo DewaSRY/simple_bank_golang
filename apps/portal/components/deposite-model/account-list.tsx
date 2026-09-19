@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useAccounts } from "@/feature/account/hooks/query";
+import { useAccounts } from "@/feature/account";
 import { SearchInput } from "@/components/common/search-input";
 
 import { AccountCard } from "./account-card";

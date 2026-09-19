@@ -6,7 +6,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { scrollToFirstError } from "@/lib/form";
-import type { TransferDetailsFormValues } from "@/feature/transfer/schema";
+import type { TransferDetailsFormValues } from "@/feature/transfer";
 
 import type { TransferForm } from "./transfer-dialog";
 import { useTransferStore } from "./store";

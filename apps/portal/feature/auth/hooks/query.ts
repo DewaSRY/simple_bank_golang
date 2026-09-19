@@ -4,8 +4,8 @@ import type {
   AuthResponse,
   ProfileResponse,
   RegisterRequest,
-} from "@/feature/auth/client";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+} from "@/feature/auth/type";
+import type { CommonSuccessResponse } from "@/feature/common";
 import { unwrapActionResult } from "@/lib/api/action-result";
 import {
   getProfileAction,

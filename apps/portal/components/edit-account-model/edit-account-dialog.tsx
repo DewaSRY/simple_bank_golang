@@ -12,9 +12,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
-import { createAccountSchema } from "@/feature/account/schema";
+import { createAccountSchema, type AccountWithUserName } from "@/feature/account";
 import { zodResolverTranslate } from "@/lib/form";
-import type { AccountWithUserName } from "@/feature/account/type";
 
 import { FormStep } from "./form-step";
 import { PreviewStep } from "./preview-step";

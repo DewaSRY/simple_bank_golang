@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
-import { depositSchema } from "@/feature/account-transaction/schema";
+import { depositSchema } from "@/feature/account-transaction";
 import { zodResolverTranslate } from "@/lib/form";
 
 import { AccountStep } from "./account-step";

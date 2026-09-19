@@ -6,14 +6,18 @@ import {
 } from "@tanstack/react-query";
 import { isAppLocale } from "@/i18n/settings";
 
-import { queryKeys as accountQueryKeys } from "@/feature/account-manage/hooks/query";
-import { detailAccountAction } from "@/feature/account-manage/actions";
-import { queryKeys as accountTransactionQueryKeys } from "@/feature/account-transaction/hooks/query";
-import { getAccountEntriesAction } from "@/feature/account-transaction/actions";
+import {
+  queryKeys as accountQueryKeys,
+  detailAccountAction,
+} from "@/feature/account-manage";
+import {
+  queryKeys as accountTransactionQueryKeys,
+  getAccountEntriesAction,
+} from "@/feature/account-transaction";
 import { unwrapActionResult } from "@/lib/api/action-result";
 
 import { AccountDetailView } from "@/components/account/account-detail-view";
-import { ParamsSearchParams, parseIntParam } from "@/feature/common/params";
+import { ParamsSearchParams, parseIntParam } from "@/feature/common";
 
 interface params extends PageProps<"/[locale]/account/[id]"> {
   searchParams: Promise<ParamsSearchParams>;

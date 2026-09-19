@@ -12,11 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { GuardedLink } from "@/components/common/navigation-guard/guarded-link";
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
-import { useRegisterMutation } from "@/feature/auth/hooks/query";
 import {
+  useRegisterMutation,
   createRegisterSchema,
   type RegisterFormScreenValues,
-} from "@/feature/auth/schemas";
+} from "@/feature/auth";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 import { BrandBanner } from "./brand-banner";
 

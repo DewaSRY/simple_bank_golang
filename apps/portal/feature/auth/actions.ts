@@ -3,14 +3,14 @@
 import { redirect } from "@/i18n/redirect";
 import type { AppLocale } from "@/i18n/settings";
 import { runServerAction, type ActionResult } from "@/lib/api/action-result";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+import type { CommonSuccessResponse } from "@/feature/common";
 import { authClient } from "./client";
 import type {
   AuthResponse,
   LoginRequest,
   ProfileResponse,
   RegisterRequest,
-} from "./client";
+} from "./type";
 import { clearSessionCookie, setSessionCookie } from "./session";
 
 export async function logoutAction(locale: AppLocale): Promise<void> {

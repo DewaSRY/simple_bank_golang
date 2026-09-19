@@ -1,13 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { queryKeys as accountQueryKeys } from "@/feature/account/hooks/query";
-import type { PaginationParams } from "@/feature/common/type";
+import { queryKeys as accountQueryKeys } from "@/feature/account";
+import type { PaginationParams } from "@/feature/common";
 import { unwrapActionResult } from "@/lib/api/action-result";
-import { DepositRequestBody } from "../type";
+import type { AccountEntriesResponse, DepositRequestBody, DisplayLedgerEntry } from "../type";
+import { isIncomingEntry } from "../utils";
 import {
   depositAction,
   getAccountEntriesAction,
   getRecentTransactionsAction,
 } from "../actions";
+
+function toDisplayLedgerEntry(
+  entry: AccountEntriesResponse,
+  accountId: number,
+): DisplayLedgerEntry {
+  return {
+    ...entry,
+    direction: isIncomingEntry(entry, accountId) ? "incoming" : "outgoing",
+  };
+}
 
 export const queryKeys = {
   entries: (
@@ -28,6 +39,12 @@ export function useAccountEntries(
     queryKey: queryKeys.entries(accountId, params),
     queryFn: () =>
       getAccountEntriesAction(accountId, params).then(unwrapActionResult),
+    select: (response) => ({
+      ...response,
+      data: response.data.map((entry) =>
+        toDisplayLedgerEntry(entry, accountId),
+      ),
+    }),
   });
 }
 

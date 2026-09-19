@@ -7,8 +7,7 @@ import {
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { AccountList } from "@/components/dashboard/account-list";
-import { queryKeys } from "@/feature/account/hooks/query";
-import { listMeAccountsAction } from "@/feature/account/actions";
+import { queryKeys, listMeAccountsAction } from "@/feature/account";
 import { unwrapActionResult } from "@/lib/api/action-result";
 
 interface props extends PageProps<"/[locale]/dashboard"> {

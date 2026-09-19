@@ -6,12 +6,12 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { InputField } from "@/components/form/input-field";
 import { PasswordField } from "@/components/form/password-field";
 import { Button } from "@/components/ui/button";
-import { useLoginMutation } from "@/feature/auth/hooks/query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
+  useLoginMutation,
   createLoginSchema,
   type LoginFormScreenValues,
-} from "@/feature/auth/schemas";
+} from "@/feature/auth";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 import { zodResolverTranslate } from "@/lib/form";
 

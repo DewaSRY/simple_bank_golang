@@ -6,14 +6,13 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import { verifySession } from "@/feature/auth/dal";
+import { SessionGuard } from "@/feature/auth";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
 import { SiteHeader } from "@/components/navigation/site-header";
-import { SessionGuard } from "@/feature/auth/components/session-guard";
 
-import { queryKeys } from "@/feature/account/hooks/query";
-import { listMeAccountsAction } from "@/feature/account/actions";
+import { queryKeys, listMeAccountsAction } from "@/feature/account";
 import { unwrapActionResult } from "@/lib/api/action-result";
 
 export default async function ProtectedLayout({

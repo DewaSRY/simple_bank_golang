@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Translate } from "@/feature/common/type";
+import type { Translate } from "@/feature/common";
 
 export function createLoginSchema(t: Translate) {
   return z.object({

@@ -8,7 +8,7 @@ import type {
 import type {
   CommonSuccessResponse,
   PaginationParams,
-} from "@/feature/common/type";
+} from "@/feature/common";
 import { unwrapActionResult } from "@/lib/api/action-result";
 import {
   createAccountAction,

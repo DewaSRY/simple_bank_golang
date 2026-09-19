@@ -5,7 +5,7 @@ import { PreviewRow } from "@/components/common/preview-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
-import { useUpdateAccount } from "@/feature/account-manage/hooks/query";
+import { useUpdateAccount } from "@/feature/account-manage";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
 import { useEditAccountStore } from "./store";

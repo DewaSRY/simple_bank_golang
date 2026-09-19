@@ -5,8 +5,8 @@ import { PreviewRow } from "@/components/common/preview-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
-import { formatAccountAmount } from "@/feature/account-transaction/utils";
-import { useCreateTransfer } from "@/feature/transfer/hooks/query";
+import { formatAccountAmount } from "@/lib/number";
+import { useCreateTransfer } from "@/feature/transfer";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
 import type { TransferForm } from "./transfer-dialog";

@@ -5,7 +5,7 @@ import { PreviewRow } from "@/components/common/preview-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
-import { useCreateAccountMutation } from "@/feature/account/hooks/query";
+import { useCreateAccountMutation } from "@/feature/account";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
 import { useCreateAccountStore } from "./store";

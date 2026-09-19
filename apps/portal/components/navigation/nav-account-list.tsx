@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { cn } from "@/lib/utils";
 import { formatBalance } from "@/lib/number";
-import { useAccounts } from "@/feature/account/hooks/query";
+import { useAccounts } from "@/feature/account";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";

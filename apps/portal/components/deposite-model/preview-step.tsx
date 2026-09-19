@@ -5,8 +5,8 @@ import { PreviewRow } from "@/components/common/preview-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
-import { useDeposit } from "@/feature/account-transaction/hooks/query";
-import { formatAccountAmount } from "@/feature/account-transaction/utils";
+import { useDeposit } from "@/feature/account-transaction";
+import { formatAccountAmount } from "@/lib/number";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
 import type { DepositeForm } from "./deposite-dialog";

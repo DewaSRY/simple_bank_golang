@@ -5,7 +5,7 @@ import { runServerAction, type ActionResult } from "@/lib/api/action-result";
 import type {
   CommonSuccessResponse,
   PaginationParams,
-} from "@/feature/common/type";
+} from "@/feature/common";
 import { accountTransactionClient } from "./client";
 import type {
   AccountEntriesResponse,

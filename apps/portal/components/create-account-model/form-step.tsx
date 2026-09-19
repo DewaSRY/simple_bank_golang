@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { CreateAccountFormValues } from "@/feature/account/schema";
+import { CreateAccountFormValues } from "@/feature/account";
 import { scrollToFirstError } from "@/lib/form";
 
 import { useCreateAccountStore } from "./store";

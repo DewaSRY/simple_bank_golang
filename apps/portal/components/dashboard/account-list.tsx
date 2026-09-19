@@ -5,7 +5,7 @@ import { AlertCircle, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getApiErrorMessage } from "@/lib/api/error";
 
-import { useAccounts } from "../../feature/account/hooks/query";
+import { useAccounts } from "@/feature/account";
 
 import { AccountListItem } from "./account-card";
 import { AccountCardSkeleton } from "./account-card-skeleton";

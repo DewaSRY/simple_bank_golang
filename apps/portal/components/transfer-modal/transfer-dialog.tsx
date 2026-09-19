@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
-import { transferDetailsSchema } from "@/feature/transfer/schema";
+import { transferDetailsSchema } from "@/feature/transfer";
 import { zodResolverTranslate } from "@/lib/form";
 
 import { DestinationStep } from "./destination-step";
