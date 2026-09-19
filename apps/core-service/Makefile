@@ -61,7 +61,7 @@ docker-dep-build:
 	docker buildx build --platform $(DEP_PLATFORM) -t $(DEP_IMAGE_NAME):latest --load -f Dockerfile.prod .
 
 docker-dep-push:
-	docker buildx build --platform $(DEP_PLATFORM) -t $(DEP_IMAGE_NAME):latest --push -f Dockerfile.prod .
+	docker push $(DEP_IMAGE_NAME):latest
 
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
