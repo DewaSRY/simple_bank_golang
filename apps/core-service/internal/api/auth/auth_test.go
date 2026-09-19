@@ -274,6 +274,113 @@ func TestRegisterUser(t *testing.T) {
 	}
 }
 
+func doLoginRequest(t *testing.T, router *gin.Engine, body loginUserRequest) *httptest.ResponseRecorder {
+	payload, err := json.Marshal(body)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+	return recorder
+}
+
+func TestLoginUser(t *testing.T) {
+	const (
+		email    = "dewa@example.com"
+		password = "password123"
+	)
+
+	hashedPassword, err := util.HashPassword(password)
+	require.NoError(t, err)
+
+	existingUser := db.GetUserByEmailRow{
+		ID: 1, Username: "dewa", Email: email, HashedPassword: hashedPassword, CreatedAt: time.Now(),
+	}
+
+	testCases := []struct {
+		name          string
+		body          loginUserRequest
+		buildStubs    func(q *mockdb.MockQuerier)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "logs in successfully and returns an access token",
+			body: loginUserRequest{Email: email, Password: password},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(existingUser, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+
+				var resp struct {
+					Data AuthResponse `json:"data"`
+				}
+				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
+				require.NotEmpty(t, resp.Data.AccessToken)
+				require.Equal(t, "Bearer", resp.Data.TokenType)
+			},
+		},
+		{
+			name: "rejects a request missing required fields without touching the db",
+			body: loginUserRequest{Email: email},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserByEmail(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+
+				var resp errorResponse
+				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
+				require.Equal(t, core.ErrCodeValidation, resp.Error.Code)
+			},
+		},
+		{
+			name: "returns 401 when the email is not registered",
+			body: loginUserRequest{Email: email, Password: password},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			name: "returns 500 when looking up the user hits a db error",
+			body: loginUserRequest{Email: email, Password: password},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(db.GetUserByEmailRow{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "returns 401 when the password is wrong",
+			body: loginUserRequest{Email: email, Password: "wrong-password"},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(existingUser, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			q := mockdb.NewMockQuerier(ctrl)
+			tc.buildStubs(q)
+
+			router := newTestRouter(newTestHandler(t, &mockStorer{MockQuerier: q}))
+			recorder := doLoginRequest(t, router, tc.body)
+			tc.checkResponse(t, recorder)
+		})
+	}
+}
+
 func doGetProfileRequest(t *testing.T, router *gin.Engine, authHeader string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/profile", nil)
 	if authHeader != "" {
