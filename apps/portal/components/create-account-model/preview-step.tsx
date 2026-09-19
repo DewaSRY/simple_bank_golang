@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PreviewRow } from "@/components/common/preview-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -8,12 +9,14 @@ import { useCreateAccountMutation } from "@/feature/account/hooks/query";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
 import { useCreateAccountStore } from "./store";
+import { CreateForm } from "./create-account-dialog";
 
 interface Props {
   onSuccess: () => void;
+  form: CreateForm;
 }
 
-export function PreviewStep({ onSuccess }: Props) {
+export function PreviewStep({ onSuccess, form }: Props) {
   const { t } = useTranslation("account");
   const { t: tCommon } = useTranslation("common");
   const { values, setStep, setFieldErrors } = useCreateAccountStore();
@@ -27,6 +30,8 @@ export function PreviewStep({ onSuccess }: Props) {
     try {
       await mutateAsync(values);
       onSuccess();
+      form.reset();
+      setFieldErrors(null);
     } catch (err) {
       const fieldErrors = getApiFieldErrors(err);
       if (fieldErrors) {
@@ -44,18 +49,8 @@ export function PreviewStep({ onSuccess }: Props) {
     <div>
       <Card className="mb-4">
         <CardContent className="space-y-3">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">
-              {t("name")}
-            </span>
-            <p className="text-right font-medium">{values.name}</p>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">
-              {t("description")}
-            </span>
-            <p className="text-right font-medium">{values.description}</p>
-          </div>
+          <PreviewRow label={t("name")} value={values.name} />
+          <PreviewRow label={t("description")} value={values.description} />
         </CardContent>
       </Card>
 

@@ -45,5 +45,7 @@
   "toEntry": "To {{name}}",
   "fromEntry": "From {{name}}",
   "toAccountNumber": "To account {{number}}",
-  "fromAccountNumber": "From account {{number}}"
+  "fromAccountNumber": "From account {{number}}",
+  "namePlaceholder": "Enter the account name",
+  "descriptionPlaceholder": "Enter the account description"
 }

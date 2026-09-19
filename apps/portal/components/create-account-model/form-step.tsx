@@ -1,32 +1,25 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import {
-  createAccountSchema,
-  CreateAccountFormValues,
-} from "@/feature/account/schema";
-import { scrollToFirstError, zodResolverTranslate } from "@/lib/form";
+import { CreateAccountFormValues } from "@/feature/account/schema";
+import { scrollToFirstError } from "@/lib/form";
 
 import { useCreateAccountStore } from "./store";
+import type { CreateForm } from "./create-account-dialog";
 
-export function FormStep() {
+interface FormStepProps {
+  form: CreateForm;
+}
+
+export function FormStep({ form }: FormStepProps) {
   const { t } = useTranslation("account");
   const { t: tCommon } = useTranslation("common");
-  const { values, fieldErrors, setValues, setFieldErrors, setStep } =
+  const { fieldErrors, setValues, setFieldErrors, setStep } =
     useCreateAccountStore();
-
-  const form = useForm({
-    resolver: zodResolverTranslate(createAccountSchema, t),
-    defaultValues: {
-      name: values?.name ?? "",
-      description: values?.description ?? "",
-    },
-  });
 
   useEffect(() => {
     if (!fieldErrors) return;
@@ -54,6 +47,7 @@ export function FormStep() {
           label={t("name")}
           control={form.control}
           autoComplete="name"
+          placeholder={t("namePlaceholder")}
         />
         <TextareaField
           name="description"
@@ -64,6 +58,7 @@ export function FormStep() {
           autoComplete="description"
           counter
           counterPosition="bottom"
+          placeholder={t("descriptionPlaceholder")}
         />
       </div>
 

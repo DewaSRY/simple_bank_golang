@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
-
+import { useForm } from "react-hook-form";
+import { zodResolverTranslate } from "@/lib/form";
+import { createAccountSchema } from "@/feature/account/schema";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +13,33 @@ import {
 import { FormStep } from "./form-step";
 import { PreviewStep } from "./preview-step";
 import { useCreateAccountStore } from "./store";
+import type { CreateAccountFormValues } from "./type";
 
 export interface props {
   open?: boolean;
   setOpen?: (open: boolean) => void;
 }
 
+export function useCreateAccountForm(
+  values: CreateAccountFormValues | null,
+  t: (key: string) => string,
+) {
+  return useForm({
+    resolver: zodResolverTranslate(createAccountSchema, t),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+}
+
+export type CreateForm = ReturnType<typeof useCreateAccountForm>;
+
 export function CreateAccountDialog({ open, setOpen }: props) {
   const { t } = useTranslation("account");
-  const { step, reset } = useCreateAccountStore();
+  const { step, reset, values } = useCreateAccountStore();
+
+  const form = useCreateAccountForm(values, t);
 
   const STEP_COPY = {
     form: {
@@ -41,15 +61,15 @@ export function CreateAccountDialog({ open, setOpen }: props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="lg:min-w-4xl px-4">
+      <DialogContent className="lg:min-w-4xl px-4 space-y-4">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        {step === "form" && <FormStep />}
+        {step === "form" && <FormStep form={form} />}
         {step === "preview" && (
-          <PreviewStep onSuccess={() => handleOpenChange(false)} />
+          <PreviewStep onSuccess={() => handleOpenChange(false)} form={form} />
         )}
       </DialogContent>
     </Dialog>

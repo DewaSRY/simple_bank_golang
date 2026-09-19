@@ -46,9 +46,9 @@ export function DepositeDialog({ open, setOpen }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="p-4 lg:min-w-4xl">
+      <DialogContent className="p-4 lg:min-w-4xl space-y-4">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 

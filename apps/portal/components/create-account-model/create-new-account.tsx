@@ -13,7 +13,7 @@ export function CreateNewAccount() {
       <CreateAccountDialog open={isDialogOpen} setOpen={setIsDialogOpen} />
       <IconButton
         text={t("createNewAccount")}
-        icon={<Plus />}
+        icon={<Plus className="size-4" />}
         tooltip={t("createNewAccount")}
         onClick={() => setIsDialogOpen(true)}
         iconPosition="right"

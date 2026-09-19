@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PreviewRow } from "@/components/common/preview-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -45,36 +46,21 @@ export function PreviewStep({ onSuccess }: Props) {
     <div>
       <Card className="mb-4">
         <CardContent className="space-y-3">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">{t("from")}</span>
-            <div className="text-right">
-              <p className="font-medium">{sourceAccount.name}</p>
-              <p className="text-sm text-muted-foreground">{sourceAccount.number}</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">{t("to")}</span>
-            <div className="text-right">
-              <p className="font-medium">{destinationAccount.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {destinationAccount.number}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">
-              {t("amount")}
-            </span>
-            <p className="font-medium">
-              {formatAccountAmount(String(details.amount))}
-            </p>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">
-              {t("description")}
-            </span>
-            <p className="text-right font-medium">{details.description}</p>
-          </div>
+          <PreviewRow
+            label={t("from")}
+            value={sourceAccount.name}
+            subValue={sourceAccount.number}
+          />
+          <PreviewRow
+            label={t("to")}
+            value={destinationAccount.name}
+            subValue={destinationAccount.number}
+          />
+          <PreviewRow
+            label={t("amount")}
+            value={formatAccountAmount(String(details.amount))}
+          />
+          <PreviewRow label={t("description")} value={details.description} />
         </CardContent>
       </Card>
 

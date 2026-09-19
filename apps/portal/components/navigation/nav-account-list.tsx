@@ -13,6 +13,8 @@ import { useAccounts } from "@/feature/account/hooks/query";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Star } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export function NavAccountList() {
   const { t } = useTranslation("common");
@@ -57,13 +59,29 @@ export function NavAccountList() {
                 )}
               >
                 <div className="flex min-w-0 flex-col space-y-4">
-                  <div className="flex flex-col">
-                    <span className="truncate font-medium">
-                      {account.name || account.username}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {account.number}
-                    </span>
+                  <div className="flex flex-row justify-between">
+                    <div className="flex-1 flex flex-col">
+                      <span className="truncate font-medium">
+                        {account.name || account.username}
+                      </span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        {account.number}
+                      </span>
+                    </div>
+
+                    {account.is_main && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Star
+                            className="size-3.5 shrink-0 fill-warning text-warning"
+                            aria-hidden
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t("mainAccount")}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
 
                   <div className="flex shrink-0 items-baseline gap-1 font-mono text-xs text-muted-foreground">
