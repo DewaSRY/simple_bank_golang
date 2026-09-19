@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   LoginRequest,
-  AuthResponse,
   ProfileResponse,
   RegisterRequest,
 } from "@/feature/auth/type";
@@ -29,7 +28,7 @@ export const authQueryKeys = {
  * ../core-service directly.
  */
 export const useLoginMutation = () => {
-  return useMutation<CommonSuccessResponse<AuthResponse>, Error, LoginRequest>({
+  return useMutation<null, Error, LoginRequest>({
     mutationFn: (body) => loginAction(body).then(unwrapActionResult),
   });
 };
@@ -38,11 +37,7 @@ export const useLoginMutation = () => {
  * Register. Same Server Action shape as login.
  */
 export const useRegisterMutation = () => {
-  return useMutation<
-    CommonSuccessResponse<AuthResponse>,
-    Error,
-    RegisterRequest
-  >({
+  return useMutation<null, Error, RegisterRequest>({
     mutationFn: (body) => registerAction(body).then(unwrapActionResult),
   });
 };

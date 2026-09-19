@@ -61,13 +61,6 @@ export function LandingFooter() {
             {AUTHOR.email}
           </a>
           <a
-            href={`tel:${AUTHOR.phone.replace(/\s+/g, "")}`}
-            className="flex items-center gap-1.5 hover:text-foreground"
-          >
-            <Phone className="size-3.5" aria-hidden />
-            {AUTHOR.phone}
-          </a>
-          <a
             href={AUTHOR.linkedinUrl}
             target="_blank"
             rel="noopener noreferrer"

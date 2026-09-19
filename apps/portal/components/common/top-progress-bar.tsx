@@ -89,7 +89,6 @@ function ProgressBarInner() {
 
     if (trickleRef.current) clearInterval(trickleRef.current);
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    console.log({ navigating, isFetching, isMutating, active });
     if (active) {
       setBar(Math.max(widthRef.current, 8), 1);
       trickleRef.current = setInterval(() => {
