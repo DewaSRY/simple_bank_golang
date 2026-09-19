@@ -115,6 +115,12 @@ export function LandingNav() {
           <LocaleSwitcher />
           <ThemeToggle />
           <Link
+            href="/onboarding"
+            className="px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            {t("landing.nav.tryDemo")}
+          </Link>
+          <Link
             href="/login"
             className="px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
@@ -167,6 +173,13 @@ export function LandingNav() {
                 <LocaleSwitcher />
                 <ThemeToggle />
               </div>
+              <SheetClose
+                nativeButton={false}
+                render={<Link href="/onboarding" />}
+                className="text-center text-sm font-medium text-foreground"
+              >
+                {t("landing.nav.tryDemo")}
+              </SheetClose>
               <SheetClose
                 nativeButton={false}
                 render={<Link href="/login" />}

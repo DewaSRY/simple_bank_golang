@@ -32,6 +32,15 @@ export function FinalCtaSection() {
           </Button>
           <Button
             size="lg"
+            variant="outline"
+            className="h-12 border-primary-foreground/30 bg-transparent px-8 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            nativeButton={false}
+            render={<Link href="/onboarding" />}
+          >
+            {t("landing.finalCta.tryDemo")}
+          </Button>
+          <Button
+            size="lg"
             variant="ghost"
             className="h-12 gap-2 px-8 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
             nativeButton={false}

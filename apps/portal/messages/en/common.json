@@ -46,7 +46,8 @@
       "productDescription": "Everything you need to manage your money in one place.",
       "login": "Login",
       "getStarted": "Get started",
-      "menuToggle": "Toggle menu"
+      "menuToggle": "Toggle menu",
+      "tryDemo": "Try the demo"
     },
     "hero": {
       "eyebrow": "A full-stack side project, not a SaaS pitch",
@@ -137,7 +138,8 @@
     "finalCta": {
       "title": "Ready to see it in action?",
       "description": "Register a real account below and poke around — or skip straight to the source and see how it's built.",
-      "viewSource": "View source on GitHub"
+      "viewSource": "View source on GitHub",
+      "tryDemo": "Try the interactive demo"
     },
     "footer": {
       "tagline": "Banking made simple.",

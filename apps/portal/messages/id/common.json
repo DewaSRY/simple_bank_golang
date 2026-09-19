@@ -46,7 +46,8 @@
       "productDescription": "Semua yang Anda butuhkan untuk mengelola uang dalam satu tempat.",
       "login": "Masuk",
       "getStarted": "Mulai sekarang",
-      "menuToggle": "Buka menu"
+      "menuToggle": "Buka menu",
+      "tryDemo": "Coba demo"
     },
     "hero": {
       "eyebrow": "Proyek sampingan full-stack, bukan pitch SaaS",
@@ -137,7 +138,8 @@
     "finalCta": {
       "title": "Siap melihatnya langsung beraksi?",
       "description": "Daftar rekening sungguhan di bawah dan coba-coba sendiri — atau langsung lompat ke kodenya dan lihat cara kerjanya.",
-      "viewSource": "Lihat source code di GitHub"
+      "viewSource": "Lihat source code di GitHub",
+      "tryDemo": "Coba demo interaktif"
     },
     "footer": {
       "tagline": "Perbankan jadi sederhana.",
