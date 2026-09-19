@@ -58,7 +58,7 @@ export function LandingNav() {
           href="/"
           className="flex items-center gap-2 text-base font-semibold tracking-tight"
         >
-          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">
             <Wallet className="size-4" aria-hidden />
           </span>
           {t("appName")}
@@ -101,7 +101,7 @@ export function LandingNav() {
                           />
                         }
                       >
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary">
                           <item.icon className="size-4.5" aria-hidden />
                         </span>
                         <span className="text-sm font-medium">
@@ -166,11 +166,11 @@ export function LandingNav() {
                   render={
                     <a
                       href={item.href}
-                      className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted"
+                      className="flex items-center gap-3 rounded-xs p-2 hover:bg-muted"
                     />
                   }
                 >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary">
                     <item.icon className="size-4" aria-hidden />
                   </span>
                   <span className="text-sm font-medium">{item.title}</span>

@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { getEntryLabel } from "@/feature/account-transaction";
-import { toDisplayLedgerEntry, type OnboardingEntry } from "@/feature/onboarding";
+import {
+  toDisplayLedgerEntry,
+  type OnboardingEntry,
+} from "@/feature/onboarding";
 import { formatAccountAmount } from "@/lib/number";
 
 interface Props {
@@ -39,7 +42,7 @@ export function RecentActivity({ entries, accountId, limit = 4 }: Props) {
                 initial={{ opacity: 0, y: -10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-center gap-3 rounded-lg border px-3 py-2.5"
+                className="flex items-center gap-3 rounded-xs border px-3 py-2.5"
               >
                 <span
                   className={

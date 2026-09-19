@@ -27,7 +27,7 @@ export function OnboardingHeader() {
             href="/onboarding"
             className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight"
           >
-            <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">
               <Wallet className="size-4" aria-hidden />
             </span>
             <span className="hidden sm:inline">{tCommon("appName")}</span>
@@ -38,7 +38,12 @@ export function OnboardingHeader() {
 
           <div className="flex shrink-0 items-center gap-1.5">
             {hasAccount && (
-              <Button variant="ghost" size="sm" onClick={handleRestart} className="gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRestart}
+                className="gap-1.5"
+              >
                 <RotateCcw className="size-3.5" aria-hidden />
                 <span className="hidden sm:inline">{t("restartDemo")}</span>
               </Button>

@@ -53,7 +53,7 @@ export function NavAccountList() {
                 href={`/account/${account.id}`}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "rounded-lg p-4 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  "rounded-xs p-4 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   isActive &&
                     "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
                 )}

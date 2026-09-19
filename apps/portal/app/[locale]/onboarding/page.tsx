@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PlusCircle, ArrowLeftRight, Wallet, Table2, ArrowRight } from "lucide-react";
+import {
+  PlusCircle,
+  ArrowLeftRight,
+  Wallet,
+  Table2,
+  ArrowRight,
+} from "lucide-react";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
@@ -41,10 +47,26 @@ export default async function OnboardingStartPage({
   const { t } = await getTranslation(locale, "onboarding");
 
   const steps = [
-    { icon: PlusCircle, title: t("start.step1Title"), description: t("start.step1Description") },
-    { icon: Wallet, title: t("start.step2Title"), description: t("start.step2Description") },
-    { icon: ArrowLeftRight, title: t("start.step3Title"), description: t("start.step3Description") },
-    { icon: Table2, title: t("start.step4Title"), description: t("start.step4Description") },
+    {
+      icon: PlusCircle,
+      title: t("start.step1Title"),
+      description: t("start.step1Description"),
+    },
+    {
+      icon: Wallet,
+      title: t("start.step2Title"),
+      description: t("start.step2Description"),
+    },
+    {
+      icon: ArrowLeftRight,
+      title: t("start.step3Title"),
+      description: t("start.step3Description"),
+    },
+    {
+      icon: Table2,
+      title: t("start.step4Title"),
+      description: t("start.step4Description"),
+    },
   ];
 
   return (
@@ -74,15 +96,20 @@ export default async function OnboardingStartPage({
         {steps.map((step, index) => (
           <Card key={step.title}>
             <CardContent className="flex items-start gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-sm font-semibold text-primary">
                 {index + 1}
               </span>
               <div>
                 <p className="flex items-center gap-1.5 font-medium">
-                  <step.icon className="size-4 text-muted-foreground" aria-hidden />
+                  <step.icon
+                    className="size-4 text-muted-foreground"
+                    aria-hidden
+                  />
                   {step.title}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {step.description}
+                </p>
               </div>
             </CardContent>
           </Card>

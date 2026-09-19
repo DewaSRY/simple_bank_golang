@@ -23,10 +23,7 @@ export function SecuritySection() {
   }>;
 
   return (
-    <section
-      id="security"
-      className="bg-muted/30 px-4 py-16 sm:px-6 sm:py-24"
-    >
+    <section id="security" className="bg-muted/30 px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto w-full max-w-6xl">
         <ScrollReveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-muted-foreground">
@@ -50,7 +47,7 @@ export function SecuritySection() {
                   transition={{ duration: 0.2 }}
                   className="h-full rounded-2xl bg-card p-5 ring-1 ring-foreground/10"
                 >
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <span className="flex size-9 items-center justify-center rounded-xs bg-primary/10 text-primary">
                     <Icon className="size-4" aria-hidden />
                   </span>
                   <h3 className="mt-3 text-sm font-semibold">{card.title}</h3>

@@ -15,7 +15,7 @@ function EntityCard({ entity, delay }: { entity: Entity; delay: number }) {
     <ScrollReveal delay={delay} className="h-full">
       <div className="flex h-full flex-col rounded-2xl bg-card p-5 ring-1 ring-foreground/10">
         <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <span className="flex size-8 items-center justify-center rounded-xs bg-primary/10 text-primary">
             <Table2 className="size-4" aria-hidden />
           </span>
           <p className="font-mono text-sm font-semibold">{entity.name}</p>
@@ -52,10 +52,7 @@ export function DatabaseArchitectureSection() {
   const [users, accounts, transfers, entries] = entities;
 
   return (
-    <section
-      id="database"
-      className="bg-muted/30 px-4 py-16 sm:px-6 sm:py-24"
-    >
+    <section id="database" className="bg-muted/30 px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto w-full max-w-6xl">
         <ScrollReveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-muted-foreground">
