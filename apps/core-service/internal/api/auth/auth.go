@@ -19,15 +19,9 @@ type Handler struct {
 	AccessTokenDuration time.Duration
 }
 
-// RegisterPublicRoutes registers the unauthenticated login/register endpoints
-// on rg (the public API group).
-func (h *Handler) RegisterPublicRoutes(rg *gin.RouterGroup) {
-	rg.POST("/auth/login", h.loginUser)
-	rg.POST("/auth/register", h.registerUser)
-}
+func (h *Handler) RegisterRoutes(public, authorized *gin.RouterGroup) {
+	public.POST("/auth/login", h.loginUser)
+	public.POST("/auth/register", h.registerUser)
 
-// RegisterAuthorizedRoutes registers the authenticated profile endpoint on rg
-// (the authorized API group).
-func (h *Handler) RegisterAuthorizedRoutes(rg *gin.RouterGroup) {
-	rg.GET("/auth/profile", h.getProfile)
+	authorized.GET("/auth/profile", h.getProfile)
 }

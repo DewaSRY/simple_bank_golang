@@ -58,7 +58,7 @@ func newTestRouter(t *testing.T, storer store.Storer) (*gin.Engine, token.Maker)
 	authorized.Use(core.AuthMiddleware(tokenMaker))
 
 	h := &Handler{Store: storer}
-	h.RegisterRoutes(authorized)
+	h.RegisterRoutes(nil, authorized)
 
 	return router, tokenMaker
 }
