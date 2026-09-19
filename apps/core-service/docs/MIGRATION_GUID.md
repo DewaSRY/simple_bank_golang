@@ -146,6 +146,32 @@ wrapping from Section 0) — but a future edit to one of those four `down.sql` f
 transaction-unsafe statement won't get the same explicit-boundary protection its `up.sql`
 sibling has.
 
+### Worth flagging: `000001` and `000003`'s `down.sql` lost their `IF EXISTS` guard
+
+Commit `2dbd0f6` ("upda migration file") edited `000001_init-transaction-feature.down.sql` and
+`000003_add-users-table.down.sql` to drop `IF EXISTS` from their `DROP TABLE` statements. Every
+other migration's `down.sql` in this repo (`000004` through `000010`) still guards its
+`DROP TABLE`/`DROP VIEW`/`DROP INDEX`/`DROP COLUMN`/`DROP CONSTRAINT` statements with
+`IF EXISTS`:
+
+```sql
+-- 000001_init-transaction-feature.down.sql (current)
+DROP TABLE  transfers;
+DROP TABLE  entries;
+DROP TABLE  accounts;
+
+-- 000003_add-users-table.down.sql (current)
+DROP TABLE "users";
+```
+
+The practical consequence: every other down migration in this repo tolerates being run against
+a database where the object it's dropping is already gone (already rolled back, manually
+cleaned up, or `force`-corrected past it) — it just no-ops. These two now error instead,
+because Postgres's `DROP TABLE` without `IF EXISTS` raises on a missing table. This is a live
+inconsistency (introduced after `52f01b7`, unrelated to the `BEGIN`/`COMMIT` one above), not a
+historical one — worth fixing before assuming `make migrate-down` (or a `goto` that passes
+through `000001`/`000003`) behaves identically to every other step.
+
 ### Statements that must NOT go in a migration file
 
 Because the whole file runs inside one transaction (implicit or explicit), avoid statements
