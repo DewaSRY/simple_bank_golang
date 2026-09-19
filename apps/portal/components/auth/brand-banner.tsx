@@ -1,16 +1,13 @@
-import { notFound } from "next/navigation";
 import { Wallet } from "lucide-react";
-import { isAppLocale } from "@/i18n/settings";
-import { getTranslation } from "@/i18n/server";
-import { RegisterFormScreen } from "@/components/auth/register-form-screen";
-import { Link } from "@/i18n/navigation";
+
 import { useTranslation } from "react-i18next";
+import { GuardedLink } from "../common/navigation-guard/guarded-link";
 
 export function BrandBanner() {
   const { t: tCommon } = useTranslation("common");
 
   return (
-    <Link
+    <GuardedLink
       href="/"
       className="flex items-center gap-2 text-lg font-semibold tracking-tight"
     >
@@ -18,6 +15,6 @@ export function BrandBanner() {
         <Wallet className="size-4" aria-hidden />
       </span>
       {tCommon("appName")}
-    </Link>
+    </GuardedLink>
   );
 }

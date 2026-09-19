@@ -19,6 +19,7 @@ adding one).
 | [SETUP_INTERNATIONALIZATION.md](SETUP_INTERNATIONALIZATION.md) | react-i18next setup, locales, namespaces |
 | [SETUP_SHADCN_THEME.md](SETUP_SHADCN_THEME.md) | shadcn/ui + Base UI, `next-themes`, brand vs theme color tokens |
 | [SETUP_TOP_PROGRESS_BAR.md](SETUP_TOP_PROGRESS_BAR.md) | Route-change progress bar |
+| [SETUP_NAVIGATION_GUARD.md](SETUP_NAVIGATION_GUARD.md) | "Unsaved changes" navigation guard: global store, shared confirm dialog, `beforeunload`, back/forward interception, `GuardedLink` |
 | [SETUP_FAVICON.md](SETUP_FAVICON.md) | Favicon/icon/apple-icon file conventions, the web app manifest, favicon.io asset provenance |
 
 ## Meta

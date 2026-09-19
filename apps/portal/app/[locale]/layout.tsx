@@ -8,6 +8,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { InlineScript } from "@/components/inline-script";
 import { TopProgressBar } from "@/components/common/top-progress-bar";
+import { NavigationGuardProvider } from "@/components/common/navigation-guard/provider";
 import "../globals.css";
 
 const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"system";var d=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;if(d==="dark"){e.classList.add("dark")}else{e.classList.remove("dark")}e.style.colorScheme=d}catch(e){}})()`;
@@ -58,6 +59,7 @@ export default async function RootLayout({
             <QueryProvider>
               <TopProgressBar />
               {children}
+              <NavigationGuardProvider />
             </QueryProvider>
           </TranslationsProvider>
         </ThemeProvider>

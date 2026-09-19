@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolverTranslate } from "@/lib/form";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { InputField } from "@/components/form/input-field";
 import { PasswordField } from "@/components/form/password-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  UnsavedChangesDialog,
-  useUnsavedChangesGuard,
-} from "@/components/common/unsaved-changes-guard";
+import { GuardedLink } from "@/components/common/navigation-guard/guarded-link";
+import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
 import { useRegisterMutation } from "@/feature/auth/hooks/query";
 import {
   createRegisterSchema,
@@ -32,7 +30,6 @@ export function RegisterFormScreen() {
   const registerMutation = useRegisterMutation();
 
   const [step, setStep] = useState<RegisterStep>("form");
-  const [hasCompleted, setHasCompleted] = useState(false);
 
   const form = useForm<RegisterFormScreenValues>({
     resolver: zodResolverTranslate(createRegisterSchema(t), t),
@@ -46,8 +43,13 @@ export function RegisterFormScreen() {
 
   const isPending = registerMutation.isPending;
 
-  const { isOpen, guardNavigate, confirmLeave, cancelLeave } =
-    useUnsavedChangesGuard(form.formState.isDirty && !hasCompleted);
+  const setGuard = useNavigationGuardStore((s) => s.setGuard);
+  const isDirty = form.formState.isDirty;
+
+  useEffect(() => {
+    setGuard(isDirty, { onAbort: () => form.reset() });
+    return () => setGuard(false);
+  }, [isDirty, setGuard, form]);
 
   const goToPreview = form.handleSubmit(async () => {
     const isValid = await form.trigger();
@@ -69,7 +71,7 @@ export function RegisterFormScreen() {
         {
           onSuccess: ({ data }) => {
             setClientSessionCookie(data.access_token, data.expires_in);
-            setHasCompleted(true);
+            setGuard(false);
             router.push("/auth-success");
           },
         },
@@ -160,16 +162,12 @@ export function RegisterFormScreen() {
 
               <p className="text-center text-sm text-muted-foreground">
                 {t("alreadyHaveAccount")}
-                <Link
+                <GuardedLink
                   href="/login"
                   className="font-medium text-foreground hover:underline"
-                  onNavigate={(event) => {
-                    const proceeded = guardNavigate(() => router.push("/login"));
-                    if (!proceeded) event.preventDefault();
-                  }}
                 >
                   {t("loginHere")}
-                </Link>
+                </GuardedLink>
               </p>
             </form>
           )}
@@ -236,12 +234,6 @@ export function RegisterFormScreen() {
           )}
         </CardContent>
       </Card>
-
-      <UnsavedChangesDialog
-        open={isOpen}
-        onConfirm={confirmLeave}
-        onCancel={cancelLeave}
-      />
     </div>
   );
 }
