@@ -13,7 +13,7 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28">
-      <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 text-center">
+      <div className="mx-auto flex w-full max-w-[70vw] flex-col items-center gap-6 text-center">
         <motion.span
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -27,9 +27,9 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-2xl text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl sm:leading-tight"
+          className=" text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl sm:leading-tight"
         >
-          {t("hero.titleBefore")}{" "}
+          {t("hero.titleBefore")}
           <span className="text-primary">{t("hero.titleBrand")}</span>
         </motion.h1>
 
@@ -37,7 +37,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-xl text-lg leading-8 text-muted-foreground text-balance"
+          className=" text-lg leading-8 text-muted-foreground text-balance"
         >
           {t("hero.description")}
         </motion.p>

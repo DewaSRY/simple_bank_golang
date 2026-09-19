@@ -21,10 +21,17 @@
   },
   "hero": {
     "eyebrow": "Etalase rekayasa full-stack",
-    "titleBefore": "Sistem perbankan berbasis ledger,",
+    "titleBefore": "Sistem perbankan prototipe,",
     "titleBrand": "dibangun dari ujung ke ujung.",
     "description": "Simple Bank adalah aplikasi yang benar-benar berjalan, bukan mockup: portal Next.js yang berbicara dengan API Go yang menyimpan ledger double-entry sungguhan di PostgreSQL. Halaman ini menelusuri cara kerjanya secara nyata — frontend, kontrak API, backend, database, hingga pipeline yang mengirimkannya ke produksi.",
-    "pipeline": ["Frontend", "API", "Backend", "Database", "Infrastruktur", "Deployment"],
+    "pipeline": [
+      "Frontend",
+      "API",
+      "Backend",
+      "Database",
+      "Infrastruktur",
+      "Deployment"
+    ],
     "ctaPrimary": "Baca arsitekturnya",
     "ctaSecondary": "Coba demo langsung",
     "note": "Setiap akun, setoran, dan transfer di bawah ini melewati jalur kode yang sama persis dengan request produksi."
@@ -266,22 +273,53 @@
       {
         "name": "users",
         "description": "Satu baris per orang yang terdaftar.",
-        "columns": ["id", "username (unik)", "email (unik)", "hashed_password (bcrypt)", "created_at", "updated_at"]
+        "columns": [
+          "id",
+          "username (unik)",
+          "email (unik)",
+          "hashed_password (bcrypt)",
+          "created_at",
+          "updated_at"
+        ]
       },
       {
         "name": "accounts",
         "description": "Saldo yang dimiliki pengguna — baris yang bisa soft-delete, bukan permanen.",
-        "columns": ["id", "user_id → users", "number (unik, digenerate)", "name", "balance NUMERIC(20,2)", "currency", "is_main", "deleted_at"]
+        "columns": [
+          "id",
+          "user_id → users",
+          "number (unik, digenerate)",
+          "name",
+          "balance NUMERIC(20,2)",
+          "currency",
+          "is_main",
+          "deleted_at"
+        ]
       },
       {
         "name": "transfers",
         "description": "Satu baris per perpindahan uang antara dua rekening.",
-        "columns": ["id", "from_account_id → accounts", "to_account_id → accounts", "amount NUMERIC(20,2)", "description", "created_at"]
+        "columns": [
+          "id",
+          "from_account_id → accounts",
+          "to_account_id → accounts",
+          "amount NUMERIC(20,2)",
+          "description",
+          "created_at"
+        ]
       },
       {
         "name": "entries",
         "description": "Ledger yang tidak bisa diubah. Setiap perubahan saldo adalah baris di sini, tidak pernah berupa edit.",
-        "columns": ["id", "account_id → accounts", "transfer_id → transfers (nullable)", "type", "amount", "description", "created_at"]
+        "columns": [
+          "id",
+          "account_id → accounts",
+          "transfer_id → transfers (nullable)",
+          "type",
+          "amount",
+          "description",
+          "created_at"
+        ]
       }
     ],
     "relationshipsLabel": "Relasi",
@@ -312,30 +350,100 @@
       {
         "name": "Auth",
         "endpoints": [
-          { "method": "POST", "path": "/auth/register", "auth": false, "description": "Membuat pengguna, otomatis membuat rekening utamanya, menerbitkan JWT." },
-          { "method": "POST", "path": "/auth/login", "auth": false, "description": "Autentikasi dan menerbitkan JWT." },
-          { "method": "GET", "path": "/auth/profile", "auth": true, "description": "Mengembalikan profil pengguna yang sedang login." }
+          {
+            "method": "POST",
+            "path": "/auth/register",
+            "auth": false,
+            "description": "Membuat pengguna, otomatis membuat rekening utamanya, menerbitkan JWT."
+          },
+          {
+            "method": "POST",
+            "path": "/auth/login",
+            "auth": false,
+            "description": "Autentikasi dan menerbitkan JWT."
+          },
+          {
+            "method": "GET",
+            "path": "/auth/profile",
+            "auth": true,
+            "description": "Mengembalikan profil pengguna yang sedang login."
+          }
         ]
       },
       {
         "name": "Rekening",
         "endpoints": [
-          { "method": "POST", "path": "/accounts", "auth": true, "description": "Membuat rekening baru (non-utama)." },
-          { "method": "GET", "path": "/accounts/me", "auth": true, "description": "Mendaftar rekening milik pemanggil, dengan paginasi." },
-          { "method": "GET", "path": "/accounts/search-by-number", "auth": true, "description": "Mencari rekening tujuan berdasarkan nomor." },
-          { "method": "GET", "path": "/accounts/:id", "auth": true, "description": "Mengambil satu rekening (403 jika bukan pemiliknya)." },
-          { "method": "PUT", "path": "/accounts/:id", "auth": true, "description": "Memperbarui nama/deskripsi rekening." },
-          { "method": "DELETE", "path": "/accounts/:id", "auth": true, "description": "Soft-delete rekening, menyapu saldonya terlebih dahulu." },
-          { "method": "POST", "path": "/accounts/:id/deposit", "auth": true, "description": "Menyetor ke rekening yang dimiliki." },
-          { "method": "GET", "path": "/accounts/:id/entries", "auth": true, "description": "Mendaftar entri ledger sebuah rekening." },
-          { "method": "GET", "path": "/accounts/:id/transactions", "auth": true, "description": "Mendaftar riwayat transaksi yang berlabel." },
-          { "method": "GET", "path": "/accounts/:id/recent-destinations", "auth": true, "description": "Tujuan transfer terbaru dari rekening ini." }
+          {
+            "method": "POST",
+            "path": "/accounts",
+            "auth": true,
+            "description": "Membuat rekening baru (non-utama)."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/me",
+            "auth": true,
+            "description": "Mendaftar rekening milik pemanggil, dengan paginasi."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/search-by-number",
+            "auth": true,
+            "description": "Mencari rekening tujuan berdasarkan nomor."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id",
+            "auth": true,
+            "description": "Mengambil satu rekening (403 jika bukan pemiliknya)."
+          },
+          {
+            "method": "PUT",
+            "path": "/accounts/:id",
+            "auth": true,
+            "description": "Memperbarui nama/deskripsi rekening."
+          },
+          {
+            "method": "DELETE",
+            "path": "/accounts/:id",
+            "auth": true,
+            "description": "Soft-delete rekening, menyapu saldonya terlebih dahulu."
+          },
+          {
+            "method": "POST",
+            "path": "/accounts/:id/deposit",
+            "auth": true,
+            "description": "Menyetor ke rekening yang dimiliki."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id/entries",
+            "auth": true,
+            "description": "Mendaftar entri ledger sebuah rekening."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id/transactions",
+            "auth": true,
+            "description": "Mendaftar riwayat transaksi yang berlabel."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id/recent-destinations",
+            "auth": true,
+            "description": "Tujuan transfer terbaru dari rekening ini."
+          }
         ]
       },
       {
         "name": "Transaksi",
         "endpoints": [
-          { "method": "POST", "path": "/transactions/transfer", "auth": true, "description": "Transfer antara dua rekening di mana pemanggil memiliki rekening asalnya." }
+          {
+            "method": "POST",
+            "path": "/transactions/transfer",
+            "auth": true,
+            "description": "Transfer antara dua rekening di mana pemanggil memiliki rekening asalnya."
+          }
         ]
       }
     ]
@@ -518,41 +626,86 @@
       {
         "name": "Frontend",
         "items": [
-          { "title": "Next.js 16 App Router", "body": "Server Component untuk prefetch + pemeriksaan auth, Client Component untuk interaktivitas, tanpa JavaScript sisi klien yang tidak perlu." },
-          { "title": "TanStack Query v5", "body": "Factory query-key yang dipakai bersama antara prefetch server dan hook klien, sehingga keduanya tidak pernah berbeda." },
-          { "title": "React Hook Form + Zod", "body": "Form bertipe dan tervalidasi dengan pesan error yang diterjemahkan lewat resolver bersama." }
+          {
+            "title": "Next.js 16 App Router",
+            "body": "Server Component untuk prefetch + pemeriksaan auth, Client Component untuk interaktivitas, tanpa JavaScript sisi klien yang tidak perlu."
+          },
+          {
+            "title": "TanStack Query v5",
+            "body": "Factory query-key yang dipakai bersama antara prefetch server dan hook klien, sehingga keduanya tidak pernah berbeda."
+          },
+          {
+            "title": "React Hook Form + Zod",
+            "body": "Form bertipe dan tervalidasi dengan pesan error yang diterjemahkan lewat resolver bersama."
+          }
         ]
       },
       {
         "name": "Backend",
         "items": [
-          { "title": "Go + Gin", "body": "API berlapis: handler → store → sqlc querier, dengan urutan middleware yang tetap dan menentukan." },
-          { "title": "Autentikasi JWT", "body": "Bearer token stateless, diverifikasi per rute terproteksi, dengan pemeriksaan kepemilikan per resource menggantikan sistem peran." },
-          { "title": "Penanganan error terpusat", "body": "Satu tipe AppError, satu response envelope, konsisten di setiap endpoint." }
+          {
+            "title": "Go + Gin",
+            "body": "API berlapis: handler → store → sqlc querier, dengan urutan middleware yang tetap dan menentukan."
+          },
+          {
+            "title": "Autentikasi JWT",
+            "body": "Bearer token stateless, diverifikasi per rute terproteksi, dengan pemeriksaan kepemilikan per resource menggantikan sistem peran."
+          },
+          {
+            "title": "Penanganan error terpusat",
+            "body": "Satu tipe AppError, satu response envelope, konsisten di setiap endpoint."
+          }
         ]
       },
       {
         "name": "Data",
         "items": [
-          { "title": "PostgreSQL + sqlc", "body": "SQL yang ditulis tangan dikompilasi menjadi Go bertipe — tanpa ORM, tanpa pembentukan query tersembunyi." },
-          { "title": "Ledger double-entry", "body": "Saldo diturunkan dari entries yang tidak bisa diubah, bukan dimutasi langsung, di dalam transaksi database sungguhan." },
-          { "title": "Migrasi terversi", "body": "Sepuluh pasang up/down golang-migrate — riwayat skema hidup di git, bukan di ingatan seseorang." }
+          {
+            "title": "PostgreSQL + sqlc",
+            "body": "SQL yang ditulis tangan dikompilasi menjadi Go bertipe — tanpa ORM, tanpa pembentukan query tersembunyi."
+          },
+          {
+            "title": "Ledger double-entry",
+            "body": "Saldo diturunkan dari entries yang tidak bisa diubah, bukan dimutasi langsung, di dalam transaksi database sungguhan."
+          },
+          {
+            "title": "Migrasi terversi",
+            "body": "Sepuluh pasang up/down golang-migrate — riwayat skema hidup di git, bukan di ingatan seseorang."
+          }
         ]
       },
       {
         "name": "Infrastruktur",
         "items": [
-          { "title": "Docker", "body": "Build multi-stage yang menghasilkan image runtime Alpine yang kecil, disatukan dengan Postgres lewat Docker Compose." },
-          { "title": "Terraform", "body": "Host EC2 milik backend diprovisikan sebagai kode, bukan diklik-klik di console." },
-          { "title": "Target deploy terpisah", "body": "API di EC2, portal di Vercel, terhubung hanya lewat batas HTTP yang dikunci CORS." }
+          {
+            "title": "Docker",
+            "body": "Build multi-stage yang menghasilkan image runtime Alpine yang kecil, disatukan dengan Postgres lewat Docker Compose."
+          },
+          {
+            "title": "Terraform",
+            "body": "Host EC2 milik backend diprovisikan sebagai kode, bukan diklik-klik di console."
+          },
+          {
+            "title": "Target deploy terpisah",
+            "body": "API di EC2, portal di Vercel, terhubung hanya lewat batas HTTP yang dikunci CORS."
+          }
         ]
       },
       {
         "name": "Praktik rekayasa",
         "items": [
-          { "title": "Pengujian otomatis", "body": "Unit test handler berbasis Gin dengan store yang di-mock, ditambah integration test yang berjalan terhadap instance Postgres sungguhan." },
-          { "title": "Continuous integration", "body": "GitHub Actions melakukan build, vet, dan test backend terhadap container service Postgres yang hidup di setiap push." },
-          { "title": "Dokumentasi yang jujur", "body": "Dokumen internal secara eksplisit menandai celah dan drift yang diketahui, alih-alih mendeskripsikan sistem ideal yang belum ada." }
+          {
+            "title": "Pengujian otomatis",
+            "body": "Unit test handler berbasis Gin dengan store yang di-mock, ditambah integration test yang berjalan terhadap instance Postgres sungguhan."
+          },
+          {
+            "title": "Continuous integration",
+            "body": "GitHub Actions melakukan build, vet, dan test backend terhadap container service Postgres yang hidup di setiap push."
+          },
+          {
+            "title": "Dokumentasi yang jujur",
+            "body": "Dokumen internal secara eksplisit menandai celah dan drift yang diketahui, alih-alih mendeskripsikan sistem ideal yang belum ada."
+          }
         ]
       }
     ]
@@ -561,11 +714,56 @@
     "eyebrow": "Stack teknis",
     "title": "Diorganisasikan berdasarkan tanggung jawab, bukan jumlah dependency.",
     "groups": [
-      { "name": "Frontend", "items": ["Next.js 16", "React 19", "TypeScript", "TanStack Query v5", "Zustand", "Axios", "React Hook Form", "Zod", "Tailwind v4", "shadcn/ui di atas Base UI", "react-i18next"] },
-      { "name": "Backend", "items": ["Go", "Gin", "golang-jwt", "go-playground/validator", "shopspring/decimal", "log/slog"] },
-      { "name": "Database", "items": ["PostgreSQL 16", "sqlc", "golang-migrate", "lib/pq"] },
-      { "name": "Testing", "items": ["Go testing + testify", "go.uber.org/mock (gomock)", "Integration test Postgres"] },
-      { "name": "Infrastruktur & deployment", "items": ["Docker", "Docker Compose", "Terraform", "AWS EC2", "GitHub Actions", "Vercel"] }
+      {
+        "name": "Frontend",
+        "items": [
+          "Next.js 16",
+          "React 19",
+          "TypeScript",
+          "TanStack Query v5",
+          "Zustand",
+          "Axios",
+          "React Hook Form",
+          "Zod",
+          "Tailwind v4",
+          "shadcn/ui di atas Base UI",
+          "react-i18next"
+        ]
+      },
+      {
+        "name": "Backend",
+        "items": [
+          "Go",
+          "Gin",
+          "golang-jwt",
+          "go-playground/validator",
+          "shopspring/decimal",
+          "log/slog"
+        ]
+      },
+      {
+        "name": "Database",
+        "items": ["PostgreSQL 16", "sqlc", "golang-migrate", "lib/pq"]
+      },
+      {
+        "name": "Testing",
+        "items": [
+          "Go testing + testify",
+          "go.uber.org/mock (gomock)",
+          "Integration test Postgres"
+        ]
+      },
+      {
+        "name": "Infrastruktur & deployment",
+        "items": [
+          "Docker",
+          "Docker Compose",
+          "Terraform",
+          "AWS EC2",
+          "GitHub Actions",
+          "Vercel"
+        ]
+      }
     ]
   },
   "finalCta": {
