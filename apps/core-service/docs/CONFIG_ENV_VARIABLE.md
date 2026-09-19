@@ -4,7 +4,7 @@
 
 You're assumed to be comfortable with Go, but you haven't necessarily used [spf13/viper](https://github.com/spf13/viper) or its underlying [`mapstructure`](https://github.com/go-viper/mapstructure) decoder before. If you have, skip Section 0 — it's a primer, not load-bearing for the rest of the doc.
 
-Everything below is verified against the source as it exists today, not the idealized behavior the library's README promises. Two real production incidents are documented in detail, because both were *silent* — no error, no log line, just a wrong value flowing downstream — and the fix in each case is easy to accidentally undo the next time this file is touched.
+Everything below is verified against the source as it exists today, not the idealized behavior the library's README promises. Two real production incidents are documented in detail, because both were *silent* — no error, no log line, just a wrong value flowing downstream — and the fix in each case is easy to accidentally undo the next time this file is touched. This repo also went through a refactor since those incidents were first written up (`internal/api` split into per-domain packages: `internal/api/core`, `internal/api/auth`, `internal/api/account`, `internal/api/transfer`), so most file:line citations below point somewhere different than an older copy of this doc would say — see the note on that at each affected section rather than trusting a stale path.
 
 ## Section 0 — Background Primer: why Viper, not something simpler
 
@@ -26,26 +26,33 @@ The trade-off: Viper is a large, somewhat "magic" library for what is conceptual
 
 ## Section 1 — Architecture at a Glance
 
-There are two composition roots, and both are thin: they call `config.LoadConfig(".")` once and hand the resulting value to whatever needs it. Neither implements any parsing or merging logic itself.
+There are two composition roots, and both are thin: they call `config.LoadConfig(".")` and hand the resulting value to whatever needs it. Neither implements any parsing or merging logic itself.
 
-- [cmd/server/main.go:26](../cmd/server/main.go#L26) — loads config, then threads it into `connectDB(cfg)` ([cmd/server/main.go:32](../cmd/server/main.go#L32)) and `api.NewServer(store, cfg)` ([cmd/server/main.go:43](../cmd/server/main.go#L43)).
-- [cmd/migration/main.go](../cmd/migration/main.go) — loads config independently (its own `LoadConfig(".")` calls, once for `up` and once for `down`), and reads only `cfg.DBSource` out of it.
+- [cmd/server/main.go:35](../cmd/server/main.go#L35) — loads config once, then:
+  1. builds the shared logger from it — `logger := corelog.New(cfg)` ([cmd/server/main.go:42](../cmd/server/main.go#L42));
+  2. opens the DB pool — `connectDB(cfg, logger)` ([cmd/server/main.go:45](../cmd/server/main.go#L45));
+  3. builds the server — `api.NewServer(store, cfg, logger)` ([cmd/server/main.go:56](../cmd/server/main.go#L56)), which now takes the logger as a third argument, not just `cfg`;
+  4. does a pre-flight `net.Listen`/`Close` port check ([cmd/server/main.go:63-68](../cmd/server/main.go#L63-L68)) before actually serving via `server.Start(cfg.ServerAddress)` ([cmd/server/main.go:71](../cmd/server/main.go#L71)).
+- [cmd/migration/main.go](../cmd/migration/main.go) — a separate CLI binary with four subcommands (`up`, `down`, `force`, `goto`), each calling its own `config.LoadConfig(".")` independently ([cmd/migration/main.go:112,118,133,149](../cmd/migration/main.go#L112)) and reading only `cfg.DBSource` out of it before shelling out to the external `migrate` binary.
+
+**Worth flagging:** `cfg` itself is only used for two things at the top level — building the logger (`LogLevel`/`LogFormat`/`LogPrettyJSON`) and being threaded whole into `connectDB`/`NewServer`, which each pull out the individual fields they need. There's a second, smaller composition point one layer down: [internal/api/router.go:29-33](../internal/api/router.go#L29-L33) (`bindRouters`) is where `cfg.JWTAccessTokenDuration` actually gets copied out of the already-threaded `server.config` into the `auth.Handler` struct — see Section 4.
 
 | Concern | Owner | Analogy |
 |---|---|---|
-| Struct/schema definition | [internal/config/config.go:12-19](../internal/config/config.go#L12-L19) (`Config`) | The blank intake form's field list |
-| Loading & merging file + env | [internal/config/config.go:23-67](../internal/config/config.go#L23-L67) (`LoadConfig`) | The clerk who merges a paper form with a phoned-in override, env winning |
+| Struct/schema definition | [internal/config/config.go:12-42](../internal/config/config.go#L12-L42) (`Config`) | The blank intake form's field list |
+| Loading & merging file + env | [internal/config/config.go:46-90](../internal/config/config.go#L46-L90) (`LoadConfig`) | The clerk who merges a paper form with a phoned-in override, env winning |
+| Logger construction from config | [internal/logger/logger.go:15-34](../internal/logger/logger.go#L15-L34) (`logger.New`) | The clerk deciding which notebook format to write in, based on the form |
 | Token signing/verification | [internal/token/jwt_maker.go](../internal/token/jwt_maker.go) | The notary who signs with whatever secret the clerk handed over |
-| CORS gate | [internal/api/server.go:88-100](../internal/api/server.go#L88-L100) (`corsMiddleware`) | The bouncer checking today's allowlist |
+| CORS gate | [internal/api/server.go:118-133](../internal/api/server.go#L118-L133) (`corsMiddleware`) | The bouncer checking today's allowlist |
 | Local dev convenience file | [app.env](../app.env) (git-ignored) / [app.env.example](../app.env.example) | The paper form — used only when nobody phones in a completed override |
 
-It's split this way so `Config` stays a plain, mockable value instead of a global you'd have to reset between tests — [internal/api/auth_router_test.go:41-42](../internal/api/auth_router_test.go#L41-L42) constructs a bare `config.Config{...}` literal directly, never touching `LoadConfig` at all. That split is also exactly why the two production incidents below were invisible in tests: nothing that exercises `LoadConfig`'s actual file/env-merging logic runs in CI, so both bugs only reproduced in a real container. See "Cross-Feature Coupling" below.
+It's split this way so `Config` stays a plain, mockable value instead of a global you'd have to reset between tests. That split is also exactly why the two production incidents below were invisible in tests: nothing that exercises `LoadConfig`'s actual file/env-merging logic runs in CI, so both bugs only reproduced in a real container. See "Cross-Feature Coupling" below.
 
 ## Section 2 — The `Config` struct — the schema
 
-**The problem it solves.** Every setting the app needs — seven strings plus one duration plus one string slice plus a handful of logging toggles — needs one place they're all declared, typed, and named, instead of a `DB_SOURCE` string literal scattered across `main.go`, `connect_db.go`, and `cmd/migration/main.go`.
+**The problem it solves.** Every setting the app needs — six top-level strings/durations/slices plus six logging toggles — needs one place they're all declared, typed, and named, instead of a `DB_SOURCE` string literal scattered across `main.go`, `connect_db.go`, and `cmd/migration/main.go`.
 
-**How it's implemented.** [internal/config/config.go](../internal/config/config.go):
+**How it's implemented.** [internal/config/config.go:12-42](../internal/config/config.go#L12-L42):
 
 ```go
 type Config struct {
@@ -72,26 +79,26 @@ type Config struct {
 | `JWTSecretKey` | `JWT_SECRET_KEY` | `string` | *(blank — set per environment)* |
 | `JWTAccessTokenDuration` | `JWT_ACCESS_TOKEN_DURATION` | `time.Duration` | `15m` |
 | `CORSAllowedOrigins` | `CORS_ALLOWED_ORIGINS` | `[]string` | *(blank; comma-separated when set, e.g. `http://localhost:3000,http://localhost:5173`)* |
-| `LogLevel` | `LOG_LEVEL` | `string` | `debug` — see [docs/LOGGING.md](LOGGING.md) |
-| `LogFormat` | `LOG_FORMAT` | `string` | `json` — see [docs/LOGGING.md](LOGGING.md) |
-| `LogPrettyJSON` | `LOG_PRETTY_JSON` | `bool` | `true` — see [docs/LOGGING.md](LOGGING.md) §7 |
-| `LogRequestBody` | `LOG_REQUEST_BODY` | `bool` | `true` — see [docs/LOGGING.md](LOGGING.md) §7 |
-| `LogResponseBody` | `LOG_RESPONSE_BODY` | `bool` | `true` — see [docs/LOGGING.md](LOGGING.md) §7 |
-| `LogMaxBodySize` | `LOG_MAX_BODY_SIZE` | `int64` | `1048576` — see [docs/LOGGING.md](LOGGING.md) §7 |
+| `LogLevel` | `LOG_LEVEL` | `string` | `debug` |
+| `LogFormat` | `LOG_FORMAT` | `string` | `json` |
+| `LogPrettyJSON` | `LOG_PRETTY_JSON` | `bool` | `true` |
+| `LogRequestBody` | `LOG_REQUEST_BODY` | `bool` | `true` |
+| `LogResponseBody` | `LOG_RESPONSE_BODY` | `bool` | `true` |
+| `LogMaxBodySize` | `LOG_MAX_BODY_SIZE` | `int64` (bytes) | `1048576` |
 
-`LogLevel`/`LogFormat`/`LogPrettyJSON`/`LogRequestBody`/`LogResponseBody`/`LogMaxBodySize` are all exceptions to "the struct itself does zero validation" below — `internal/logger.New`/`internal/api/logging_middleware.go` (not this package) treat an empty, unrecognized, or zero value as a safe default rather than erroring, so a typo'd `LOG_LEVEL` or an unset `LOG_MAX_BODY_SIZE` silently falls back to a default instead of failing config load.
+`LogLevel`/`LogFormat`/`LogPrettyJSON`/`LogRequestBody`/`LogResponseBody`/`LogMaxBodySize` are all exceptions to "the struct itself does zero validation" below — [internal/logger/logger.go](../internal/logger/logger.go) and [internal/api/core/logging_middleware.go](../internal/api/core/logging_middleware.go) (not this package) treat an empty, unrecognized, or zero value as a safe default rather than erroring, so a typo'd `LOG_LEVEL` or an unset `LOG_MAX_BODY_SIZE` silently falls back to a default instead of failing config load.
 
 **Worth flagging:** `LogPrettyJSON`/`LogRequestBody`/`LogResponseBody` decode from the string `"true"`/`"false"` an env var actually carries because Viper's `defaultDecoderConfig` sets `mapstructure.DecoderConfig.WeaklyTypedInput: true` — the same setting that lets a numeric-looking string decode into `LogMaxBodySize int64`. `LoadConfig`'s own `viper.DecodeHook(...)` option (Section 3) only overwrites `DecoderConfig.DecodeHook`, not `WeaklyTypedInput`, so this keeps working even with a custom hook — but it's exactly the kind of implicit behavior Section 0's second gotcha warns about.
 
 **If you're new to `mapstructure`:** it's the library Viper unmarshals *through* — the tag name is a `mapstructure` requirement, not a Viper one, and it has nothing to do with `encoding/json`. Writing `json:"DB_SOURCE"` here compiles fine and does nothing; `viper.Unmarshal` never looks at it. This is the single most common mistake when adding a field: add it, tag it wrong (or not at all), and you get a zero value with `err == nil` — no crash, no warning, the field is just always empty.
 
-**Rough edge worth flagging:** the struct itself does zero validation. There's no way to tell, just from `Config`, which fields are actually required for the app to run versus cosmetic. That validation — where it exists at all — lives entirely in the consumers (Section 4), not here.
+**Rough edge worth flagging:** the struct itself does zero validation. There's no way to tell, just from `Config`, which fields are actually required for the app to run versus cosmetic. That validation — where it exists at all — lives entirely in the consumers (Section 4), not here. This matches AGENTS.md's "No startup config validation" callout.
 
 ## Section 3 — `LoadConfig` — merging a file with the environment
 
 **The problem it solves.** Local development wants a convenience file (`app.env`) you can edit without touching your shell profile. Production (Docker, or any real deploy target) wants to set real environment variables and ship no file at all. Without Viper, that's two different code paths with an `if os.Getenv("ENV") == "local"` branch somewhere. `LoadConfig` is one function that serves both.
 
-**How it's implemented**, in full, because every line here has been the site of a real bug at some point — [internal/config/config.go:23-67](../internal/config/config.go#L23-L67):
+**How it's implemented**, in full, because every line here has been the site of a real bug at some point — [internal/config/config.go:46-90](../internal/config/config.go#L46-L90):
 
 ```go
 func LoadConfig(path string) (config Config, err error) {
@@ -139,11 +146,11 @@ Three mechanics, then the two pitfalls that shaped this exact code:
 
 1. **`AddConfigPath` / `SetConfigName` / `SetConfigType`** point Viper at `<path>/app.env`, parsed as flat `KEY=VALUE` pairs — not YAML/JSON/TOML despite the `.env` extension looking arbitrary.
 2. **`ReadInConfig`'s error is deliberately swallowed, but only for one specific error type.** A missing `app.env` (`viper.ConfigFileNotFoundError`) is fine and expected in production. Any other error — a malformed file, a permissions problem — is not swallowed and propagates out of `LoadConfig`.
-3. **Config is resolved once, at process start, before anything else happens.** [cmd/server/main.go:26-29](../cmd/server/main.go#L26-L29) calls `LoadConfig` and `log.Fatal`s immediately on error — a config problem fails loudly at startup rather than surfacing later on the first request that needs the broken field. (This holds for genuine errors; the callout below is about the case where `err == nil` but the value is still wrong.)
+3. **Config is resolved once, at process start, before anything else happens.** [cmd/server/main.go:35-40](../cmd/server/main.go#L35-L40) calls `LoadConfig` and `log.Fatal`s immediately on error (this is the *only* `log.Fatal` call left in `main.go` — every later failure in that file uses the structured logger plus `os.Exit(1)`, since a logger exists by then). A config problem fails loudly at startup rather than surfacing later on the first request that needs the broken field. (This holds for genuine errors; the callout below is about the case where `err == nil` but the value is still wrong.)
 
 ### Pitfall: `AutomaticEnv()` does not mean `Unmarshal()` sees your env vars
 
-This bit us for real: the `core-services` container in [docker-compose.yaml](../../../docker-compose.yaml) sets `DB_DRIVER`, `DB_SOURCE`, `SERVER_ADDRESS`, etc. as plain environment variables and does **not** mount an `app.env` file. The container started, but `sql.Open(cfg.DBDriver, cfg.DBSource)` in [cmd/server/connect_db.go:31](../cmd/server/connect_db.go#L31) failed because `cfg.DBDriver` was an empty string — even though `DB_DRIVER=postgres` was clearly set in `docker-compose.yaml`.
+This bit us for real: the `core-services` container in [docker-compose.yaml](../../../docker-compose.yaml) sets `DB_DRIVER`, `DB_SOURCE`, `SERVER_ADDRESS`, etc. as plain environment variables and does **not** mount an `app.env` file. The container started, but `sql.Open(cfg.DBDriver, cfg.DBSource)` in [cmd/server/connect_db.go:32](../cmd/server/connect_db.go#L32) failed because `cfg.DBDriver` was an empty string — even though `DB_DRIVER=postgres` was clearly set in `docker-compose.yaml`.
 
 **Why this happens.** `AutomaticEnv()` only makes Viper check the environment for keys **Viper already knows about** — keys it learned from a config file it successfully read, from a `viper.SetDefault`, or from an explicit `viper.BindEnv(key)` call. It does not inspect the `Config` struct's tags and go hunting through `os.Environ()` on its own. Put together:
 
@@ -177,18 +184,20 @@ CORS parsing started working — and JWT duration parsing silently broke. Passin
 
 ## Section 4 — Consumers: where `Config` values actually get used
 
-`LoadConfig` never gets called a second time and nothing downstream calls `viper.Get(...)` directly — every consumer reads a typed field off the `Config` value that was threaded to it.
+`LoadConfig` never gets called a second time per process and nothing downstream calls `viper.Get(...)` directly — every consumer reads a typed field off the `Config` value that was threaded to it (or, for `JWTAccessTokenDuration`, a copy of that field stored on a domain `Handler`).
 
 | Field | Consumed by | Where |
 |---|---|---|
-| `DBDriver`, `DBSource` | `sql.Open` | [cmd/server/connect_db.go:31](../cmd/server/connect_db.go#L31) |
-| `DBSource` | migration up/down commands | [cmd/migration/main.go](../cmd/migration/main.go) (`upMigration(cfg.DBSource)`, `downMigration(cfg.DBSource)`) |
-| `ServerAddress` | port pre-check + HTTP listen | [cmd/server/main.go:49](../cmd/server/main.go#L49) (`net.Listen`), [cmd/server/main.go:54](../cmd/server/main.go#L54) (`server.Start`) |
-| `JWTSecretKey` | token maker construction | [internal/api/server.go:40](../internal/api/server.go#L40) (`token.NewJWTMaker(cfg.JWTSecretKey)`) |
-| `JWTAccessTokenDuration` | token creation + response payload | [internal/api/auth_router.go:61,70](../internal/api/auth_router.go#L61) and [:154,163](../internal/api/auth_router.go#L154) (login and register) |
-| `CORSAllowedOrigins` | CORS middleware | [internal/api/server.go:48,88-100](../internal/api/server.go#L48) (`corsMiddleware`) |
+| `DBDriver`, `DBSource` | `sql.Open` | [cmd/server/connect_db.go:32](../cmd/server/connect_db.go#L32) |
+| `DBSource` | migration subcommands | [cmd/migration/main.go](../cmd/migration/main.go) — `upMigration` (line 116), `downMigration` (line 122), `forceMigration` (line 137), `migrateGotoversion` (line 153) |
+| `ServerAddress` | pre-flight port check + HTTP listen | [cmd/server/main.go:63](../cmd/server/main.go#L63) (`net.Listen` pre-check, immediately closed), [cmd/server/main.go:71](../cmd/server/main.go#L71) (`server.Start`, which actually serves) |
+| `JWTSecretKey` | token maker construction | [internal/api/server.go:47](../internal/api/server.go#L47) (`token.NewJWTMaker(cfg.JWTSecretKey)`) |
+| `JWTAccessTokenDuration` | copied onto `auth.Handler`, then used for token creation + response payload | wiring: [internal/api/router.go:32](../internal/api/router.go#L32) (`AccessTokenDuration: server.config.JWTAccessTokenDuration`) into [internal/api/auth/auth.go:19](../internal/api/auth/auth.go#L19); consumed at [internal/api/auth/handlers.go:64,73](../internal/api/auth/handlers.go#L64) (login) and [internal/api/auth/handlers.go:170,179](../internal/api/auth/handlers.go#L170) (register) |
+| `CORSAllowedOrigins` | CORS middleware + startup log line | [internal/api/server.go:71,78-82](../internal/api/server.go#L71) (`corsMiddleware` call + "CORS enabled/disabled" log) |
+| `LogLevel`, `LogFormat`, `LogPrettyJSON` | logger construction | [internal/logger/logger.go:15-34](../internal/logger/logger.go#L15-L34) (`logger.New`) |
+| `LogRequestBody`, `LogResponseBody`, `LogMaxBodySize` | access-log body capture | [internal/api/core/logging_middleware.go:76-165](../internal/api/core/logging_middleware.go#L76-L165) (`LoggingMiddleware`, `effectiveMaxBodySize`) |
 
-**Token signing key.** `JWTSecretKey` isn't just read — it's validated, but *not* by `LoadConfig`. [internal/token/jwt_maker.go:11,21-23](../internal/token/jwt_maker.go#L11):
+**Token signing key.** `JWTSecretKey` isn't just read — it's validated, but *not* by `LoadConfig`. [internal/token/jwt_maker.go:11,20-23](../internal/token/jwt_maker.go#L11):
 
 ```go
 const minSecretKeySize = 32
@@ -198,14 +207,14 @@ if len(secretKey) < minSecretKeySize {
 }
 ```
 
-`api.NewServer` wraps and re-raises this as `"cannot create token maker: %w"` ([internal/api/server.go:41-43](../internal/api/server.go#L41-L43)), and `main.go` still `log.Fatal`s on it — so a too-short secret does fail at startup, just via a different layer than `LoadConfig`'s own returned `err`.
+`api.NewServer` wraps and re-raises this as `"cannot create token maker: %w"` ([internal/api/server.go:47-50](../internal/api/server.go#L47-L50)), and `main.go` logs and `os.Exit(1)`s on it ([cmd/server/main.go:57-60](../cmd/server/main.go#L57-L60)) — so a too-short secret does fail at startup, just via a different layer than `LoadConfig`'s own returned `err`.
 
 **Rough edge — validation is split across three different places, none of which is `Config` itself:**
-- `DBDriver`/`DBSource` are validated implicitly, by `sql.Open` and the retry-bounded ping loop in `connectDB` ([cmd/server/connect_db.go:41-55](../cmd/server/connect_db.go#L41-L55)) failing loudly.
+- `DBDriver`/`DBSource` are validated implicitly, by `sql.Open` and the retry-bounded ping loop in `connectDB` ([cmd/server/connect_db.go:43-61](../cmd/server/connect_db.go#L43-L61)) failing loudly.
 - `JWTSecretKey` is validated explicitly, but inside `internal/token`, not `internal/config`.
-- `ServerAddress` and `JWTAccessTokenDuration` have **no validation anywhere**. An empty `SERVER_ADDRESS` reaches `net.Listen` and fails there (still caught, still `log.Fatal`'d — see [cmd/server/main.go:49-51](../cmd/server/main.go#L49-L51)) but a missing `JWT_ACCESS_TOKEN_DURATION` quietly decodes to `0s`: tokens would be issued already-expired, with no error at any layer. This has not been hit in production (the key is always set), but it's a real gap — worth a `SetDefault` or an explicit check if this file is touched again.
+- `ServerAddress` and `JWTAccessTokenDuration` have **no validation anywhere**. An empty `SERVER_ADDRESS` reaches `net.Listen` and fails there (still caught, still logged + `os.Exit(1)`'d — see [cmd/server/main.go:63-67](../cmd/server/main.go#L63-L67)) but a missing `JWT_ACCESS_TOKEN_DURATION` quietly decodes to `0s`: tokens would be issued already-expired, with no error at any layer. This has not been hit in production (the key is always set), but it's a real gap — worth a `SetDefault` or an explicit check if this file is touched again.
 
-**Rough edge — an empty `CORSAllowedOrigins` disables CORS entirely, rather than erroring or defaulting to "allow nothing visibly."** [internal/api/server.go:85-91](../internal/api/server.go#L85-L91):
+**Rough edge — an empty `CORSAllowedOrigins` disables CORS entirely, rather than erroring or defaulting to "allow nothing visibly."** [internal/api/server.go:118-124](../internal/api/server.go#L118-L124):
 
 ```go
 // corsMiddleware allows browser clients on allowedOrigins to call this API.
@@ -218,39 +227,45 @@ func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	...
 ```
 
-This is intentional per the comment, and matches a server-to-server deployment where no browser client needs CORS headers at all — but it means leaving `CORS_ALLOWED_ORIGINS` unset is indistinguishable, at the config layer, from deliberately disabling browser access. `NewServer` now logs which case a given run is in, once, at startup (`"CORS disabled: ..."` or `"CORS enabled"` with the origin list) — see [internal/api/server.go](../internal/api/server.go) and [docs/LOGGING.md](LOGGING.md) — but `Config` itself still can't tell the two cases apart; the log line is observability, not a fix for the underlying ambiguity.
+This is intentional per the comment, and matches a server-to-server deployment where no browser client needs CORS headers at all — but it means leaving `CORS_ALLOWED_ORIGINS` unset is indistinguishable, at the config layer, from deliberately disabling browser access. `NewServer` logs which case a given run is in, once, at startup ([internal/api/server.go:78-82](../internal/api/server.go#L78-L82) — `"CORS disabled: ..."` or `"CORS enabled"` with the origin list), but `Config` itself still can't tell the two cases apart; the log line is observability, not a fix for the underlying ambiguity.
+
+**New since the last pass over this doc — `connectDB` grew retry/pool-tuning logic that isn't config-driven at all.** [cmd/server/connect_db.go:16-24](../cmd/server/connect_db.go#L16-L24) hardcodes pool limits (`SetMaxOpenConns`/`SetMaxIdleConns` = 25, `SetConnMaxLifetime`/`SetConnMaxIdleTime` = 5 minutes) and a bounded ping retry loop (5 attempts, 2s between, 5s timeout each) as package constants — none of these are `mapstructure`-tagged `Config` fields, so they can't be tuned via `app.env` or a real env var today. If a deploy target needs different pool sizing, that's a code change here, not a config change.
 
 ## Section 5 — Local dev vs. production: `app.env` vs. real environment variables
 
 Any real environment variable with a matching name (`DB_SOURCE=...` set by the shell, Docker, or a deploy platform) overrides whatever `app.env` says, with no extra code — that's `AutomaticEnv()` plus the `BindEnv` loop from Section 3 working together. In practice:
 
-- **Local dev**: [app.env](../app.env) (git-ignored — see [.gitignore:27-30](../../../.gitignore#L27-L30), which excludes `.env`, `app.env`, and `*.env`) holds real values. [app.env.example](../app.env.example) is the checked-in template documenting the required keys, with everything blank except `JWT_ACCESS_TOKEN_DURATION=15m`.
-- **Production / Docker**: the `core-services` service in [docker-compose.yaml](../../../docker-compose.yaml) sets the original six values as plain `environment:` entries and mounts no file at all. It doesn't set `LOG_PRETTY_JSON`/`LOG_REQUEST_BODY`/`LOG_RESPONSE_BODY`/`LOG_MAX_BODY_SIZE` — all four default to off/unset (compact JSON, no body capture) when absent, which is the safe choice for this deployment as-is; see [docs/LOGGING.md](LOGGING.md) §7 before turning body capture on here.
+- **Local dev**: [app.env](../app.env) (git-ignored — see [.gitignore:28-30](../../../.gitignore#L28-L30) at the **monorepo root**, one level above `apps/`, which excludes `.env`, `app.env`, and `*.env`) holds real values. [app.env.example](../app.env.example) is the checked-in template documenting the required keys, with everything blank except the logging defaults and `JWT_ACCESS_TOKEN_DURATION=15m`.
+- **Production / Docker**: the `core-services` service in [docker-compose.yaml](../../../docker-compose.yaml) (also at the monorepo root, not inside `apps/core-service`) sets `DB_DRIVER`, `DB_SOURCE`, `SERVER_ADDRESS`, `JWT_SECRET_KEY`, `JWT_ACCESS_TOKEN_DURATION`, `CORS_ALLOWED_ORIGINS`, `LOG_LEVEL`, and `LOG_FORMAT` as plain `environment:` entries and mounts no file at all. It does **not** set `LOG_PRETTY_JSON`/`LOG_REQUEST_BODY`/`LOG_RESPONSE_BODY`/`LOG_MAX_BODY_SIZE` — all four default to off/unset (compact JSON, no body capture) when absent, which is the safe choice for this deployment as-is.
 
-There is exactly one loader (`LoadConfig`) for both cases — which is also exactly the setup that triggers the `AutomaticEnv()` pitfall above: it only reproduces when there is no config file, i.e. the production path, so it's easy to develop and test entirely against the `app.env` path and never see it.
+**Worth flagging — the committed `docker-compose.yaml` hardcodes a real-looking `JWT_SECRET_KEY` value in plain text**, in the same file as the DB connection string. AGENTS.md treats `app.env`/`app.prod.env`/`core-service-key.pem` as secrets that must never be committed in plaintext; this compose file's `JWT_SECRET_KEY` and `DB_SOURCE` entries are the same category of value living in a place that isn't called out the same way. If this file is touched again, consider moving these to an `env_file:`-mounted secret rather than inline `environment:` values.
+
+There is exactly one loader (`LoadConfig`) for both the server and the migration CLI's four subcommands — which is also exactly the setup that triggers the `AutomaticEnv()` pitfall above: it only reproduces when there is no config file, i.e. the production path, so it's easy to develop and test entirely against the `app.env` path and never see it.
 
 ## Cross-Feature Coupling
 
-- **The migration CLI shares the same loader, independently.** [cmd/migration/main.go](../cmd/migration/main.go) is a second, separate binary that calls `config.LoadConfig(".")` on its own (once per `up`/`down` invocation) — it does not go through `cmd/server/main.go` at all. Any bug in `LoadConfig` (both pitfalls above included) affects migrations and the API server simultaneously, even though they're invoked completely independently and might run in different containers.
-- **Tests bypass `LoadConfig` entirely.** [internal/api/auth_router_test.go:40-44](../internal/api/auth_router_test.go#L40-L44) builds a `config.Config{...}` struct literal directly and hands it to `NewServer` — no file, no environment, no `viper` call in the path at all. This is why neither pitfall above was ever caught by a test: the code path that actually merges file and environment has no automated coverage today. Both incidents were only found by running the real Docker container.
+- **The migration CLI shares the same loader, independently, four times over.** [cmd/migration/main.go](../cmd/migration/main.go) is a second, separate binary that calls `config.LoadConfig(".")` on its own — once inside each of its `up`/`down`/`force`/`goto` subcommand branches ([cmd/migration/main.go:112,118,133,149](../cmd/migration/main.go#L112)) — it does not go through `cmd/server/main.go` at all. Any bug in `LoadConfig` (both pitfalls above included) affects migrations and the API server simultaneously, even though they're invoked completely independently and might run in different containers.
+- **Handler-level tests bypass `LoadConfig` and `Config` entirely, by construction rather than by injecting a struct literal.** [internal/api/auth/auth_handler_test.go:37-42](../internal/api/auth/auth_handler_test.go#L37-L42) (`newTestHandler`) builds a `token.Maker` directly via `token.NewJWTMaker(testSecretKey)` (a hardcoded 32-character literal at [line 28](../internal/api/auth/auth_handler_test.go#L28)) and a hardcoded `AccessTokenDuration: time.Minute`, then constructs `auth.Handler{...}` by hand — no `config.Config{}` value is ever created, let alone `LoadConfig` called. This is the per-domain-package evolution of what used to be a bare `config.Config{}` literal handed to a monolithic router constructor; the effect is the same (the file/env-merging code path in `LoadConfig` has zero automated coverage), but the mechanism moved down to each domain's own `Handler` struct. This is why neither pitfall above was ever caught by a test — both incidents were only found by running the real Docker container.
 
 ## Pure consumers — not part of the config system itself
 
 Two pieces take a `Config` value as a parameter but contain no loading, merging, or parsing logic of their own — worth naming so they don't get mistaken for part of the system described above:
 
-- `connectDB` ([cmd/server/connect_db.go](../cmd/server/connect_db.go)) — reads `cfg.DBDriver`/`cfg.DBSource` once, then spends the rest of its body tuning the connection pool and retrying the initial ping. None of that logic is config-related; `cfg` is just its input.
-- `Server.Start` ([internal/api/server.go:81-83](../internal/api/server.go#L81-L83)) — takes the already-resolved `cfg.ServerAddress` string and calls `router.Run(address)`. No parsing happens here either.
+- `connectDB` ([cmd/server/connect_db.go](../cmd/server/connect_db.go)) — reads `cfg.DBDriver`/`cfg.DBSource` once, then spends the rest of its body tuning the connection pool and retrying the initial ping with hardcoded (non-config-driven) constants. None of that logic is config-related; `cfg` is just its input.
+- `Server.Start` ([internal/api/server.go:114-116](../internal/api/server.go#L114-L116)) — takes the already-resolved `cfg.ServerAddress` string and calls `router.Run(address)`. No parsing happens here either.
 
 ## Summary — data flow
 
 **Local dev (`app.env` present):**
 ```
 main() → LoadConfig(".")
-  → viper reads app.env into memory (10 keys now known to viper)
-  → AutomaticEnv() can now match any of those 10 names against real env vars, which win if set
-  → BindEnv loop (redundant here, but harmless — same 10 keys)
+  → viper reads app.env into memory (12 keys now known to viper)
+  → AutomaticEnv() can now match any of those 12 names against real env vars, which win if set
+  → BindEnv loop (redundant here, but harmless — same 12 keys)
   → Unmarshal (duration + slice hooks) → Config{...} fully populated
-  → threaded into connectDB(cfg) and api.NewServer(store, cfg)
+  → logger.New(cfg) builds the shared *slog.Logger from LogLevel/LogFormat/LogPrettyJSON
+  → connectDB(cfg, logger) and api.NewServer(store, cfg, logger)
+  → bindRouters copies cfg.JWTAccessTokenDuration onto auth.Handler
 ```
 
 **Production / Docker (no file):**
@@ -258,27 +273,28 @@ main() → LoadConfig(".")
 main() → LoadConfig(".")
   → viper.ReadInConfig() → ConfigFileNotFoundError, swallowed
   → viper knows 0 keys — AutomaticEnv() alone would find nothing here
-  → BindEnv loop registers all 10 mapstructure-tagged keys explicitly (the fix)
-  → AutomaticEnv() can now match those 10 names against docker-compose's environment: entries
+  → BindEnv loop registers all 12 mapstructure-tagged keys explicitly (the fix)
+  → AutomaticEnv() can now match those 12 names against docker-compose's environment: entries
   → Unmarshal (duration + slice hooks) → Config{...} fully populated
-  → threaded into connectDB(cfg) and api.NewServer(store, cfg)
+  → logger.New(cfg), connectDB(cfg, logger), api.NewServer(store, cfg, logger)
+  → bindRouters copies cfg.JWTAccessTokenDuration onto auth.Handler
 ```
 
-Both flows end at the same `Config{...}` value and the same two call sites — the only difference is *which* mechanism (file-read vs. explicit `BindEnv`) put each key into Viper's known-key set before `Unmarshal` ran.
+Both flows end at the same `Config{...}` value and the same call sites — the only difference is *which* mechanism (file-read vs. explicit `BindEnv`) put each key into Viper's known-key set before `Unmarshal` ran.
 
 ## Final Reference — every environment variable
 
 | Env var | Go field | Type | Default in `app.env.example` | Required in practice | Consumed at |
 |---|---|---|---|---|---|
-| `DB_DRIVER` | `DBDriver` | `string` | *(blank)* | Yes — `sql.Open` fails without it | [connect_db.go:31](../cmd/server/connect_db.go#L31) |
-| `DB_SOURCE` | `DBSource` | `string` | *(blank)* | Yes — `sql.Open`/migrations fail without it | [connect_db.go:31](../cmd/server/connect_db.go#L31), [cmd/migration/main.go](../cmd/migration/main.go) |
-| `SERVER_ADDRESS` | `ServerAddress` | `string` | *(blank)* | Yes — `net.Listen` fails without it | [main.go:49](../cmd/server/main.go#L49) |
-| `JWT_SECRET_KEY` | `JWTSecretKey` | `string` | *(blank)* | Yes — rejected below 32 chars | [server.go:40](../internal/api/server.go#L40), [jwt_maker.go:21-23](../internal/token/jwt_maker.go#L21-L23) |
-| `JWT_ACCESS_TOKEN_DURATION` | `JWTAccessTokenDuration` | `time.Duration` | `15m` | **Not enforced** — unset silently decodes to `0s` | [auth_router.go:61,70,154,163](../internal/api/auth_router.go#L61) |
-| `CORS_ALLOWED_ORIGINS` | `CORSAllowedOrigins` | `[]string` (comma-separated) | *(blank)* | No — blank deliberately disables CORS | [server.go:48,88-100](../internal/api/server.go#L48) |
-| `LOG_LEVEL` | `LogLevel` | `string` | `debug` | No — empty/unrecognized falls back to `info` | [internal/logger/logger.go](../internal/logger/logger.go) |
-| `LOG_FORMAT` | `LogFormat` | `string` | `json` | No — anything but `text` falls back to `json` | [internal/logger/logger.go](../internal/logger/logger.go) |
+| `DB_DRIVER` | `DBDriver` | `string` | *(blank)* | Yes — `sql.Open` fails without it | [connect_db.go:32](../cmd/server/connect_db.go#L32) |
+| `DB_SOURCE` | `DBSource` | `string` | *(blank)* | Yes — `sql.Open`/migrations fail without it | [connect_db.go:32](../cmd/server/connect_db.go#L32), [cmd/migration/main.go](../cmd/migration/main.go) |
+| `SERVER_ADDRESS` | `ServerAddress` | `string` | *(blank)* | Yes — `net.Listen` fails without it | [main.go:63,71](../cmd/server/main.go#L63) |
+| `JWT_SECRET_KEY` | `JWTSecretKey` | `string` | *(blank)* | Yes — rejected below 32 chars | [server.go:47](../internal/api/server.go#L47), [jwt_maker.go:11,20-23](../internal/token/jwt_maker.go#L11) |
+| `JWT_ACCESS_TOKEN_DURATION` | `JWTAccessTokenDuration` | `time.Duration` | `15m` | **Not enforced** — unset silently decodes to `0s` | [router.go:32](../internal/api/router.go#L32) → [auth/handlers.go:64,73,170,179](../internal/api/auth/handlers.go#L64) |
+| `CORS_ALLOWED_ORIGINS` | `CORSAllowedOrigins` | `[]string` (comma-separated) | *(blank)* | No — blank deliberately disables CORS | [server.go:71,78-82](../internal/api/server.go#L71) |
+| `LOG_LEVEL` | `LogLevel` | `string` | `debug` | No — empty/unrecognized falls back to `info` | [internal/logger/logger.go:36-47](../internal/logger/logger.go#L36-L47) |
+| `LOG_FORMAT` | `LogFormat` | `string` | `json` | No — anything but `text` falls back to `json` | [internal/logger/logger.go:24-31](../internal/logger/logger.go#L24-L31) |
 | `LOG_PRETTY_JSON` | `LogPrettyJSON` | `bool` | `true` | No — false/unset keeps compact JSON | [internal/logger/pretty_handler.go](../internal/logger/pretty_handler.go) |
-| `LOG_REQUEST_BODY` | `LogRequestBody` | `bool` | `true` | No — false/unset disables request body capture | [internal/api/logging_middleware.go](../internal/api/logging_middleware.go) |
-| `LOG_RESPONSE_BODY` | `LogResponseBody` | `bool` | `true` | No — false/unset disables response body capture | [internal/api/logging_middleware.go](../internal/api/logging_middleware.go) |
-| `LOG_MAX_BODY_SIZE` | `LogMaxBodySize` | `int64` (bytes) | `1048576` | No — zero/unset falls back to 1MiB | [internal/api/logging_middleware.go](../internal/api/logging_middleware.go) |
+| `LOG_REQUEST_BODY` | `LogRequestBody` | `bool` | `true` | No — false/unset disables request body capture | [internal/api/core/logging_middleware.go:88,111](../internal/api/core/logging_middleware.go#L88) |
+| `LOG_RESPONSE_BODY` | `LogResponseBody` | `bool` | `true` | No — false/unset disables response body capture | [internal/api/core/logging_middleware.go:93,120](../internal/api/core/logging_middleware.go#L93) |
+| `LOG_MAX_BODY_SIZE` | `LogMaxBodySize` | `int64` (bytes) | `1048576` | No — zero/unset falls back to 1MiB | [internal/api/core/logging_middleware.go:26,160-165](../internal/api/core/logging_middleware.go#L26) |

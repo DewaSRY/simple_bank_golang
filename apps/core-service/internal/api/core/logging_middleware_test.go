@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"bytes"
@@ -28,10 +28,10 @@ func newTestRouterWithMiddleware(log *slog.Logger) *gin.Engine {
 func newTestRouterWithConfig(log *slog.Logger, cfg config.Config) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.Use(requestIDMiddleware())
-	router.Use(loggingMiddleware(log, cfg))
-	router.Use(errorHandlerMiddleware(log))
-	router.Use(recoveryMiddleware(log))
+	router.Use(RequestIDMiddleware())
+	router.Use(LoggingMiddleware(log, cfg))
+	router.Use(ErrorHandlerMiddleware(log))
+	router.Use(RecoveryMiddleware(log))
 	return router
 }
 
@@ -50,7 +50,7 @@ func TestRecoveryMiddleware_RendersSanitized500(t *testing.T) {
 
 	var body errorResponse
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
-	require.Equal(t, errCodeInternal, body.Error.Code)
+	require.Equal(t, ErrCodeInternal, body.Error.Code)
 	require.NotContains(t, rec.Body.String(), "something exploded")
 }
 
@@ -59,7 +59,7 @@ func TestErrorHandlerMiddleware_LogsCauseButDoesNotLeakIt(t *testing.T) {
 	log := slog.New(slog.NewJSONHandler(&logBuf, nil))
 	router := newTestRouterWithMiddleware(log)
 	router.GET("/boom", func(ctx *gin.Context) {
-		fail(ctx, InternalErr(errors.New("pq: connection reset by peer")))
+		Fail(ctx, InternalErr(errors.New("pq: connection reset by peer")))
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/boom", nil)

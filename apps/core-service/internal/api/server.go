@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 
+	"github.com/DewaSRY/core-service/internal/api/core"
 	config "github.com/DewaSRY/core-service/internal/config"
 	store "github.com/DewaSRY/core-service/internal/db/store"
 	"github.com/DewaSRY/core-service/internal/token"
@@ -65,11 +66,11 @@ func NewServer(store store.Storer, cfg config.Config, log *slog.Logger) (*Server
 	// hands control back to it; the other way around, a panic recovers into
 	// a response that's never written and the client sees an empty 200.
 	router := gin.New()
-	router.Use(requestIDMiddleware())
-	router.Use(loggingMiddleware(log, cfg))
+	router.Use(core.RequestIDMiddleware())
+	router.Use(core.LoggingMiddleware(log, cfg))
 	router.Use(corsMiddleware(cfg.CORSAllowedOrigins))
-	router.Use(errorHandlerMiddleware(log))
-	router.Use(recoveryMiddleware(log))
+	router.Use(core.ErrorHandlerMiddleware(log))
+	router.Use(core.RecoveryMiddleware(log))
 
 	// An unset CORS_ALLOWED_ORIGINS is indistinguishable from deliberately
 	// disabling CORS at the config layer alone (docs/CONFIG_ENV_VARIABLE.md,

@@ -17,14 +17,15 @@ The REST API is built on [gin-gonic/gin](https://github.com/gin-gonic/gin), not 
 ```
 internal/api/
 ├── server.go              <- Server struct, gin.Engine setup, registerValidatorFieldNames
-├── router.go               <- route table (bindRouters)
+├── router.go               <- bindRouters: wires groups, delegates registration to each resource
 ├── auth_middleware.go       <- JWT auth as gin middleware
 ├── apperror.go              <- AppError type + errorHandlerMiddleware
 ├── response.go              <- success/error envelope, pagination, validator error mapping
-├── account_router.go        <- handlers, one file per resource
-├── auth_router.go
-├── transactions_router.go
-└── user_router.go
+├── account_router.go        <- handlers + registerAccountRoutes, one file per resource
+├── account_manage_router.go <- handlers + registerAccountManageRoutes
+├── account_transactions_router.go <- handlers + registerAccountTransactionRoutes
+├── auth_router.go           <- handlers + registerAuthRoutes/registerProfileRoutes
+└── transactions_router.go   <- handlers + registerTransactionRoutes
 ```
 
 Four mechanics worth understanding, because they're the parts a newcomer to this codebase would otherwise have to reverse-engineer from handler code:
@@ -35,13 +36,15 @@ Four mechanics worth understanding, because they're the parts a newcomer to this
 
 3. **Three binding methods cover the three places request data lives.** `ShouldBindJSON` for the request body (`createAccountRequest`), `ShouldBindUri` for path parameters (`getAccountParams{ID int64 \`uri:"id"\`}`), `ShouldBindQuery` for query strings (`paginationQuery{Page, Limit}` in [response.go](../internal/api/response.go), reused by every list endpoint). All three report errors the same way — bind, check `err`, call `fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))` — so a handler never branches on which kind of binding failed.
 
-4. **Auth is a middleware that writes into `gin.Context`, not a value threaded through function signatures.** `authMiddleware(tokenMaker)` (see [internal/api/auth_middleware.go](../internal/api/auth_middleware.go)) verifies the `Authorization: Bearer <token>` header and, on success, stores the decoded payload in the request context; `getAuthPayload(ctx)` retrieves it in any handler downstream (e.g. `createAccount` in [account_router.go](../internal/api/account_router.go) reads `authPayload.Username` to set `Owner`). It's applied to a route *group*, not per-route: `router.go` splits routes into an unauthenticated group (`/users`, `/auth/login`) and an `authorized := router.Group("/")` group with `authorized.Use(authMiddleware(...))` — adding a new protected endpoint means registering it on `authorized`, not remembering to attach middleware by hand each time. See [IMPLEMENT_AUTH.md](IMPLEMENT_AUTH.md) for the full auth design.
+4. **Auth is a middleware that writes into `gin.Context`, not a value threaded through function signatures.** `authMiddleware(tokenMaker)` (see [internal/api/auth_middleware.go](../internal/api/auth_middleware.go)) verifies the `Authorization: Bearer <token>` header and, on success, stores the decoded payload in the request context; `getAuthPayload(ctx)` retrieves it in any handler downstream (e.g. `createAccount` in [account_router.go](../internal/api/account_router.go) reads `authPayload.Username` to set `Owner`). It's applied to a route *group*, not per-route: `router.go`'s `bindRouters` builds an unauthenticated group (`v1`, passed to `registerAuthRoutes` for `/auth/login`/`/auth/register`) and an `authorized := v1.Group("/")` group with `authorized.Use(authMiddleware(...))`, then passes `authorized` to every other resource's `registerXRoutes` — adding a new protected endpoint means registering it on `authorized` inside that resource's own file, not remembering to attach middleware by hand each time. See [IMPLEMENT_AUTH.md](IMPLEMENT_AUTH.md) for the full auth design.
+
+5. **Route registration is delegated per resource, not listed flat in one function.** `bindRouters` in [router.go](../internal/api/router.go) only builds the route groups (`v1`, `authorized`) and calls one `registerXRoutes(rg *gin.RouterGroup)` function per resource (`registerAccountRoutes`, `registerAccountManageRoutes`, `registerAccountTransactionRoutes`, `registerAuthRoutes`, `registerProfileRoutes`, `registerTransactionRoutes`), each defined next to that resource's handlers in its `*_router.go` file. `router.go` never grows past one call per resource — the resource file itself is where its route list lives.
 
 ## Day-to-day integration
 
 **Adding a new endpoint:**
 
-1. Add the route to `bindRouters` in [internal/api/router.go](../internal/api/router.go), on `router` (public) or `authorized` (requires a valid JWT).
+1. Add the route inside that resource's `registerXRoutes(rg *gin.RouterGroup)` function in its `*_router.go` file (or add a new `registerXRoutes` function, plus a call to it from `bindRouters` in [internal/api/router.go](../internal/api/router.go), for a new resource). Register on the group `rg` was called with — `v1` (public) if called from `registerAuthRoutes`, `authorized` (requires a valid JWT) otherwise.
 2. Write the handler in the resource's router file (or a new one, following the `*_router.go` naming convention) as `func (server *Server) yourHandler(ctx *gin.Context)`.
 3. Define a request struct with `binding` tags for whatever Gin should validate, and bind it with the matching `ShouldBind*` call.
 4. On failure, call `fail(ctx, ...)` with one of the constructors in [apperror.go](../internal/api/apperror.go) (`ValidationErr`, `NotFoundErr`, `ForbiddenErr`, `BadRequestErr`, `ConflictErr`, `InternalErr`) — add a new one there if the failure doesn't fit an existing status/code.

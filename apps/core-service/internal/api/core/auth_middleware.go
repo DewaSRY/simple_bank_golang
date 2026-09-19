@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"errors"
@@ -21,14 +21,14 @@ var (
 	errAuthTypeUnsupported = errors.New("unsupported authorization type")
 )
 
-// authMiddleware extracts and verifies the "Authorization: Bearer <token>"
+// AuthMiddleware extracts and verifies the "Authorization: Bearer <token>"
 // header, then stores the resulting token.Payload in the Gin context so
-// downstream handlers can identify the caller via getAuthPayload(ctx).
-func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
+// downstream handlers can identify the caller via GetAuthPayload(ctx).
+func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		payload, err := parseAuthHeader(ctx.GetHeader(authorizationHeaderKey), tokenMaker)
 		if err != nil {
-			fail(ctx, UnauthorizedErr(err.Error()))
+			Fail(ctx, UnauthorizedErr(err.Error()))
 			return
 		}
 
@@ -59,9 +59,9 @@ func parseAuthHeader(authorizationHeader string, tokenMaker token.Maker) (*token
 	return payload, nil
 }
 
-// getAuthPayload returns the authenticated caller's token payload. It must
-// only be called from handlers registered behind authMiddleware.
-func getAuthPayload(ctx *gin.Context) *token.Payload {
+// GetAuthPayload returns the authenticated caller's token payload. It must
+// only be called from handlers registered behind AuthMiddleware.
+func GetAuthPayload(ctx *gin.Context) *token.Payload {
 	payload, ok := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	if !ok {
 		return nil

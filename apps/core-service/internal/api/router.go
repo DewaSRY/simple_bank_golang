@@ -6,8 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"github.com/DewaSRY/core-service/internal/api/account"
+	"github.com/DewaSRY/core-service/internal/api/auth"
+	"github.com/DewaSRY/core-service/internal/api/core"
+	"github.com/DewaSRY/core-service/internal/api/transfer"
 )
 
+// bindRouters is the composition root: it builds the route groups and hands
+// each one to the owning domain module's Handler. Adding a new endpoint to
+// an existing module never touches this function — only that module's own
+// RegisterRoutes. Adding a new module means one Handler construction plus
+// one RegisterRoutes call here.
 func (server *Server) bindRouters(router *gin.Engine) {
 	router.GET("/health", server.health)
 
@@ -16,34 +26,24 @@ func (server *Server) bindRouters(router *gin.Engine) {
 	// API v1 routes
 	v1 := router.Group("/api/v1")
 
-	v1.POST("/auth/login", server.loginUser)
-	v1.POST("/auth/register", server.registerUser)
+	authHandler := &auth.Handler{
+		Store:               server.store,
+		TokenMaker:          server.tokenMaker,
+		AccessTokenDuration: server.config.JWTAccessTokenDuration,
+	}
+	authHandler.RegisterPublicRoutes(v1)
 
 	// Authorized routes
 	authorized := v1.Group("/")
-	authorized.Use(authMiddleware(server.tokenMaker))
+	authorized.Use(core.AuthMiddleware(server.tokenMaker))
 
-	// Profile routes
-	authorized.GET("/auth/profile", server.GetProfile)
+	authHandler.RegisterAuthorizedRoutes(authorized)
 
-	// Account routes
-	authorized.POST("/accounts", server.createAccount)
-	authorized.GET("/accounts/search-by-number", server.searchAccountByNumber)
-	authorized.GET("/accounts/me", server.listmeAccounts)
+	accountHandler := &account.Handler{Store: server.store}
+	accountHandler.RegisterRoutes(authorized)
 
-	// account routes manage
-	authorized.GET("/accounts/:id", server.detailAccount)
-	authorized.PUT("/accounts/:id", server.updateAccount)
-	authorized.DELETE("/accounts/:id", server.deleteAccount)
-
-	// accounts-transaction
-	authorized.GET("/accounts/:id/entries", server.listAccountEntriesByAccountId)
-	authorized.GET("/accounts/:id/recent-destinations", server.listRecentTransferDestinations)
-	authorized.GET("/accounts/:id/transactions", server.listAccountTransactionHistory)
-	authorized.POST("/accounts/:id/deposit", server.deposit)
-
-	// Transaction routes
-	authorized.POST("/transactions/transfer", server.transactionTransfer)
+	transferHandler := &transfer.Handler{Store: server.store}
+	transferHandler.RegisterRoutes(authorized)
 }
 
 // health godoc
@@ -54,5 +54,5 @@ func (server *Server) bindRouters(router *gin.Engine) {
 // @Success      200  {object}  successResponse
 // @Router       /health [get]
 func (server *Server) health(ctx *gin.Context) {
-	succeed(ctx, http.StatusOK, gin.H{"status": "ok"}, "Service is healthy")
+	core.Succeed(ctx, http.StatusOK, gin.H{"status": "ok"}, "Service is healthy")
 }

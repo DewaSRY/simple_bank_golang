@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"io"
@@ -17,10 +17,10 @@ import (
 func newTestRouterWithAuthMiddleware(t *testing.T, tokenMaker token.Maker) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.Use(errorHandlerMiddleware(slog.New(slog.NewTextHandler(io.Discard, nil))))
+	router.Use(ErrorHandlerMiddleware(slog.New(slog.NewTextHandler(io.Discard, nil))))
 
-	router.GET("/protected", authMiddleware(tokenMaker), func(ctx *gin.Context) {
-		payload := getAuthPayload(ctx)
+	router.GET("/protected", AuthMiddleware(tokenMaker), func(ctx *gin.Context) {
+		payload := GetAuthPayload(ctx)
 		require.NotNil(t, payload)
 		ctx.JSON(http.StatusOK, gin.H{"username": payload.Username})
 	})

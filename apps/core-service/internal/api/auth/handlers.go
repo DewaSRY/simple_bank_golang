@@ -1,4 +1,4 @@
-package api
+package auth
 
 import (
 	"database/sql"
@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 
+	"github.com/DewaSRY/core-service/internal/api/core"
 	"github.com/DewaSRY/core-service/internal/util"
 
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
@@ -38,38 +39,38 @@ type AuthResponse struct {
 // @Failure      401      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
 // @Router       /auth/login [post]
-func (server *Server) loginUser(ctx *gin.Context) {
+func (h *Handler) loginUser(ctx *gin.Context) {
 	var req loginUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	user, err := server.store.GetUserByEmail(ctx, req.Email)
+	user, err := h.Store.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, UnauthorizedErr("invalid username or password"))
+			core.Fail(ctx, core.UnauthorizedErr("invalid username or password"))
 			return
 		}
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
 	if err := util.CheckPassword(req.Password, user.HashedPassword); err != nil {
-		fail(ctx, UnauthorizedErr("invalid username or password"))
+		core.Fail(ctx, core.UnauthorizedErr("invalid username or password"))
 		return
 	}
 
-	accessToken, _, err := server.tokenMaker.CreateToken(user.ID, user.Username, user.Email, server.config.JWTAccessTokenDuration)
+	accessToken, _, err := h.TokenMaker.CreateToken(user.ID, user.Username, user.Email, h.AccessTokenDuration)
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, AuthResponse{
+	core.Succeed(ctx, http.StatusOK, AuthResponse{
 		AccessToken: accessToken,
 		TokenType:   "Bearer",
-		ExpiresIn:   int64(server.config.JWTAccessTokenDuration.Seconds()),
+		ExpiresIn:   int64(h.AccessTokenDuration.Seconds()),
 	}, "Login successful")
 }
 
@@ -92,45 +93,45 @@ type registerUserRequest struct {
 // @Failure      401      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
 // @Router       /auth/register [post]
-func (server *Server) registerUser(ctx *gin.Context) {
+func (h *Handler) registerUser(ctx *gin.Context) {
 	var req registerUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	// Check if the password and password confirmation match
 	if req.Password != req.PasswordConfirm {
-		fail(ctx, BadRequestErr("password_mismatch", "password and password confirmation do not match"))
+		core.Fail(ctx, core.BadRequestErr("password_mismatch", "password and password confirmation do not match"))
 		return
 	}
 
 	// Check if the email already exists
-	_, err := server.store.GetUserByEmail(ctx, req.Email)
+	_, err := h.Store.GetUserByEmail(ctx, req.Email)
 	if err == nil {
-		fail(ctx, BadRequestErr("email_exists", "email already exists"))
+		core.Fail(ctx, core.BadRequestErr("email_exists", "email already exists"))
 		return
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
 	// Check if the username already exists
-	usernameExists, err := server.store.CheckIsUsernameExist(ctx, req.Username)
+	usernameExists, err := h.Store.CheckIsUsernameExist(ctx, req.Username)
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 	if usernameExists {
-		fail(ctx, BadRequestErr("username_exists", "username already exists"))
+		core.Fail(ctx, core.BadRequestErr("username_exists", "username already exists"))
 		return
 	}
 
 	// Hash the password
 	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
@@ -141,41 +142,41 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		HashedPassword: hashedPassword,
 	}
 
-	user, err := server.store.CreateUser(ctx, arg)
+	user, err := h.Store.CreateUser(ctx, arg)
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code.Name() == "unique_violation" {
-			fail(ctx, ConflictErr(errCodeConflict, "username or email already exists"))
+			core.Fail(ctx, core.ConflictErr(core.ErrCodeConflict, "username or email already exists"))
 			return
 		}
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
 	// Create the user's Main Account. This is the only account flagged
 	// IsMain: true — it can never be deleted, and receives the remaining
 	// balance whenever another of the user's accounts is deleted.
-	_, err = server.store.CreateAccountTx(ctx, store.CreateAccountTxParams{
+	_, err = h.Store.CreateAccountTx(ctx, store.CreateAccountTxParams{
 		UserID: sql.NullInt64{Int64: user.ID, Valid: true},
 		Name:   "Main Account",
 		IsMain: true,
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
 	// create access token for the new user
-	accessToken, _, err := server.tokenMaker.CreateToken(user.ID, user.Username, user.Email, server.config.JWTAccessTokenDuration)
+	accessToken, _, err := h.TokenMaker.CreateToken(user.ID, user.Username, user.Email, h.AccessTokenDuration)
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, AuthResponse{
+	core.Succeed(ctx, http.StatusOK, AuthResponse{
 		AccessToken: accessToken,
 		TokenType:   "Bearer",
-		ExpiresIn:   int64(server.config.JWTAccessTokenDuration.Seconds()),
+		ExpiresIn:   int64(h.AccessTokenDuration.Seconds()),
 	}, "Registration successful")
 
 }
@@ -187,7 +188,7 @@ type profileResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// GetProfile godoc
+// getProfile godoc
 // @Summary      Get profile
 // @Description  Retrieve the profile of the authenticated user
 // @Tags         auth
@@ -198,20 +199,20 @@ type profileResponse struct {
 // @Failure      404  {object}  errorResponse
 // @Failure      500  {object}  errorResponse
 // @Router       /auth/profile [get]
-func (server *Server) GetProfile(ctx *gin.Context) {
-	authPayload := getAuthPayload(ctx)
+func (h *Handler) getProfile(ctx *gin.Context) {
+	authPayload := core.GetAuthPayload(ctx)
 
-	user, err := server.store.GetUserById(ctx, authPayload.ID)
+	user, err := h.Store.GetUserById(ctx, authPayload.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("user not found"))
+			core.Fail(ctx, core.NotFoundErr("user not found"))
 			return
 		}
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, profileResponse{
+	core.Succeed(ctx, http.StatusOK, profileResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,

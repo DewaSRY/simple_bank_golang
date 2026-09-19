@@ -1,4 +1,4 @@
-package api
+package transfer
 
 import (
 	"database/sql"
@@ -7,6 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
+
+	"github.com/DewaSRY/core-service/internal/api/core"
 
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 )
@@ -34,31 +36,36 @@ type createTransactionTransferRequest struct {
 // @Failure      409      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
 // @Router       /transactions/transfer [post]
-func (server *Server) transactionTransfer(ctx *gin.Context) {
+func (h *Handler) transactionTransfer(ctx *gin.Context) {
 	var req createTransactionTransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
+		return
+	}
+
+	if req.FromAccountID == req.ToAccountID {
+		core.Fail(ctx, core.ValidationErr(core.FieldError{Field: "to_account_id", Message: "to_account_id must be different from from_account_id"}))
 		return
 	}
 
 	if !req.Amount.IsPositive() {
-		fail(ctx, ValidationErr(FieldError{Field: "amount", Message: "amount must be greater than zero"}))
+		core.Fail(ctx, core.ValidationErr(core.FieldError{Field: "amount", Message: "amount must be greater than zero"}))
 		return
 	}
 
-	fromAccount, err := server.store.GetAccountById(ctx, req.FromAccountID)
+	fromAccount, err := h.Store.GetAccountById(ctx, req.FromAccountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
+			core.Fail(ctx, core.NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
+	authPayload := core.GetAuthPayload(ctx)
 	if fromAccount.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("from_account does not belong to the authenticated user"))
+		core.Fail(ctx, core.ForbiddenErr("from_account does not belong to the authenticated user"))
 		return
 	}
 
@@ -69,17 +76,17 @@ func (server *Server) transactionTransfer(ctx *gin.Context) {
 		Description:   sql.NullString{String: req.Description, Valid: req.Description != ""},
 	}
 
-	result, err := server.store.TransferTx(ctx, arg)
+	result, err := h.Store.TransferTx(ctx, arg)
 	if err != nil {
-		fail(ctx, transferAppError(err))
+		core.Fail(ctx, transferAppError(err))
 		return
 	}
 
-	accountEntries, err := server.store.AccountEntriesByAccountId(ctx, result.FromEntry.ID)
+	accountEntries, err := h.Store.AccountEntriesByAccountId(ctx, result.FromEntry.ID)
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries.AccountEntriesView), "Transfer completed successfully")
+	core.Succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries.AccountEntriesView), "Transfer completed successfully")
 }
