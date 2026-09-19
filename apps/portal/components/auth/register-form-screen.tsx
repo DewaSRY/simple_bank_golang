@@ -96,7 +96,7 @@ export function RegisterFormScreen() {
 
   return (
     <div className="w-full flex items-center justify-center">
-      <Card className="w-full z-1  sm:px-4 py-10 sm:min-w-150">
+      <Card className="w-full z-1  sm:px-4 py-10 sm:min-w-150 space-y-4">
         <CardHeader>
           <div className="flex flex-col space-y-1 border border-brand-100 p-4 rounded-xl ">
             <div className=" mb-2">
@@ -104,17 +104,17 @@ export function RegisterFormScreen() {
             </div>
 
             <div className="">
-              <h1 className="text-lg font-semibold tracking-tight">
+              <h1 className="text-2xl font-semibold tracking-tight">
                 {step === "preview" ? t("reviewTitle") : t("registerTitle")}
               </h1>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex min-h-[50vh] flex-col">
           {step === "form" && (
             <form
               onSubmit={goToPreview}
-              className="h-full flex w-full flex-col gap-4"
+              className="flex w-full flex-1 flex-col gap-4 justify-between"
             >
               <div className="h-8/12 space-y-4 mb-4">
                 <InputField
@@ -151,28 +151,35 @@ export function RegisterFormScreen() {
                 />
               </div>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="h-11 "
-                disabled={isPending || !form.formState.isDirty}
-              >
-                {tCommon("continue")}
-              </Button>
-
-              <p className="text-center text-sm text-muted-foreground">
-                {t("alreadyHaveAccount")}
-                <GuardedLink
-                  href="/login"
-                  className="font-medium text-foreground hover:underline"
+              <div className="flex flex-col gap-4">
+                {form.formState.errors.root?.message && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.root.message}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-11 "
+                  disabled={isPending || !form.formState.isDirty}
                 >
-                  {t("loginHere")}
-                </GuardedLink>
-              </p>
+                  {tCommon("continue")}
+                </Button>
+
+                <p className="text-center text-sm text-muted-foreground">
+                  {t("alreadyHaveAccount")}
+                  <GuardedLink
+                    href="/login"
+                    className="font-medium text-foreground hover:underline"
+                  >
+                    {t("loginHere")}
+                  </GuardedLink>
+                </p>
+              </div>
             </form>
           )}
           {step === "preview" && (
-            <div className="h-full flex w-full flex-col gap-4">
+            <div className="h-full flex w-full flex-col gap-4 justify-between">
               <Card>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between gap-4">
@@ -202,33 +209,35 @@ export function RegisterFormScreen() {
                   </div>
                 </CardContent>
               </Card>
-
-              {form.formState.errors.root?.message && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.root.message}
-                </p>
-              )}
-
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  className="h-11 flex-1"
-                  onClick={() => setStep("form")}
-                  disabled={isPending}
-                >
-                  {tCommon("back")}
-                </Button>
-                <Button
-                  type="button"
-                  size="lg"
-                  className="h-11 flex-1"
-                  onClick={onConfirmRegister}
-                  disabled={isPending}
-                >
-                  {isPending ? t("registering") : t("confirmAndRegister")}
-                </Button>
+              <div>
+                <div className="flex flex-col gap-4">
+                  {form.formState.errors.root?.message && (
+                    <p className="text-sm text-destructive">
+                      {form.formState.errors.root.message}
+                    </p>
+                  )}
+                  <div className="flex gap-2 w-full">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      className="h-11 flex-1"
+                      onClick={() => setStep("form")}
+                      disabled={isPending}
+                    >
+                      {tCommon("back")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="h-11 flex-1"
+                      onClick={onConfirmRegister}
+                      disabled={isPending}
+                    >
+                      {isPending ? t("registering") : t("confirmAndRegister")}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

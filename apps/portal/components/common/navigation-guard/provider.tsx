@@ -86,9 +86,11 @@ export function NavigationGuardProvider() {
         if (!open) cancelLeave();
       }}
     >
-      <DialogContent className="sm:max-w-sm px-4">
+      <DialogContent className="sm:max-w-lg px-4 py-4 flex flex-col justify-between space-y-4">
         <DialogHeader>
-          <DialogTitle>{options?.title ?? t("unsavedChangesTitle")}</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            {options?.title ?? t("unsavedChangesTitle")}
+          </DialogTitle>
           <DialogDescription>
             {options?.description ?? t("unsavedChangesDescription")}
           </DialogDescription>

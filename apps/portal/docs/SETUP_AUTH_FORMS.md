@@ -35,7 +35,7 @@ without a full form post + redirect round-trip. So the forms moved fully
 client-side:
 
 ```
-LoginForm / RegisterFormScreen (Client Component)
+LoginFormScreen / RegisterFormScreen (Client Component)
    │  useForm + zodResolver(createLoginSchema(t))
    ▼
 React Hook Form
@@ -76,7 +76,9 @@ export function createLoginSchema(t: Translate) {
   });
 }
 
-export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
+export type LoginFormScreenValues = z.infer<
+  ReturnType<typeof createLoginSchema>
+>;
 ```
 
 The schema is a function, not a module-level constant, because validation
@@ -99,7 +101,7 @@ backend rejected.
 // components/auth/login-form.tsx
 "use client";
 
-const form = useForm<LoginFormValues>({
+const form = useForm<LoginFormScreenValues>({
   resolver: zodResolver(useMemo(() => createLoginSchema(t), [t])),
   defaultValues: { email: "", password: "" },
 });
@@ -114,7 +116,7 @@ const onSubmit = form.handleSubmit((values) => {
       const fieldErrors = getApiFieldErrors(error);
       if (fieldErrors) {
         for (const [field, message] of Object.entries(fieldErrors)) {
-          form.setError(field as keyof LoginFormValues, { message });
+          form.setError(field as keyof LoginFormScreenValues, { message });
         }
         return;
       }

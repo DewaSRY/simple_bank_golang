@@ -8,7 +8,9 @@ export function createLoginSchema(t: Translate) {
   });
 }
 
-export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
+export type LoginFormScreenValues = z.infer<
+  ReturnType<typeof createLoginSchema>
+>;
 
 export function createRegisterSchema(t: Translate) {
   return z
