@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { IconInnerShadowTop } from "@tabler/icons-react";
+import Link from "next/link";
+import { IconWallet } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -21,7 +22,7 @@ import { DepositeSideModel } from "@/components/deposite-model/deposite-side-mod
 import { TransferSideModel } from "@/components/transfer-modal/transfer-side-model";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -30,10 +31,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:px-1.5!"
-              render={<a href="#" />}
+              render={<Link href={`/${i18n.language}/dashboard`} />}
             >
               <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <IconInnerShadowTop className="size-4!" />
+                <IconWallet className="size-4!" />
               </span>
               <span className="text-base font-semibold tracking-tight">
                 {t("appName")}

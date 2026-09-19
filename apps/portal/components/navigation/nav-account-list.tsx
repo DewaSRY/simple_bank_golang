@@ -51,23 +51,25 @@ export function NavAccountList() {
                 href={`/account/${account.id}`}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center justify-between gap-2 rounded-lg p-4 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  "rounded-lg p-4 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   isActive &&
                     "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
                 )}
               >
-                <div className="flex min-w-0 flex-col">
-                  <span className="truncate font-medium">
-                    {account.name || account.username}
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {account.number}
-                  </span>
-                </div>
+                <div className="flex min-w-0 flex-col space-y-4">
+                  <div className="flex flex-col">
+                    <span className="truncate font-medium">
+                      {account.name || account.username}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {account.number}
+                    </span>
+                  </div>
 
-                <div className="flex shrink-0 items-baseline gap-1 font-mono text-xs text-muted-foreground">
-                  <span>{formatBalance(account.balance)}</span>
-                  <span>{account.currency}</span>
+                  <div className="flex shrink-0 items-baseline gap-1 font-mono text-xs text-muted-foreground">
+                    <span>{formatBalance(account.balance)}</span>
+                    <span>{account.currency}</span>
+                  </div>
                 </div>
               </Link>
             );
