@@ -1,6 +1,9 @@
 {
   "mainAccount": "Main account",
   "appName": "Simple Bank",
+  "backToHome": "Back to home",
+  "backToHomeDescription": "Takes you back to the landing page",
+  "brandTagline": "Learn more about {{appName}} here",
   "getStarted": "Get started",
   "language": "Language",
   "dashboardTitle": "Dashboard",

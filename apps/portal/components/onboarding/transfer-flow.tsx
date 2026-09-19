@@ -18,7 +18,10 @@ import { AnimatedNumber } from "@/components/onboarding/animated-number";
 import { RecentActivity } from "@/components/onboarding/recent-activity";
 import { StepGuard } from "@/components/onboarding/step-guard";
 import { Link } from "@/i18n/navigation";
-import { transferDetailsSchema, type TransferDetailsFormValues } from "@/feature/transfer";
+import {
+  transferDetailsSchema,
+  type TransferDetailsFormValues,
+} from "@/feature/transfer";
 import {
   DIRECTORY_CONTACTS,
   InsufficientFundsError,
@@ -44,7 +47,10 @@ export function TransferFlow() {
 
   const [step, setStep] = useState<Step>("destination");
   const [contact, setContact] = useState<DirectoryContact | null>(null);
-  const [details, setDetails] = useState<{ amount: number; description: string } | null>(null);
+  const [details, setDetails] = useState<{
+    amount: number;
+    description: string;
+  } | null>(null);
   const [number, setNumber] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +83,10 @@ export function TransferFlow() {
 
   const onSubmit = form.handleSubmit(
     (data: TransferDetailsFormValues) => {
-      setDetails({ amount: Number(data.amount), description: data.description });
+      setDetails({
+        amount: Number(data.amount),
+        description: data.description,
+      });
       setStep("preview");
     },
     (errors) => scrollToFirstError(errors),
@@ -89,13 +98,20 @@ export function TransferFlow() {
     setIsPending(true);
     await delay(800);
     try {
-      transfer({ contact, amount: details.amount, description: details.description });
+      transfer({
+        contact,
+        amount: details.amount,
+        description: details.description,
+      });
       setIsPending(false);
       setJustTransferred(true);
       pushToast({
         title: tOnboarding("toast.transferSuccess"),
         description: tOnboarding("toast.transferSuccessDescription", {
-          amount: formatAccountAmount(String(details.amount), account!.currency),
+          amount: formatAccountAmount(
+            String(details.amount),
+            account!.currency,
+          ),
           name: contact.name,
         }),
         variant: "success",
@@ -112,7 +128,10 @@ export function TransferFlow() {
         return;
       }
       setError(t("transferError"));
-      pushToast({ title: tOnboarding("toast.transferFailed"), variant: "error" });
+      pushToast({
+        title: tOnboarding("toast.transferFailed"),
+        variant: "error",
+      });
     }
   }
 
@@ -122,7 +141,9 @@ export function TransferFlow() {
         <CardContent className="flex items-center justify-between gap-4 p-6">
           <div>
             <p className="text-sm text-primary-foreground/65">{account.name}</p>
-            <p className="text-xs text-primary-foreground/50">{account.number}</p>
+            <p className="text-xs text-primary-foreground/50">
+              {account.number}
+            </p>
           </div>
           <div className="text-right">
             <p className="text-xs text-primary-foreground/65">
@@ -130,7 +151,9 @@ export function TransferFlow() {
             </p>
             <AnimatedNumber
               value={account.balance}
-              format={(v) => formatAccountAmount(v.toFixed(2), account.currency)}
+              format={(v) =>
+                formatAccountAmount(v.toFixed(2), account.currency)
+              }
               className="block font-mono text-2xl font-semibold tracking-tight"
             />
           </div>
@@ -149,7 +172,9 @@ export function TransferFlow() {
             <Tabs defaultValue="recent">
               <TabsList>
                 <TabsTrigger value="recent">{t("recentTab")}</TabsTrigger>
-                <TabsTrigger value="search">{t("searchByNumberTab")}</TabsTrigger>
+                <TabsTrigger value="search">
+                  {t("searchByNumberTab")}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="recent">
@@ -217,7 +242,11 @@ export function TransferFlow() {
           >
             <Card>
               <CardContent className="space-y-4">
-                <PreviewRow label={t("to")} value={contact.name} subValue={contact.number} />
+                <PreviewRow
+                  label={t("to")}
+                  value={contact.name}
+                  subValue={contact.number}
+                />
                 <InputField
                   name="amount"
                   label={t("amount")}
@@ -264,13 +293,27 @@ export function TransferFlow() {
           >
             <Card>
               <CardContent className="space-y-3">
-                <PreviewRow label={t("from")} value={account.name} subValue={account.number} />
-                <PreviewRow label={t("to")} value={contact.name} subValue={contact.number} />
+                <PreviewRow
+                  label={t("from")}
+                  value={account.name}
+                  subValue={account.number}
+                />
+                <PreviewRow
+                  label={t("to")}
+                  value={contact.name}
+                  subValue={contact.number}
+                />
                 <PreviewRow
                   label={t("amount")}
-                  value={formatAccountAmount(String(details.amount), account.currency)}
+                  value={formatAccountAmount(
+                    String(details.amount),
+                    account.currency,
+                  )}
                 />
-                <PreviewRow label={t("description")} value={details.description} />
+                <PreviewRow
+                  label={t("description")}
+                  value={details.description}
+                />
               </CardContent>
             </Card>
             {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
@@ -283,7 +326,11 @@ export function TransferFlow() {
               >
                 {tCommon("back")}
               </Button>
-              <Button type="button" onClick={handleConfirm} disabled={isPending}>
+              <Button
+                type="button"
+                onClick={handleConfirm}
+                disabled={isPending}
+              >
                 {isPending ? t("transferring") : t("confirmTransfer")}
               </Button>
             </div>
@@ -298,7 +345,7 @@ export function TransferFlow() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex items-center justify-between gap-3 rounded-xl bg-success/10 p-4"
+          className="flex items-center justify-between gap-3 rounded-sm bg-success/10 p-4"
         >
           <div className="flex items-center gap-2 text-sm font-medium text-success">
             <Check className="size-4" aria-hidden />

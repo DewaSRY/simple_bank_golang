@@ -21,13 +21,19 @@ export function OnboardingToastViewport() {
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-popover p-3.5 pr-2.5 text-popover-foreground shadow-lg ring-1 ring-foreground/10",
+              "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-sm bg-popover p-3.5 pr-2.5 text-popover-foreground shadow-lg ring-1 ring-foreground/10",
             )}
           >
             {toast.variant === "success" ? (
-              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden />
+              <CheckCircle2
+                className="mt-0.5 size-5 shrink-0 text-success"
+                aria-hidden
+              />
             ) : (
-              <XCircle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
+              <XCircle
+                className="mt-0.5 size-5 shrink-0 text-destructive"
+                aria-hidden
+              />
             )}
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">{toast.title}</p>

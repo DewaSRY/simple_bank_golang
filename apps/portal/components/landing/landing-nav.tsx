@@ -33,10 +33,22 @@ export function LandingNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const exploreItems = [
-    { icon: Layers, title: tLanding("nav.links.architecture"), href: "#journey" },
+    {
+      icon: Layers,
+      title: tLanding("nav.links.architecture"),
+      href: "#journey",
+    },
     { icon: Server, title: tLanding("nav.links.backend"), href: "#backend" },
-    { icon: Database, title: tLanding("nav.links.database"), href: "#database" },
-    { icon: ShieldCheck, title: tLanding("nav.links.security"), href: "#security" },
+    {
+      icon: Database,
+      title: tLanding("nav.links.database"),
+      href: "#database",
+    },
+    {
+      icon: ShieldCheck,
+      title: tLanding("nav.links.security"),
+      href: "#security",
+    },
   ];
 
   return (
@@ -85,7 +97,7 @@ export function LandingNav() {
                         render={
                           <a
                             href={item.href}
-                            className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted"
+                            className="flex items-center gap-3 rounded-sm p-2.5 transition-colors hover:bg-muted"
                           />
                         }
                       >
@@ -119,7 +131,11 @@ export function LandingNav() {
           >
             {tAuth("login")}
           </Link>
-          <Button size="sm" nativeButton={false} render={<Link href="/register" />}>
+          <Button
+            size="sm"
+            nativeButton={false}
+            render={<Link href="/register" />}
+          >
             {tLanding("nav.getStarted")}
           </Button>
         </div>

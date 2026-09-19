@@ -51,7 +51,7 @@ export function LoginFormScreen() {
     <div className="w-full flex items-center justify-center">
       <Card className="w-full z-1 sm:px-4 py-10 sm:min-w-150 space-y-4">
         <CardHeader>
-          <div className="flex flex-col space-y-1 border border-brand-100 p-4 rounded-xl ">
+          <div className="flex flex-col space-y-1 border border-brand-100 p-4 rounded-sm ">
             <div className=" mb-2">
               <BrandBanner />
             </div>

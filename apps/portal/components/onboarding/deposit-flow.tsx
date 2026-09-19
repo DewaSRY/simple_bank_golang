@@ -15,8 +15,15 @@ import { AnimatedNumber } from "@/components/onboarding/animated-number";
 import { RecentActivity } from "@/components/onboarding/recent-activity";
 import { StepGuard } from "@/components/onboarding/step-guard";
 import { Link } from "@/i18n/navigation";
-import { depositSchema, type DepositFormValues } from "@/feature/account-transaction";
-import { delay, useOnboardingStore, useOnboardingToastStore } from "@/feature/onboarding";
+import {
+  depositSchema,
+  type DepositFormValues,
+} from "@/feature/account-transaction";
+import {
+  delay,
+  useOnboardingStore,
+  useOnboardingToastStore,
+} from "@/feature/onboarding";
 import { formatAccountAmount } from "@/lib/number";
 import { zodResolverTranslate, scrollToFirstError } from "@/lib/form";
 
@@ -35,7 +42,10 @@ export function DepositFlow() {
   const pushToast = useOnboardingToastStore((s) => s.push);
 
   const [step, setStep] = useState<Step>("details");
-  const [details, setDetails] = useState<{ amount: number; description: string } | null>(null);
+  const [details, setDetails] = useState<{
+    amount: number;
+    description: string;
+  } | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [justDeposited, setJustDeposited] = useState(false);
 
@@ -56,7 +66,10 @@ export function DepositFlow() {
 
   const onSubmit = form.handleSubmit(
     (data: DepositFormValues) => {
-      setDetails({ amount: Number(data.amount), description: data.description });
+      setDetails({
+        amount: Number(data.amount),
+        description: data.description,
+      });
       setStep("preview");
     },
     (errors) => scrollToFirstError(errors),
@@ -87,7 +100,9 @@ export function DepositFlow() {
         <CardContent className="flex items-center justify-between gap-4 p-6">
           <div>
             <p className="text-sm text-primary-foreground/65">{account.name}</p>
-            <p className="text-xs text-primary-foreground/50">{account.number}</p>
+            <p className="text-xs text-primary-foreground/50">
+              {account.number}
+            </p>
           </div>
           <div className="text-right">
             <p className="text-xs text-primary-foreground/65">
@@ -95,7 +110,9 @@ export function DepositFlow() {
             </p>
             <AnimatedNumber
               value={account.balance}
-              format={(v) => formatAccountAmount(v.toFixed(2), account.currency)}
+              format={(v) =>
+                formatAccountAmount(v.toFixed(2), account.currency)
+              }
               className="block font-mono text-2xl font-semibold tracking-tight"
             />
           </div>
@@ -135,7 +152,10 @@ export function DepositFlow() {
                         key={amount}
                         type="button"
                         onClick={() =>
-                          form.setValue("amount", String(amount), { shouldValidate: true, shouldDirty: true })
+                          form.setValue("amount", String(amount), {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          })
                         }
                         className="rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted active:scale-95"
                       >
@@ -171,12 +191,22 @@ export function DepositFlow() {
           >
             <Card>
               <CardContent className="space-y-3">
-                <PreviewRow label={t("account")} value={account.name} subValue={account.number} />
+                <PreviewRow
+                  label={t("account")}
+                  value={account.name}
+                  subValue={account.number}
+                />
                 <PreviewRow
                   label={t("amount")}
-                  value={formatAccountAmount(String(details.amount), account.currency)}
+                  value={formatAccountAmount(
+                    String(details.amount),
+                    account.currency,
+                  )}
                 />
-                <PreviewRow label={t("description")} value={details.description} />
+                <PreviewRow
+                  label={t("description")}
+                  value={details.description}
+                />
               </CardContent>
             </Card>
             <div className="mt-4 flex justify-end gap-2">
@@ -188,7 +218,11 @@ export function DepositFlow() {
               >
                 {tCommon("back")}
               </Button>
-              <Button type="button" onClick={handleConfirm} disabled={isPending}>
+              <Button
+                type="button"
+                onClick={handleConfirm}
+                disabled={isPending}
+              >
                 {isPending ? t("depositing") : t("confirmDeposit")}
               </Button>
             </div>
@@ -203,7 +237,7 @@ export function DepositFlow() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex items-center justify-between gap-3 rounded-xl bg-success/10 p-4"
+          className="flex items-center justify-between gap-3 rounded-sm bg-success/10 p-4"
         >
           <div className="flex items-center gap-2 text-sm font-medium text-success">
             <Check className="size-4" aria-hidden />

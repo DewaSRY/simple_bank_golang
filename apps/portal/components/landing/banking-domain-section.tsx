@@ -39,7 +39,7 @@ export function BankingDomainSection() {
           className="mx-auto mt-8 max-w-3xl rounded-2xl bg-primary/5 p-6 ring-1 ring-primary/20"
         >
           <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-primary">
               <Lock className="size-4" aria-hidden />
             </span>
             <div>

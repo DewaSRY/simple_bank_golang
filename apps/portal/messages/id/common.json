@@ -1,6 +1,9 @@
 {
   "mainAccount": "Rekening utama",
   "appName": "Simple Bank",
+  "backToHome": "Kembali ke beranda",
+  "backToHomeDescription": "Mengarahkan Anda kembali ke halaman utama",
+  "brandTagline": "Pelajari lebih lanjut tentang {{appName}} di sini",
   "getStarted": "Mulai sekarang",
   "language": "Bahasa",
   "dashboardTitle": "Dasbor",
