@@ -43,6 +43,11 @@ func (h *Handler) transactionTransfer(ctx *gin.Context) {
 		return
 	}
 
+	if req.FromAccountID == req.ToAccountID {
+		core.Fail(ctx, core.ValidationErr(core.FieldError{Field: "to_account_id", Message: "to_account_id must be different from from_account_id"}))
+		return
+	}
+
 	if !req.Amount.IsPositive() {
 		core.Fail(ctx, core.ValidationErr(core.FieldError{Field: "amount", Message: "amount must be greater than zero"}))
 		return

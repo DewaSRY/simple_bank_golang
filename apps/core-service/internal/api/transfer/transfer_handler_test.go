@@ -515,6 +515,21 @@ func TestTransactionTransfer(t *testing.T) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
+		{
+			name: "account id must be different from from account id",
+			body: createTransactionTransferRequest{
+				FromAccountID: fromAccountID,
+				ToAccountID:   fromAccountID,
+				Amount:        mustDecimal(t, "25.00"),
+			},
+			buildStubs: func(t *testing.T, q *mockdb.MockStorer) {
+				q.EXPECT().GetAccountById(gomock.Any(), gomock.Any()).Times(0)
+				q.EXPECT().TransferTx(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
 	}
 
 	for _, tc := range testCases {

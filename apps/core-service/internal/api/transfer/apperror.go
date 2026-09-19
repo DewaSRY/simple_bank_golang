@@ -10,17 +10,11 @@ import (
 	"github.com/DewaSRY/core-service/internal/db/store"
 )
 
-// Error codes specific to money movement — everything else renders through
-// core's generic codes.
 const (
 	errCodeCurrencyMismatch  = "CURRENCY_MISMATCH"
 	errCodeInsufficientFunds = "INSUFFICIENT_FUNDS"
 )
 
-// transferAppError maps a transferTx/depositTx failure to an AppError. This
-// is the only piece of these endpoints that's specific to money movement —
-// the actual response rendering is shared with every other endpoint via
-// core.Fail/core.AppError.
 func transferAppError(err error) *core.AppError {
 	var pqErr *pq.Error
 

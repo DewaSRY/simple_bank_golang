@@ -16,11 +16,6 @@ import (
 	"github.com/DewaSRY/core-service/internal/util"
 )
 
-// requireOwnedAccount fetches the account by id and verifies it belongs to
-// the authenticated user, writing the appropriate failure response (404 if
-// missing, 403 if owned by someone else, 500 on any other error) and
-// returning ok=false when either check fails. Callers should return
-// immediately when ok is false.
 func (h *Handler) requireOwnedAccount(ctx *gin.Context, accountID int64) (account db.Account, ok bool) {
 	account, err := h.Store.GetAccountById(ctx, accountID)
 	if err != nil {
@@ -41,9 +36,6 @@ func (h *Handler) requireOwnedAccount(ctx *gin.Context, accountID int64) (accoun
 	return account, true
 }
 
-// periodFromMonthYear turns a (possibly zero) month/year pair into the
-// [start, end) UTC range covering that calendar month, defaulting a zero
-// month or year to the current one.
 func periodFromMonthYear(month, year int32) (start, end time.Time) {
 	now := time.Now().UTC()
 	if month == 0 {
