@@ -6,11 +6,19 @@ import { getTranslation } from "@/i18n/server";
 import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { HeroSection } from "@/components/landing/hero-section";
-import { ProblemSection } from "@/components/landing/problem-section";
-import { SolutionSection } from "@/components/landing/solution-section";
-import { FeaturesSection } from "@/components/landing/features-section";
-import { ArchitectureSection } from "@/components/landing/architecture-section";
-import { HowItWorksSection } from "@/components/landing/how-it-works-section";
+import { OverviewSection } from "@/components/landing/overview-section";
+import { SystemJourneySection } from "@/components/landing/system-journey-section";
+import { FrontendEngineeringSection } from "@/components/landing/frontend-engineering-section";
+import { BackendEngineeringSection } from "@/components/landing/backend-engineering-section";
+import { BankingDomainSection } from "@/components/landing/banking-domain-section";
+import { DatabaseArchitectureSection } from "@/components/landing/database-architecture-section";
+import { ApiArchitectureSection } from "@/components/landing/api-architecture-section";
+import { SecuritySection } from "@/components/landing/security-section";
+import { InfrastructureSection } from "@/components/landing/infrastructure-section";
+import { EngineeringDecisionsSection } from "@/components/landing/engineering-decisions-section";
+import { RequestFlowSection } from "@/components/landing/request-flow-section";
+import { CapabilitySummarySection } from "@/components/landing/capability-summary-section";
+import { TechStackSection } from "@/components/landing/tech-stack-section";
 import { FinalCtaSection } from "@/components/landing/final-cta-section";
 import { LandingFooter } from "@/components/landing/landing-footer";
 
@@ -23,9 +31,9 @@ export async function generateMetadata({
     return {};
   }
 
-  const { t } = await getTranslation(locale, "common");
-  const title = t("landing.metaTitle");
-  const description = t("landing.metaDescription");
+  const { t } = await getTranslation(locale, "landing");
+  const title = t("meta.title");
+  const description = t("meta.description");
 
   return {
     title: { absolute: title },
@@ -81,11 +89,19 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       <main className="flex min-h-screen w-full flex-col">
         <LandingNav />
         <HeroSection />
-        <ProblemSection />
-        <SolutionSection />
-        <FeaturesSection />
-        <ArchitectureSection />
-        <HowItWorksSection />
+        <OverviewSection />
+        <SystemJourneySection />
+        <FrontendEngineeringSection />
+        <BackendEngineeringSection />
+        <BankingDomainSection />
+        <DatabaseArchitectureSection />
+        <ApiArchitectureSection />
+        <SecuritySection />
+        <InfrastructureSection />
+        <EngineeringDecisionsSection />
+        <RequestFlowSection />
+        <CapabilitySummarySection />
+        <TechStackSection />
         <FinalCtaSection />
         <LandingFooter />
       </main>

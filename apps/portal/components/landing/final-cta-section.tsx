@@ -9,16 +9,16 @@ import { ScrollReveal } from "./scroll-reveal";
 const REPO_URL = "https://github.com/DewaSRY/simple_bank_golang";
 
 export function FinalCtaSection() {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation("landing");
 
   return (
     <section className="px-4 py-16 sm:px-6 sm:py-24">
       <ScrollReveal className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 rounded-3xl bg-primary px-6 py-14 text-center text-primary-foreground sm:px-16">
         <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {t("landing.finalCta.title")}
+          {t("finalCta.title")}
         </h2>
         <p className="max-w-md text-primary-foreground/70 text-balance">
-          {t("landing.finalCta.description")}
+          {t("finalCta.description")}
         </p>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Button
@@ -26,9 +26,9 @@ export function FinalCtaSection() {
             variant="secondary"
             className="h-12 px-8 text-base"
             nativeButton={false}
-            render={<Link href="/register" />}
+            render={<a href="#journey" />}
           >
-            {t("landing.nav.getStarted")}
+            {t("finalCta.ctaExplore")}
           </Button>
           <Button
             size="lg"
@@ -37,7 +37,7 @@ export function FinalCtaSection() {
             nativeButton={false}
             render={<Link href="/onboarding" />}
           >
-            {t("landing.finalCta.tryDemo")}
+            {t("finalCta.ctaDemo")}
           </Button>
           <Button
             size="lg"
@@ -48,7 +48,7 @@ export function FinalCtaSection() {
               <a href={REPO_URL} target="_blank" rel="noopener noreferrer" />
             }
           >
-            {t("landing.finalCta.viewSource")}
+            {t("finalCta.ctaSource")}
             <ExternalLink className="size-4" aria-hidden />
           </Button>
         </div>

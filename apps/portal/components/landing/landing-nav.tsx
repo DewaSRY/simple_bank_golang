@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "@base-ui/react/popover";
-import { ChevronDown, Menu, Wallet, ArrowLeftRight, ShieldCheck } from "lucide-react";
+import {
+  ChevronDown,
+  Menu,
+  Wallet,
+  Layers,
+  Server,
+  Database,
+  ShieldCheck,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,25 +28,15 @@ import { cn } from "@/lib/utils";
 
 export function LandingNav() {
   const { t } = useTranslation("common");
+  const { t: tLanding } = useTranslation("landing");
   const { t: tAuth } = useTranslation("auth");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const productItems = [
-    {
-      icon: Wallet,
-      title: t("featureAccountsTitle"),
-      description: t("featureAccountsDesc"),
-    },
-    {
-      icon: ArrowLeftRight,
-      title: t("featureTransfersTitle"),
-      description: t("featureTransfersDesc"),
-    },
-    {
-      icon: ShieldCheck,
-      title: t("featureSecurityTitle"),
-      description: t("featureSecurityDesc"),
-    },
+  const exploreItems = [
+    { icon: Layers, title: tLanding("nav.links.architecture"), href: "#journey" },
+    { icon: Server, title: tLanding("nav.links.backend"), href: "#backend" },
+    { icon: Database, title: tLanding("nav.links.database"), href: "#database" },
+    { icon: ShieldCheck, title: tLanding("nav.links.security"), href: "#security" },
   ];
 
   return (
@@ -65,7 +63,7 @@ export function LandingNav() {
                 />
               }
             >
-              {t("landing.nav.product")}
+              {tLanding("nav.explore")}
               <ChevronDown className="size-3.5 transition-transform duration-150 group-data-popup-open/button:rotate-180" />
             </Popover.Trigger>
             <Popover.Portal>
@@ -77,30 +75,25 @@ export function LandingNav() {
               >
                 <Popover.Popup className="w-screen max-w-md origin-(--transform-origin) rounded-2xl bg-popover p-2 text-popover-foreground shadow-lg ring-1 ring-foreground/10 duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
                   <p className="px-3 pt-2 pb-1 text-xs text-muted-foreground">
-                    {t("landing.nav.productDescription")}
+                    {tLanding("nav.exploreDescription")}
                   </p>
                   <div className="flex flex-col gap-1 p-1">
-                    {productItems.map((item) => (
+                    {exploreItems.map((item) => (
                       <Popover.Close
                         key={item.title}
                         nativeButton={false}
                         render={
-                          <Link
-                            href="/register"
-                            className="flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted"
+                          <a
+                            href={item.href}
+                            className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted"
                           />
                         }
                       >
                         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                           <item.icon className="size-4.5" aria-hidden />
                         </span>
-                        <span className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {item.title}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {item.description}
-                          </span>
+                        <span className="text-sm font-medium">
+                          {item.title}
                         </span>
                       </Popover.Close>
                     ))}
@@ -118,7 +111,7 @@ export function LandingNav() {
             href="/onboarding"
             className="px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            {t("landing.nav.tryDemo")}
+            {tLanding("nav.tryDemo")}
           </Link>
           <Link
             href="/login"
@@ -127,7 +120,7 @@ export function LandingNav() {
             {tAuth("login")}
           </Link>
           <Button size="sm" nativeButton={false} render={<Link href="/register" />}>
-            {t("landing.nav.getStarted")}
+            {tLanding("nav.getStarted")}
           </Button>
         </div>
 
@@ -137,7 +130,7 @@ export function LandingNav() {
             variant="ghost"
             size="icon"
             className="md:hidden"
-            aria-label={t("landing.nav.menuToggle")}
+            aria-label={tLanding("nav.menuToggle")}
             onClick={() => setMobileOpen(true)}
           >
             <Menu />
@@ -148,15 +141,15 @@ export function LandingNav() {
             </SheetHeader>
             <div className="flex flex-col gap-1 px-4">
               <p className="px-1 pb-1 text-xs font-medium text-muted-foreground">
-                {t("landing.nav.product")}
+                {tLanding("nav.explore")}
               </p>
-              {productItems.map((item) => (
+              {exploreItems.map((item) => (
                 <SheetClose
                   key={item.title}
                   nativeButton={false}
                   render={
-                    <Link
-                      href="/register"
+                    <a
+                      href={item.href}
                       className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted"
                     />
                   }
@@ -178,7 +171,7 @@ export function LandingNav() {
                 render={<Link href="/onboarding" />}
                 className="text-center text-sm font-medium text-foreground"
               >
-                {t("landing.nav.tryDemo")}
+                {tLanding("nav.tryDemo")}
               </SheetClose>
               <SheetClose
                 nativeButton={false}
@@ -194,7 +187,7 @@ export function LandingNav() {
                 render={<Link href="/register" />}
                 className="w-full"
               >
-                {t("landing.nav.getStarted")}
+                {tLanding("nav.getStarted")}
               </Button>
             </div>
           </SheetContent>

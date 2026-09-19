@@ -1,0 +1,583 @@
+{
+  "meta": {
+    "title": "Simple Bank — Full-Stack Engineering Showcase",
+    "description": "A ledger-based banking system built end to end: Next.js frontend, a Go/Gin API, PostgreSQL with double-entry bookkeeping, Docker, and a real deployment pipeline."
+  },
+  "nav": {
+    "explore": "Explore the system",
+    "exploreDescription": "One page, five layers — from the browser down to the database.",
+    "links": {
+      "overview": "Overview",
+      "architecture": "Architecture",
+      "backend": "Backend",
+      "database": "Database",
+      "security": "Security",
+      "deployment": "Deployment"
+    },
+    "tryDemo": "Try the live demo",
+    "getStarted": "Create an account",
+    "viewSource": "View source",
+    "menuToggle": "Toggle menu"
+  },
+  "hero": {
+    "eyebrow": "Full-stack engineering showcase",
+    "titleBefore": "A ledger-based banking system,",
+    "titleBrand": "built end to end.",
+    "description": "Simple Bank is a working application, not a mockup: a Next.js portal talking to a Go API that keeps a real double-entry ledger in PostgreSQL. This page walks through how it's actually built — frontend, API contract, backend, database, and the pipeline that ships it.",
+    "pipeline": ["Frontend", "API", "Backend", "Database", "Infrastructure", "Deployment"],
+    "ctaPrimary": "Read the architecture",
+    "ctaSecondary": "Try the live demo",
+    "note": "Every account, deposit, and transfer below moves through the same code path a production request would."
+  },
+  "overview": {
+    "eyebrow": "Project overview",
+    "title": "Not a banking product. An engineering exercise shaped like one.",
+    "what": {
+      "title": "What is Simple Bank?",
+      "body": "A ledger-based core banking demo: users register, hold multiple accounts, deposit funds, and transfer between accounts. Underneath the UI is a Go REST API backed by PostgreSQL, with every balance change recorded as an immutable, double-entry ledger row rather than a mutable number."
+    },
+    "why": {
+      "title": "Why it was built",
+      "body": "To demonstrate the full lifecycle of a real application — requirements, frontend, API design, backend services, database schema, and deployment — using a domain where getting things wrong is obvious: money. A banking ledger doesn't tolerate lost updates, ambiguous transaction boundaries, or approximate arithmetic, which makes it a good forcing function for engineering discipline."
+    },
+    "demonstrates": {
+      "title": "What it demonstrates",
+      "items": [
+        "Frontend development (Next.js App Router, React 19, TanStack Query)",
+        "API design & typed integration between two independent codebases",
+        "Backend development (Go, Gin, layered architecture)",
+        "Business logic (double-entry transfers, deadlock-safe locking)",
+        "Database engineering (PostgreSQL, sqlc, versioned migrations)",
+        "Authentication (JWT-based, stateless)",
+        "Authorization (per-resource ownership checks)",
+        "Validation (struct-tag binding, client-side Zod schemas)",
+        "Automated testing (handler unit tests, DB integration tests)",
+        "Containerization (multi-stage Docker builds, Docker Compose)",
+        "Cloud infrastructure (Terraform-provisioned EC2)",
+        "Continuous integration (GitHub Actions build/vet/test)"
+      ]
+    }
+  },
+  "journey": {
+    "eyebrow": "System journey",
+    "title": "From a click in the browser to a row in Postgres.",
+    "subtitle": "Every layer below is real code in this repository, not a conceptual diagram. Select a stage to see what actually happens there.",
+    "steps": [
+      {
+        "title": "Product / Requirements",
+        "summary": "What the app needs to do",
+        "detail": "Account management, deposits, and account-to-account transfers for an authenticated user — scoped deliberately small so every layer underneath could be built properly instead of half-built across a larger feature set."
+      },
+      {
+        "title": "Frontend",
+        "summary": "Next.js 16 portal (this app)",
+        "detail": "A form or button calls a feature hook, which calls a typed resource client, which calls one shared Axios instance. No component talks to Axios directly, and no component branches on server-vs-client rendering."
+      },
+      {
+        "title": "API Integration",
+        "summary": "One HTTP contract, two codebases",
+        "detail": "The portal has no database of its own — every read and write is an HTTP call to the Go service's /api/v1 routes, wrapped in typed request/response shapes on both sides."
+      },
+      {
+        "title": "Backend",
+        "summary": "Gin router, layered handlers",
+        "detail": "Each domain (auth, account, transfer) registers its own routes and handler. A handler binds and validates the request, then delegates to the store layer — it never talks to the database directly."
+      },
+      {
+        "title": "Business Logic",
+        "summary": "The store layer",
+        "detail": "Ownership checks, currency and balance checks, and the double-entry bookkeeping for transfers and deposits all live here, wrapped in real database transactions."
+      },
+      {
+        "title": "Database",
+        "summary": "PostgreSQL via sqlc",
+        "detail": "Four tables — users, accounts, entries, transfers — with hand-written SQL compiled to typed Go by sqlc. No ORM, no runtime query building."
+      },
+      {
+        "title": "Infrastructure",
+        "summary": "Docker + Docker Compose",
+        "detail": "The API and Postgres are each defined as services in docker-compose.yaml, built from a multi-stage Dockerfile that produces a small Alpine runtime image."
+      },
+      {
+        "title": "Deployment",
+        "summary": "Terraform-provisioned EC2 + Vercel",
+        "detail": "The core-service ships to a Terraform-managed EC2 instance behind GitHub Actions CI; the portal deploys separately as a Next.js app and reaches the API over a configured origin with CORS locked to it."
+      }
+    ]
+  },
+  "frontend": {
+    "eyebrow": "Frontend engineering",
+    "title": "One request, five hops, zero magic.",
+    "subtitle": "Every screen in the app follows the same path from a user action to an updated UI — the diagram below is that path, not an idealized one.",
+    "steps": [
+      {
+        "title": "Client Component",
+        "summary": "A form or button",
+        "detail": "Renders with React Hook Form for local state and calls a feature hook on submit. It never imports Axios and never checks typeof window."
+      },
+      {
+        "title": "Zod schema",
+        "summary": "Client-side validation",
+        "detail": "A static Zod schema validates the form before anything leaves the browser. Errors resolve through a shared zodResolverTranslate helper so every field error is translated, not a raw i18n key."
+      },
+      {
+        "title": "hooks/query.ts",
+        "summary": "TanStack Query v5",
+        "detail": "useQuery/useMutation wrap the client call. A queryKeys factory in the same file is reused, unmodified, by the Server Component that prefetches the same data — so the cache key can never drift between server and client."
+      },
+      {
+        "title": "client.ts",
+        "summary": "A typed resource client",
+        "detail": "One class per backend domain (AccountClient, TransferClient, ...) extending a shared BaseClient. One method per endpoint, each returning the backend's typed response envelope."
+      },
+      {
+        "title": "apiClient + interceptor",
+        "summary": "One Axios instance, one interceptor",
+        "detail": "Attached exactly once across the whole app, guarded by a WeakSet. It injects the auth header and timezone header, logs every request/response through a redacting logger, and redirects to /logout on any 401."
+      },
+      {
+        "title": "Go core-service",
+        "summary": "The real backend",
+        "detail": "The portal has no server-side business logic beyond auth/locale routing. Every domain rule — balances, transfers, ownership — is enforced by the Go API, not duplicated in the frontend."
+      }
+    ],
+    "prefetch": {
+      "label": "SSR prefetch on first load",
+      "description": "Server Components call queryClient.prefetchQuery with the exact same queryKey and fetch function a Client Component's hook uses, then hand the cache to the browser via a HydrationBoundary. First paint already has real data instead of a loading spinner."
+    },
+    "notes": [
+      "Every API call is typed end to end — from the Zod-validated form, to the Axios client, to the response envelope the Go service returns. A backend shape change is a TypeScript error here, not a runtime surprise.",
+      "State is split by ownership: TanStack Query owns anything that came from the server; a small set of Zustand stores own local multi-step wizard state (e.g. the transfer modal) and never touch server data."
+    ]
+  },
+  "backend": {
+    "eyebrow": "Backend engineering",
+    "title": "What actually happens to an HTTP request.",
+    "subtitle": "Gin routes every request through the same fixed middleware chain before it ever reaches a handler.",
+    "steps": [
+      {
+        "title": "HTTP Request",
+        "summary": "Client → Gin",
+        "detail": "Arrives at the Go service's /api/v1 router with a JSON body and, for protected routes, an Authorization: Bearer <token> header."
+      },
+      {
+        "title": "Request ID",
+        "summary": "RequestIDMiddleware",
+        "detail": "Assigns or reads an X-Request-Id header so every log line this request produces can be correlated later."
+      },
+      {
+        "title": "Logging",
+        "summary": "LoggingMiddleware",
+        "detail": "Writes one structured slog line per request — method, path, status, duration — with sensitive fields redacted before anything is written."
+      },
+      {
+        "title": "CORS",
+        "summary": "gin-contrib/cors",
+        "detail": "Only applied when CORS_ALLOWED_ORIGINS is configured. Wildcards are never used, since AllowCredentials is always on and browsers reject that combination anyway."
+      },
+      {
+        "title": "Error handler",
+        "summary": "ErrorHandlerMiddleware",
+        "detail": "Registered before the recovery middleware on purpose — if it ran after, a panic would recover into a response that had already been abandoned, and the client would get an empty 200."
+      },
+      {
+        "title": "Recovery",
+        "summary": "RecoveryMiddleware",
+        "detail": "Catches panics, logs the stack trace at error level, and renders a sanitized 500 through the same response envelope as every other error."
+      },
+      {
+        "title": "Auth (protected routes)",
+        "summary": "core.AuthMiddleware",
+        "detail": "Verifies the bearer JWT and stores its payload on the Gin context. Public routes (register, login, health) skip this entirely."
+      },
+      {
+        "title": "Handler",
+        "summary": "Bind + validate",
+        "detail": "ShouldBindJSON/Query/Uri runs go-playground/validator struct tags, with field names remapped to match the JSON body so error messages reference api_field_name, not the Go struct field."
+      },
+      {
+        "title": "Store (business logic)",
+        "summary": "internal/db/store",
+        "detail": "Handlers never touch the database directly — they call a Storer method, which owns transactions, locking, and the actual rules (see Banking Domain below)."
+      },
+      {
+        "title": "Response",
+        "summary": "Envelope",
+        "detail": "Success responses return { data, message?, meta? }; failures return { error: { code, message, details? } } through a single AppError type with a fixed set of codes."
+      }
+    ]
+  },
+  "banking": {
+    "eyebrow": "Banking domain & business logic",
+    "title": "Double-entry bookkeeping, not a balance you overwrite.",
+    "subtitle": "A transfer never just subtracts from one row and adds to another — it's two immutable ledger entries plus two balance updates, all inside one transaction.",
+    "lockCallout": {
+      "title": "Why lock order matters",
+      "body": "Two accounts are locked with SELECT ... FOR UPDATE before a transfer touches either one. They're locked in ascending account-ID order — never in from-account/to-account order — so two concurrent transfers between the same pair of accounts always acquire their locks in the same sequence. Locking in request order instead would let two simultaneous transfers deadlock each other under load; this is called out in the codebase as a correctness property, not a style preference."
+    },
+    "steps": [
+      {
+        "title": "Validate request shape",
+        "summary": "Same account? Non-positive amount?",
+        "detail": "A transfer to the same account, or a zero/negative amount, is rejected before any row is touched."
+      },
+      {
+        "title": "Lock both accounts",
+        "summary": "SELECT ... FOR UPDATE, ascending ID order",
+        "detail": "Both the source and destination account rows are locked for the duration of the transaction, in a fixed order regardless of transfer direction — see the callout below."
+      },
+      {
+        "title": "Check currency & balance",
+        "summary": "Same currency, sufficient funds",
+        "detail": "A currency mismatch or insufficient balance aborts the transaction before any entry is written."
+      },
+      {
+        "title": "Insert the transfer",
+        "summary": "transfers row",
+        "detail": "One row recording the source account, destination account, and amount — the parent record the two ledger entries below both reference."
+      },
+      {
+        "title": "Debit entry",
+        "summary": "entries row, negative amount",
+        "detail": "An immutable ledger row against the source account, linked to the transfer, and the source account's balance is decremented by the same amount."
+      },
+      {
+        "title": "Credit entry",
+        "summary": "entries row, positive amount",
+        "detail": "A matching ledger row against the destination account, linked to the same transfer, and the destination account's balance is incremented."
+      },
+      {
+        "title": "Commit & respond",
+        "summary": "One atomic transaction",
+        "detail": "If any step above fails, the whole transaction rolls back — there is no state where a debit exists without its matching credit."
+      }
+    ],
+    "notes": [
+      "Money is never a float. Amounts are strings end to end, parsed with shopspring/decimal at the point of use, backed by NUMERIC(20,2) columns — a deliberate choice to keep cent-level precision exact.",
+      "Deleting a non-main account doesn't destroy its balance: any remaining funds are swept to the user's main account as a real transfer (with its own debit/credit entries) before the account is soft-deleted. The main account itself can never be deleted.",
+      "Every registered user gets exactly one main account automatically, enforced at the database level by a partial unique index — not just an application-level convention."
+    ]
+  },
+  "database": {
+    "eyebrow": "Database architecture",
+    "title": "Four tables, one ledger.",
+    "subtitle": "PostgreSQL, queried through sqlc-generated Go — no ORM, no runtime query building. Schema changes are versioned migrations, not hand-edited tables.",
+    "entities": [
+      {
+        "name": "users",
+        "description": "One row per registered person.",
+        "columns": ["id", "username (unique)", "email (unique)", "hashed_password (bcrypt)", "created_at", "updated_at"]
+      },
+      {
+        "name": "accounts",
+        "description": "Balances the user holds — a soft-deletable row, not a permanent one.",
+        "columns": ["id", "user_id → users", "number (unique, generated)", "name", "balance NUMERIC(20,2)", "currency", "is_main", "deleted_at"]
+      },
+      {
+        "name": "transfers",
+        "description": "One row per money movement between two accounts.",
+        "columns": ["id", "from_account_id → accounts", "to_account_id → accounts", "amount NUMERIC(20,2)", "description", "created_at"]
+      },
+      {
+        "name": "entries",
+        "description": "The immutable ledger. Every balance change is a row here, never an edit.",
+        "columns": ["id", "account_id → accounts", "transfer_id → transfers (nullable)", "type", "amount", "description", "created_at"]
+      }
+    ],
+    "relationshipsLabel": "Relationships",
+    "constraintsLabel": "Constraints",
+    "relationships": [
+      "A user owns many accounts, exactly one of which is flagged is_main.",
+      "An account accumulates many entries — its balance is the sum of its ledger, kept in sync by the same transaction that writes each entry.",
+      "A transfer produces exactly two entries: a debit against the source account and a credit against the destination account, both pointing back at the same transfer row.",
+      "A deposit produces one entry against a single account, with no transfer row at all."
+    ],
+    "constraints": [
+      "accounts.balance has a CHECK (balance >= 0) — the database itself refuses to store a negative balance, not just application code.",
+      "transfers.amount has a CHECK (amount > 0) — a zero or negative transfer can't exist as a row.",
+      "A partial unique index guarantees at most one is_main = true, non-deleted account per user.",
+      "Account deletion is soft (deleted_at), not destructive — the row and its ledger history remain queryable."
+    ]
+  },
+  "api": {
+    "eyebrow": "API architecture",
+    "title": "One contract, enforced on both ends.",
+    "subtitle": "Every endpoint lives under /api/v1 and returns one of exactly two envelope shapes.",
+    "successLabel": "Success response",
+    "errorLabel": "Error response",
+    "publicLabel": "public",
+    "successExample": "{\n  \"data\": {\n    \"id\": 42,\n    \"number\": \"ACT/20260118/000042\",\n    \"name\": \"Travel\",\n    \"balance\": \"120.00\",\n    \"currency\": \"USD\"\n  },\n  \"meta\": { \"page\": 1, \"limit\": 10, \"total\": 3 }\n}",
+    "errorExample": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"request validation failed\",\n    \"details\": [\n      { \"field\": \"amount\", \"message\": \"must be greater than 0\" }\n    ]\n  }\n}",
+    "endpointGroups": [
+      {
+        "name": "Auth",
+        "endpoints": [
+          { "method": "POST", "path": "/auth/register", "auth": false, "description": "Create a user, auto-create their main account, issue a JWT." },
+          { "method": "POST", "path": "/auth/login", "auth": false, "description": "Authenticate and issue a JWT." },
+          { "method": "GET", "path": "/auth/profile", "auth": true, "description": "Return the current user's profile." }
+        ]
+      },
+      {
+        "name": "Accounts",
+        "endpoints": [
+          { "method": "POST", "path": "/accounts", "auth": true, "description": "Create a new (non-main) account." },
+          { "method": "GET", "path": "/accounts/me", "auth": true, "description": "List the caller's accounts, paginated." },
+          { "method": "GET", "path": "/accounts/search-by-number", "auth": true, "description": "Look up a destination account by number." },
+          { "method": "GET", "path": "/accounts/:id", "auth": true, "description": "Get one account (403 if not the owner)." },
+          { "method": "PUT", "path": "/accounts/:id", "auth": true, "description": "Update an account's name/description." },
+          { "method": "DELETE", "path": "/accounts/:id", "auth": true, "description": "Soft-delete an account, sweeping any balance first." },
+          { "method": "POST", "path": "/accounts/:id/deposit", "auth": true, "description": "Deposit into an owned account." },
+          { "method": "GET", "path": "/accounts/:id/entries", "auth": true, "description": "List an account's ledger entries." },
+          { "method": "GET", "path": "/accounts/:id/transactions", "auth": true, "description": "List labeled transaction history." },
+          { "method": "GET", "path": "/accounts/:id/recent-destinations", "auth": true, "description": "Recent transfer destinations from this account." }
+        ]
+      },
+      {
+        "name": "Transactions",
+        "endpoints": [
+          { "method": "POST", "path": "/transactions/transfer", "auth": true, "description": "Transfer between two accounts the caller owns the source of." }
+        ]
+      }
+    ]
+  },
+  "security": {
+    "eyebrow": "Security & reliability",
+    "title": "Concrete mechanisms, not a claim of being \"secure.\"",
+    "subtitle": "What's actually implemented, and what deliberately isn't yet.",
+    "cards": [
+      {
+        "title": "Stateless JWT auth",
+        "body": "HS256 tokens via golang-jwt, with a minimal payload (id, username, email, exp) that carries no sensitive data. There is no refresh token, no logout/revocation list, and no roles — a leaked token stays valid until it expires, and every authorization check is a per-resource ownership comparison rather than a permission system."
+      },
+      {
+        "title": "Request validation",
+        "body": "go-playground/validator struct tags on every bound request, plus manual checks for logic that needs cross-field or decimal-typed reasoning (matching passwords, positive transfer amounts, distinct source/destination accounts)."
+      },
+      {
+        "title": "Locked-down CORS",
+        "body": "Origins are explicit, never a wildcard — AllowCredentials is always on, and browsers reject a wildcard origin paired with credentials, so a new origin has to be added to the allowlist deliberately."
+      },
+      {
+        "title": "Centralized error handling",
+        "body": "Handlers never format an error response themselves; every failure flows through one AppError type and one middleware, so a 500 in production always has a matching server-side log line with the real cause."
+      },
+      {
+        "title": "Transaction-safe money movement",
+        "body": "Every multi-row mutation (transfers, deposits, account deletion) runs inside a real database transaction with row-level locking — see Banking Domain above for the lock-ordering detail that keeps it deadlock-free."
+      },
+      {
+        "title": "A cookie that's deliberately readable",
+        "body": "The portal's session cookie is intentionally not httpOnly, because the shared Axios interceptor needs to read it from JavaScript to attach the auth header on client-side requests. That's an accepted trade-off, tracked as a known improvement (a BFF/proxy layer is the proposed fix) — not an oversight."
+      }
+    ]
+  },
+  "infrastructure": {
+    "eyebrow": "Infrastructure & deployment",
+    "title": "From source code to a running container.",
+    "subtitle": "The backend's path from a commit to a live API, end to end.",
+    "steps": [
+      {
+        "title": "Source code",
+        "summary": "Go module, monorepo",
+        "detail": "apps/core-service (Go/Gin/PostgreSQL) and apps/portal (Next.js) live side by side in one repository, deployed independently."
+      },
+      {
+        "title": "CI: build, vet, test",
+        "summary": "GitHub Actions",
+        "detail": "Every push/PR touching apps/core-service spins up a postgres:16-alpine service container, runs migrations against it, then go build ./..., go vet ./..., and go test ./... — no separate lint step, no CI-driven deploy yet."
+      },
+      {
+        "title": "Docker build",
+        "summary": "Multi-stage Dockerfile",
+        "detail": "A golang:1.25-alpine builder stage compiles a CGO-disabled static binary; the runtime stage is alpine:3.20 with just the binary and the migration files, exposing port 8080."
+      },
+      {
+        "title": "Docker Compose",
+        "summary": "postgres + core-service",
+        "detail": "docker-compose.yaml wires a healthchecked Postgres 16 container to the API container, with the API waiting on service_healthy before it starts."
+      },
+      {
+        "title": "Migrations",
+        "summary": "golang-migrate",
+        "detail": "Ten versioned up/down SQL pairs, applied via a thin CLI (cmd/migration) — schema changes are files in version control, never manual DDL against a live database."
+      },
+      {
+        "title": "Cloud infrastructure",
+        "summary": "Terraform → EC2",
+        "detail": "The core-service is provisioned onto a single EC2 instance via Terraform, configured through environment variables (DB source, JWT secret, allowed CORS origins) rather than committed secrets."
+      },
+      {
+        "title": "Portal deployment",
+        "summary": "Vercel",
+        "detail": "The Next.js portal deploys separately and reaches the API purely over its public HTTP origin — there's no shared network or database access between the two apps."
+      }
+    ],
+    "notes": [
+      "Observability today is structured JSON logging (Go's slog) with request-ID correlation across every log line for a request — there is no metrics/tracing stack (no Prometheus, no OpenTelemetry) yet, which is an honest gap rather than an oversight.",
+      "Environment configuration goes through viper, bound explicitly to env vars so it works identically whether values come from an app.env file locally or from Docker Compose/EC2 environment variables in deployment."
+    ]
+  },
+  "decisions": {
+    "eyebrow": "Engineering decisions",
+    "title": "A few trade-offs, explained honestly.",
+    "subtitle": "Not every decision here is the \"best\" one in the abstract — each is the right one for this project's scope, with the trade-off stated plainly.",
+    "labels": {
+      "problem": "Problem",
+      "constraint": "Constraint",
+      "decision": "Decision",
+      "result": "Result / Trade-off"
+    },
+    "items": [
+      {
+        "problem": "Two concurrent transfers between the same pair of accounts can deadlock if each transaction locks the two rows in a different order.",
+        "constraint": "Both accounts must be row-locked for the duration of a transfer, and the direction of a transfer (from → to) is arbitrary from the database's point of view.",
+        "decision": "Always lock accounts in ascending ID order, never in from-account/to-account order.",
+        "result": "Deadlock-free under concurrent load, at the cost of the lock-acquisition code being slightly less obvious to read than \"lock from, then to.\""
+      },
+      {
+        "problem": "Floating-point arithmetic can silently lose cents, which is unacceptable in a ledger.",
+        "constraint": "Every amount has to survive serialization, storage, and arithmetic without precision drift.",
+        "decision": "Represent money as strings end to end, parsed into shopspring/decimal only at the point of calculation, backed by NUMERIC(20,2) columns.",
+        "result": "Exact arithmetic, at the cost of more verbose call sites than a plain float or int would need."
+      },
+      {
+        "problem": "Deleting an account with a positive balance would either destroy real money or block the delete entirely.",
+        "constraint": "The ledger must stay balanced — money can move, but it can't disappear.",
+        "decision": "Soft-delete the account and sweep any remaining balance to the user's main account as a genuine transfer, with its own debit/credit entries.",
+        "result": "Deleted accounts remain in the database indefinitely with their full history intact, which is correct for a ledger but does mean the accounts table only grows."
+      },
+      {
+        "problem": "The Axios interceptor needs to attach an auth header from both server and browser requests, but a browser can't read an httpOnly cookie.",
+        "constraint": "No backend-for-frontend layer exists yet to hold the session server-side.",
+        "decision": "Use a non-httpOnly session cookie so client-side JavaScript can read it directly.",
+        "result": "Simpler request plumbing today, at the cost of turning any future XSS into full session-token theft — tracked explicitly as a known improvement, with a BFF/proxy as the proposed direction, not silently accepted."
+      }
+    ]
+  },
+  "requestFlow": {
+    "eyebrow": "End-to-end request flow",
+    "title": "What happens when you send a transfer.",
+    "subtitle": "One concrete user action, traced through every layer it touches. Select a stage to see the detail.",
+    "steps": [
+      {
+        "title": "User submits the form",
+        "summary": "Transfer modal, step 3",
+        "detail": "React Hook Form validates the amount and destination client-side against a Zod schema before anything is sent."
+      },
+      {
+        "title": "useTransferMutation",
+        "summary": "TanStack Query mutation",
+        "detail": "Calls transferClient.transfer(...), which returns a raw AxiosResponse the hook unwraps to .data."
+      },
+      {
+        "title": "POST /transactions/transfer",
+        "summary": "Through the shared interceptor",
+        "detail": "The Axios interceptor attaches the Authorization bearer header and a timezone header, then logs the outgoing request."
+      },
+      {
+        "title": "Gin middleware chain",
+        "summary": "Request ID → logging → CORS → error handler → recovery → auth",
+        "detail": "The JWT is verified and its payload attached to the request context before the handler runs."
+      },
+      {
+        "title": "Handler validation",
+        "summary": "Bind + validator + manual checks",
+        "detail": "Confirms the caller owns the source account, the amount is positive, and source ≠ destination."
+      },
+      {
+        "title": "TransferTx",
+        "summary": "internal/db/store",
+        "detail": "Locks both accounts in ascending-ID order, checks currency and balance, then runs inside one database transaction."
+      },
+      {
+        "title": "Database writes",
+        "summary": "transfers + 2× entries + 2× balance update",
+        "detail": "A transfer row, a debit entry, a credit entry, and two balance updates — committed together or not at all."
+      },
+      {
+        "title": "Response envelope",
+        "summary": "{ data, message }",
+        "detail": "Returned through the same envelope shape every endpoint uses, typed on the frontend as CommonSuccessResponse<Transfer>."
+      },
+      {
+        "title": "Cache update",
+        "summary": "TanStack Query invalidates",
+        "detail": "The mutation's onSuccess invalidates the affected accounts' and entries' query keys, so the UI re-fetches and reflects the new balances."
+      },
+      {
+        "title": "UI update",
+        "summary": "Balances re-render",
+        "detail": "No manual state sync — the same queryKeys the initial prefetch used are now stale, refetched, and rendered."
+      }
+    ]
+  },
+  "capabilities": {
+    "eyebrow": "Engineering capability summary",
+    "title": "What this project demonstrates.",
+    "groups": [
+      {
+        "name": "Frontend",
+        "items": [
+          { "title": "Next.js 16 App Router", "body": "Server Components for prefetch + auth checks, Client Components for interactivity, no unnecessary client-side JavaScript." },
+          { "title": "TanStack Query v5", "body": "Shared query-key factories between server prefetch and client hooks, so the two never drift apart." },
+          { "title": "React Hook Form + Zod", "body": "Typed, validated forms with translated error messages resolved through a shared resolver." }
+        ]
+      },
+      {
+        "name": "Backend",
+        "items": [
+          { "title": "Go + Gin", "body": "A layered API: handler → store → sqlc querier, with a fixed, load-bearing middleware order." },
+          { "title": "JWT authentication", "body": "Stateless bearer tokens, verified per protected route, with per-resource ownership checks in place of a roles system." },
+          { "title": "Centralized error handling", "body": "One AppError type, one response envelope, consistent across every endpoint." }
+        ]
+      },
+      {
+        "name": "Data",
+        "items": [
+          { "title": "PostgreSQL + sqlc", "body": "Hand-written SQL compiled to typed Go — no ORM, no hidden query generation." },
+          { "title": "Double-entry ledger", "body": "Balances are derived from immutable entries, not mutated directly, inside real database transactions." },
+          { "title": "Versioned migrations", "body": "Ten golang-migrate up/down pairs — schema history lives in git, not in someone's memory." }
+        ]
+      },
+      {
+        "name": "Infrastructure",
+        "items": [
+          { "title": "Docker", "body": "Multi-stage builds producing a small Alpine runtime image, composed with Postgres via Docker Compose." },
+          { "title": "Terraform", "body": "The backend's EC2 host is provisioned as code, not clicked together in a console." },
+          { "title": "Separate deploy targets", "body": "API on EC2, portal on Vercel, connected only over a CORS-locked HTTP boundary." }
+        ]
+      },
+      {
+        "name": "Engineering practices",
+        "items": [
+          { "title": "Automated testing", "body": "Gin-based handler unit tests with mocked stores, plus integration tests that run against a real Postgres instance." },
+          { "title": "Continuous integration", "body": "GitHub Actions builds, vets, and tests the backend against a live Postgres service container on every push." },
+          { "title": "Honest documentation", "body": "Internal docs explicitly flag known gaps and drift instead of describing an idealized system that doesn't exist yet." }
+        ]
+      }
+    ]
+  },
+  "techStack": {
+    "eyebrow": "Technical stack",
+    "title": "Organized by responsibility, not by dependency count.",
+    "groups": [
+      { "name": "Frontend", "items": ["Next.js 16", "React 19", "TypeScript", "TanStack Query v5", "Zustand", "Axios", "React Hook Form", "Zod", "Tailwind v4", "shadcn/ui on Base UI", "react-i18next"] },
+      { "name": "Backend", "items": ["Go", "Gin", "golang-jwt", "go-playground/validator", "shopspring/decimal", "log/slog"] },
+      { "name": "Database", "items": ["PostgreSQL 16", "sqlc", "golang-migrate", "lib/pq"] },
+      { "name": "Testing", "items": ["Go testing + testify", "go.uber.org/mock (gomock)", "Postgres integration tests"] },
+      { "name": "Infrastructure & deployment", "items": ["Docker", "Docker Compose", "Terraform", "AWS EC2", "GitHub Actions", "Vercel"] }
+    ]
+  },
+  "finalCta": {
+    "title": "See it running, or read how it's built.",
+    "description": "The demo uses fake money against a real ledger — every account, deposit, and transfer runs through the exact system described above.",
+    "ctaExplore": "Read the architecture",
+    "ctaDemo": "Try the live demo",
+    "ctaSource": "View source on GitHub"
+  },
+  "footer": {
+    "tagline": "A full-stack engineering showcase — frontend to infrastructure.",
+    "builtBy": "Designed and built by Dewa Surya Ariesta.",
+    "rights": "All rights reserved."
+  }
+}

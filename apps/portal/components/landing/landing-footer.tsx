@@ -1,11 +1,14 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Wallet } from "lucide-react";
+import { Wallet, ExternalLink } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+
+const REPO_URL = "https://github.com/DewaSRY/simple_bank_golang";
 
 export function LandingFooter() {
   const { t } = useTranslation("common");
+  const { t: tLanding } = useTranslation("landing");
   const { t: tAuth } = useTranslation("auth");
 
   return (
@@ -21,18 +24,21 @@ export function LandingFooter() {
             </span>
             {t("appName")}
           </Link>
-          <p className="text-sm text-muted-foreground">
-            {t("landing.footer.tagline")}
+          <p className="max-w-xs text-center text-sm text-muted-foreground sm:text-left">
+            {tLanding("footer.tagline")}
           </p>
         </div>
 
         <div className="flex items-center gap-6 text-sm">
-          <Link
-            href="/register"
-            className="text-muted-foreground hover:text-foreground"
+          <a
+            href={REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
           >
-            {t("landing.footer.account")}
-          </Link>
+            {tLanding("nav.viewSource")}
+            <ExternalLink className="size-3.5" aria-hidden />
+          </a>
           <Link
             href="/login"
             className="text-muted-foreground hover:text-foreground"
@@ -41,8 +47,11 @@ export function LandingFooter() {
           </Link>
         </div>
       </div>
-      <p className="mt-8 text-center text-xs text-muted-foreground sm:text-left">
-        © {new Date().getFullYear()} {t("appName")}. {t("landing.footer.rights")}
+      <p className="mt-6 text-center text-xs text-muted-foreground sm:text-left">
+        {tLanding("footer.builtBy")}
+      </p>
+      <p className="mt-2 text-center text-xs text-muted-foreground sm:text-left">
+        © {new Date().getFullYear()} {t("appName")}. {tLanding("footer.rights")}
       </p>
     </footer>
   );
