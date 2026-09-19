@@ -7,18 +7,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
 import { formatAccountAmount } from "@/feature/account-transaction/utils";
 import { useCreateTransfer } from "@/feature/transfer/hooks/query";
-import { getApiErrorMessage } from "@/lib/api/error";
+import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
+import type { TransferForm } from "./transfer-dialog";
 import { useTransferStore } from "./store";
 
 interface Props {
+  form: TransferForm;
   onSuccess: () => void;
 }
 
-export function PreviewStep({ onSuccess }: Props) {
+export function PreviewStep({ form, onSuccess }: Props) {
   const { t } = useTranslation("transfer");
   const { t: tCommon } = useTranslation("common");
-  const { sourceAccount, destinationAccount, details, setStep } = useTransferStore();
+  const {
+    sourceAccount,
+    destinationAccount,
+    details,
+    setStep,
+    setFieldErrors,
+    reset,
+  } = useTransferStore();
   const [error, setError] = useState<string | null>(null);
 
   const { mutateAsync, isPending } = useCreateTransfer();
@@ -35,7 +44,15 @@ export function PreviewStep({ onSuccess }: Props) {
         description: details.description,
       });
       onSuccess();
+      form.reset();
+      reset();
     } catch (err) {
+      const fieldErrors = getApiFieldErrors(err);
+      if (fieldErrors) {
+        setFieldErrors(fieldErrors);
+        setStep("details");
+        return;
+      }
       setError(getApiErrorMessage(err, t("transferError")));
     }
   }

@@ -1,30 +1,35 @@
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { scrollToFirstError, zodResolverTranslate } from "@/lib/form";
-import {
-  transferDetailsSchema,
-  type TransferDetailsFormValues,
-} from "@/feature/transfer/schema";
+import { scrollToFirstError } from "@/lib/form";
+import type { TransferDetailsFormValues } from "@/feature/transfer/schema";
 
+import type { TransferForm } from "./transfer-dialog";
 import { useTransferStore } from "./store";
 
-export function DetailsStep() {
+interface Props {
+  form: TransferForm;
+}
+
+export function DetailsStep({ form }: Props) {
   const { t } = useTranslation("transfer");
   const { t: tCommon } = useTranslation("common");
-  const { details, setDetails, setStep } = useTransferStore();
+  const { fieldErrors, setDetails, setFieldErrors, setStep } =
+    useTransferStore();
 
-  const form = useForm<TransferDetailsFormValues>({
-    resolver: zodResolverTranslate(transferDetailsSchema, t),
-    defaultValues: {
-      amount: details ? String(details.amount) : "",
-      description: details?.description ?? "",
-    },
-  });
+  useEffect(() => {
+    if (!fieldErrors) return;
+
+    for (const [field, message] of Object.entries(fieldErrors)) {
+      form.setError(field as keyof TransferDetailsFormValues, { message });
+    }
+    setFieldErrors(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldErrors]);
 
   const onSubmit = form.handleSubmit(
     (data) => {

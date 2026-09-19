@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -7,6 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
+import { depositSchema } from "@/feature/account-transaction/schema";
+import { zodResolverTranslate } from "@/lib/form";
 
 import { AccountStep } from "./account-step";
 import { DetailsStep } from "./details-step";
@@ -18,9 +23,41 @@ interface Props {
   setOpen?: (open: boolean) => void;
 }
 
+export function useDepositeDetailsForm(t: (key: string) => string) {
+  return useForm({
+    resolver: zodResolverTranslate(depositSchema, t),
+    defaultValues: {
+      amount: "",
+      description: "",
+    },
+  });
+}
+
+export type DepositeForm = ReturnType<typeof useDepositeDetailsForm>;
+
 export function DepositeDialog({ open, setOpen }: Props) {
   const { t } = useTranslation("deposit");
   const { step, reset } = useDepositeStore();
+
+  const form = useDepositeDetailsForm(t);
+  const isDirty = form.formState.isDirty;
+
+  const setGuard = useNavigationGuardStore((s) => s.setGuard);
+  const requestNavigation = useNavigationGuardStore(
+    (s) => s.requestNavigation,
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    setGuard(isDirty, {
+      onAbort: () => {
+        form.reset();
+        reset();
+      },
+    });
+    return () => setGuard(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isDirty, setGuard, form]);
 
   const STEP_COPY = {
     account: {
@@ -40,8 +77,17 @@ export function DepositeDialog({ open, setOpen }: Props) {
   const { title, description } = STEP_COPY[step];
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen?.(nextOpen);
-    if (nextOpen) reset();
+    if (nextOpen) {
+      setOpen?.(true);
+      reset();
+      return;
+    }
+    requestNavigation(() => setOpen?.(false));
+  }
+
+  function handleSuccessClose() {
+    setGuard(false);
+    setOpen?.(false);
   }
 
   return (
@@ -53,9 +99,9 @@ export function DepositeDialog({ open, setOpen }: Props) {
         </DialogHeader>
 
         {step === "account" && <AccountStep />}
-        {step === "details" && <DetailsStep />}
+        {step === "details" && <DetailsStep form={form} />}
         {step === "preview" && (
-          <PreviewStep onSuccess={() => handleOpenChange(false)} />
+          <PreviewStep form={form} onSuccess={handleSuccessClose} />
         )}
       </DialogContent>
     </Dialog>

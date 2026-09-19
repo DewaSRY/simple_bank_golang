@@ -9,16 +9,18 @@ import { useUpdateAccount } from "@/feature/account-manage/hooks/query";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
 import { useEditAccountStore } from "./store";
+import type { EditForm } from "./edit-account-dialog";
 
 interface Props {
   accountId: number;
+  form: EditForm;
   onSuccess: () => void;
 }
 
-export function PreviewStep({ accountId, onSuccess }: Props) {
+export function PreviewStep({ accountId, form, onSuccess }: Props) {
   const { t } = useTranslation("account");
   const { t: tCommon } = useTranslation("common");
-  const { values, setStep, setFieldErrors } = useEditAccountStore();
+  const { values, setStep, setFieldErrors, reset } = useEditAccountStore();
   const { mutateAsync, isPending } = useUpdateAccount(accountId);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +31,8 @@ export function PreviewStep({ accountId, onSuccess }: Props) {
     try {
       await mutateAsync(values);
       onSuccess();
+      form.reset();
+      reset();
     } catch (err) {
       const fieldErrors = getApiFieldErrors(err);
       if (fieldErrors) {

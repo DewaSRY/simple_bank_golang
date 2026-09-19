@@ -7,18 +7,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useDeposit } from "@/feature/account-transaction/hooks/query";
 import { formatAccountAmount } from "@/feature/account-transaction/utils";
-import { getApiErrorMessage } from "@/lib/api/error";
+import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
 
+import type { DepositeForm } from "./deposite-dialog";
 import { useDepositeStore } from "./store";
 
 interface Props {
+  form: DepositeForm;
   onSuccess: () => void;
 }
 
-export function PreviewStep({ onSuccess }: Props) {
+export function PreviewStep({ form, onSuccess }: Props) {
   const { t } = useTranslation("deposit");
   const { t: tCommon } = useTranslation("common");
-  const { selectedAccount, details, setStep } = useDepositeStore();
+  const { selectedAccount, details, setStep, setFieldErrors, reset } =
+    useDepositeStore();
   const [error, setError] = useState<string | null>(null);
 
   const { mutateAsync, isPending } = useDeposit(selectedAccount?.id ?? 0);
@@ -30,7 +33,15 @@ export function PreviewStep({ onSuccess }: Props) {
     try {
       await mutateAsync(details);
       onSuccess();
+      form.reset();
+      reset();
     } catch (err) {
+      const fieldErrors = getApiFieldErrors(err);
+      if (fieldErrors) {
+        setFieldErrors(fieldErrors);
+        setStep("details");
+        return;
+      }
       setError(getApiErrorMessage(err, t("depositError")));
     }
   }

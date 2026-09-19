@@ -1,30 +1,35 @@
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { scrollToFirstError, zodResolverTranslate } from "@/lib/form";
-import {
-  depositSchema,
-  type DepositFormValues,
-} from "@/feature/account-transaction/schema";
+import { scrollToFirstError } from "@/lib/form";
+import type { DepositFormValues } from "@/feature/account-transaction/schema";
 
+import type { DepositeForm } from "./deposite-dialog";
 import { useDepositeStore } from "./store";
 
-export function DetailsStep() {
+interface Props {
+  form: DepositeForm;
+}
+
+export function DetailsStep({ form }: Props) {
   const { t } = useTranslation("deposit");
   const { t: tCommon } = useTranslation("common");
-  const { details, setDetails, setStep } = useDepositeStore();
+  const { fieldErrors, setDetails, setFieldErrors, setStep } =
+    useDepositeStore();
 
-  const form = useForm<DepositFormValues>({
-    resolver: zodResolverTranslate(depositSchema, t),
-    defaultValues: {
-      amount: details ? String(details.amount) : "",
-      description: details?.description ?? "",
-    },
-  });
+  useEffect(() => {
+    if (!fieldErrors) return;
+
+    for (const [field, message] of Object.entries(fieldErrors)) {
+      form.setError(field as keyof DepositFormValues, { message });
+    }
+    setFieldErrors(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldErrors]);
 
   const onSubmit = form.handleSubmit(
     (data) => {
