@@ -158,7 +158,7 @@ func TestCreateAccount(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			q := mockdb.NewMockStorer(ctrl)
-			storer := &mockStorer{MockQuerier: q}
+			storer := &mockStorer{MockStorer: q}
 			tc.buildStorer(t, storer)
 
 			router, tokenMaker := newTestRouter(t, storer)
@@ -243,7 +243,7 @@ func TestUpdateAccount(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
+			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
 			path := "/api/v1/accounts/" + itoa(existingAccount.ID)
 			recorder := doAuthenticatedRequest(t, router, http.MethodPut, path, tc.body, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
@@ -322,7 +322,7 @@ func TestDetailAccount(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
+			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
 			path := "/api/v1/accounts/" + itoa(accountID)
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, path, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
@@ -395,7 +395,7 @@ func TestListmeAccounts(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
+			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, "/api/v1/accounts/me"+tc.query, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
 		})
@@ -462,7 +462,7 @@ func TestSearchAccountByNumber(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
+			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, "/api/v1/accounts/search-by-number"+tc.query, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
 		})
@@ -570,7 +570,7 @@ func TestDeleteAccount(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			storer := &mockStorer{MockQuerier: q}
+			storer := &mockStorer{MockStorer: q}
 			tc.buildStorer(storer)
 
 			router, tokenMaker := newTestRouter(t, storer)

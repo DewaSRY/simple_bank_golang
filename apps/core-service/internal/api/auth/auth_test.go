@@ -267,7 +267,7 @@ func TestRegisterUser(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router := newTestRouter(newTestHandler(t, &mockStorer{MockQuerier: q}))
+			router := newTestRouter(newTestHandler(t, &mockStorer{MockStorer: q}))
 			recorder := doRegisterRequest(t, router, tc.body)
 			tc.checkResponse(t, recorder)
 		})
@@ -374,7 +374,7 @@ func TestLoginUser(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router := newTestRouter(newTestHandler(t, &mockStorer{MockQuerier: q}))
+			router := newTestRouter(newTestHandler(t, &mockStorer{MockStorer: q}))
 			recorder := doLoginRequest(t, router, tc.body)
 			tc.checkResponse(t, recorder)
 		})
@@ -480,7 +480,7 @@ func TestGetProfile(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			h := newTestHandler(t, &mockStorer{MockQuerier: q})
+			h := newTestHandler(t, &mockStorer{MockStorer: q})
 			router := newTestRouter(h)
 			recorder := doGetProfileRequest(t, router, tc.authHeader(t, h))
 			tc.checkResponse(t, recorder)

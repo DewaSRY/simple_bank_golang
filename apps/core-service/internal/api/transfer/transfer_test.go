@@ -214,7 +214,7 @@ func TestDeposit(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			storer := &mockStorer{MockQuerier: q}
+			storer := &mockStorer{MockStorer: q}
 			tc.buildStorer(storer)
 
 			router, tokenMaker := newTestRouter(t, storer)
@@ -294,7 +294,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
+			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
 			path := "/api/v1/accounts/" + itoa(accountID) + "/entries" + tc.query
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, path, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
@@ -373,7 +373,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
+			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
 			path := "/api/v1/accounts/" + itoa(accountID) + "/recent-destinations"
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, path, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
@@ -450,7 +450,7 @@ func TestListAccountTransactionHistory(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
+			router, tokenMaker := newTestRouter(t, &mockStorer{MockStorer: q})
 			path := "/api/v1/accounts/" + itoa(accountID) + "/transactions"
 			recorder := doAuthenticatedRequest(t, router, http.MethodGet, path, nil, authHeaderFor(t, tokenMaker, testUserID))
 			tc.checkResponse(t, recorder)
@@ -574,7 +574,7 @@ func TestTransactionTransfer(t *testing.T) {
 			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
-			storer := &mockStorer{MockQuerier: q}
+			storer := &mockStorer{MockStorer: q}
 			tc.buildStorer(storer)
 
 			router, tokenMaker := newTestRouter(t, storer)
