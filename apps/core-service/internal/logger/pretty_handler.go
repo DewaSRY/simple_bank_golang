@@ -9,22 +9,11 @@ import (
 	"sync"
 )
 
-// prettyHandler wraps slog's own JSON handler and re-indents each record's
-// single-line JSON into multi-line, human-readable JSON before writing it —
-// slog has no built-in indent option. This trades the one-record-per-line
-// convention a log aggregator expects for readability, so it's only ever
-// wired up for local development (LOG_PRETTY_JSON=true); production keeps
-// the compact line internal/logger.New emits by default.
 type prettyHandler struct {
 	w    io.Writer
 	opts *slog.HandlerOptions
 	mu   *sync.Mutex
-
-	// ops replays whatever WithAttrs/WithGroup calls built this handler
-	// (e.g. loggerFromContext's base.With(request_id)) onto a fresh
-	// slog.JSONHandler per record, since a handler can't be asked to
-	// redirect its already-configured output mid-flight.
-	ops []func(slog.Handler) slog.Handler
+	ops  []func(slog.Handler) slog.Handler
 }
 
 func newPrettyHandler(w io.Writer, opts *slog.HandlerOptions) *prettyHandler {
@@ -51,9 +40,6 @@ func (h *prettyHandler) Handle(ctx context.Context, record slog.Record) error {
 
 	var pretty bytes.Buffer
 	if err := json.Indent(&pretty, bytes.TrimRight(compact.Bytes(), "\n"), "", "  "); err != nil {
-		// Not valid JSON — shouldn't happen coming out of a JSONHandler,
-		// but fall back to the compact line rather than dropping the
-		// record.
 		h.mu.Lock()
 		defer h.mu.Unlock()
 		_, writeErr := h.w.Write(compact.Bytes())
@@ -83,8 +69,6 @@ func (h *prettyHandler) clone(op func(slog.Handler) slog.Handler) *prettyHandler
 	ops := make([]func(slog.Handler) slog.Handler, len(h.ops)+1)
 	copy(ops, h.ops)
 	ops[len(h.ops)] = op
-	// mu is shared (not copied) across every handler derived from the same
-	// root so writes from concurrent requests' .With(...) loggers still
-	// serialize onto one io.Writer instead of interleaving.
+
 	return &prettyHandler{w: h.w, opts: h.opts, mu: h.mu, ops: ops}
 }
