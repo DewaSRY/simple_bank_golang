@@ -1,9 +1,12 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { ExternalLink } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "./scroll-reveal";
+
+const REPO_URL = "https://github.com/DewaSRY/simple_bank_golang";
 
 export function FinalCtaSection() {
   const { t } = useTranslation("common");
@@ -17,15 +20,29 @@ export function FinalCtaSection() {
         <p className="max-w-md text-primary-foreground/70 text-balance">
           {t("landing.finalCta.description")}
         </p>
-        <Button
-          size="lg"
-          variant="secondary"
-          className="h-12 px-8 text-base"
-          nativeButton={false}
-          render={<Link href="/register" />}
-        >
-          {t("landing.nav.getStarted")}
-        </Button>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <Button
+            size="lg"
+            variant="secondary"
+            className="h-12 px-8 text-base"
+            nativeButton={false}
+            render={<Link href="/register" />}
+          >
+            {t("landing.nav.getStarted")}
+          </Button>
+          <Button
+            size="lg"
+            variant="ghost"
+            className="h-12 gap-2 px-8 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            nativeButton={false}
+            render={
+              <a href={REPO_URL} target="_blank" rel="noopener noreferrer" />
+            }
+          >
+            {t("landing.finalCta.viewSource")}
+            <ExternalLink className="size-4" aria-hidden />
+          </Button>
+        </div>
       </ScrollReveal>
     </section>
   );

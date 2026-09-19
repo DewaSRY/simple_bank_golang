@@ -2,7 +2,22 @@
 
 import { useTranslation } from "react-i18next";
 import { Star, Wallet } from "lucide-react";
+import { motion, type Variants } from "motion/react";
 import { ScrollReveal } from "./scroll-reveal";
+
+const listVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+};
+
+const rowVariants: Variants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 const MOCK_ACCOUNTS = [
   {
@@ -52,10 +67,18 @@ export function SolutionSection() {
               <p className="text-xl font-semibold">{t("yourAccounts")}</p>
               <Wallet className="size-4 text-muted-foreground" aria-hidden />
             </div>
-            <div className="flex flex-col gap-2">
+            <motion.div
+              variants={listVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              className="flex flex-col gap-2"
+            >
               {MOCK_ACCOUNTS.map((account) => (
-                <div
+                <motion.div
                   key={account.number}
+                  variants={rowVariants}
+                  whileHover={{ y: -2 }}
                   className="flex items-center justify-between gap-3 rounded-xl bg-muted/40 p-3 ring-1 ring-foreground/5"
                 >
                   <div className="flex min-w-0 items-center gap-3">
@@ -85,9 +108,9 @@ export function SolutionSection() {
                       {account.currency}
                     </span>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </ScrollReveal>
       </div>

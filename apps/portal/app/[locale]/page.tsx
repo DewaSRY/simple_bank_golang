@@ -9,6 +9,7 @@ import { HeroSection } from "@/components/landing/hero-section";
 import { ProblemSection } from "@/components/landing/problem-section";
 import { SolutionSection } from "@/components/landing/solution-section";
 import { FeaturesSection } from "@/components/landing/features-section";
+import { ArchitectureSection } from "@/components/landing/architecture-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { FinalCtaSection } from "@/components/landing/final-cta-section";
 import { LandingFooter } from "@/components/landing/landing-footer";
@@ -83,6 +84,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         <ProblemSection />
         <SolutionSection />
         <FeaturesSection />
+        <ArchitectureSection />
         <HowItWorksSection />
         <FinalCtaSection />
         <LandingFooter />

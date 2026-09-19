@@ -1,14 +1,14 @@
 {
   "mainAccount": "Rekening utama",
   "appName": "Simple Bank",
-  "tagline": "Perbankan jadi <brand>sederhana</brand>.",
-  "cta": "Buka rekening, transfer uang, dan pantau saldo Anda — semua dalam satu tempat.",
-  "featureAccountsTitle": "Kelola rekening",
-  "featureAccountsDesc": "Buka dan kelola beberapa rekening dalam berbagai mata uang.",
+  "tagline": "Ledger sungguhan. Uang palsu. <brand>Tanpa jalan pintas.</brand>",
+  "cta": "Saya membangun aplikasi perbankan pribadi dari ujung ke ujung — rekening, setoran, dan transfer instan, didukung Go ledger service sungguhan.",
+  "featureAccountsTitle": "Rekening multi-mata uang",
+  "featureAccountsDesc": "Buat, ubah, dan hapus rekening — menghapus satu rekening otomatis memindahkan saldonya ke rekening lain, jadi uang tidak pernah begitu saja hilang.",
   "featureTransfersTitle": "Transfer instan",
-  "featureTransfersDesc": "Kirim dan terima uang antar rekening secara instan dan aman.",
-  "featureSecurityTitle": "Aman secara desain",
-  "featureSecurityDesc": "Dibangun dengan praktik keamanan standar industri untuk menjaga uang Anda tetap aman.",
+  "featureTransfersDesc": "Pilih tujuan terakhir dan pindahkan uang antar rekening dalam satu panggilan atomik. Tidak ada transfer setengah jalan.",
+  "featureSecurityTitle": "Auth berbasis sesi",
+  "featureSecurityDesc": "Setiap request membawa session cookie lewat satu interceptor bersama. Satu 401 di mana pun langsung mengeluarkan Anda dari semua sesi.",
   "getStarted": "Mulai sekarang",
   "language": "Bahasa",
   "dashboardTitle": "Dasbor",
@@ -49,36 +49,72 @@
       "menuToggle": "Buka menu"
     },
     "hero": {
-      "eyebrow": "Simple Bank",
-      "ctaHint": "Tanpa dokumen. Tanpa antre di cabang. Rekening Anda, di genggaman Anda."
+      "eyebrow": "Proyek sampingan full-stack, bukan pitch SaaS",
+      "ctaHint": "Ya, ini uang palsu — tapi matematika ledger-nya tidak tahu itu."
     },
     "problem": {
       "eyebrow": "Masalahnya",
       "title": "Uang yang tersebar di banyak rekening sulit dipantau.",
-      "description": "Mengelola berbagai mata uang, mengecek saldo di tempat berbeda, dan menunggu transfer selesai membuat pengelolaan uang jadi merepotkan.",
+      "description": "Saya ingin membangun sesuatu yang lebih sulit dari sekadar to-do app. Mengelola mata uang, saldo, dan transfer adalah cara mudah untuk salah menjaga konsistensi state.",
       "points": [
         {
           "title": "Saldo tersebar",
-          "description": "Banyak rekening dan mata uang, tanpa satu tampilan yang jelas."
+          "description": "Banyak rekening dan mata uang sebenarnya adalah masalah konsistensi banyak baris data yang dibungkus tampilan perbankan."
         },
         {
           "title": "Transfer lambat",
-          "description": "Menunggu uang berpindah antar rekening mengacaukan rencana Anda."
+          "description": "Satu transfer menyentuh dua baris rekening sekaligus — salah menentukan batas transaksi, uang bisa duplikat atau hilang."
         },
         {
           "title": "Khawatir soal keamanan",
-          "description": "Menitipkan uang berarti harus percaya bahwa uang itu benar-benar aman."
+          "description": "Penanganan sesi bukan sekadar pemanis. Salah menanganinya bukan bug UX, tapi kebocoran data."
         }
       ]
     },
     "solution": {
       "eyebrow": "Solusinya",
-      "title": "Satu tempat untuk semua rekening Anda.",
-      "description": "Simple Bank menyatukan rekening, saldo, dan transfer Anda, sehingga Anda selalu tahu persis posisi uang Anda."
+      "title": "Satu tempat untuk semua rekening — dan ledger yang menjaganya tetap jujur.",
+      "description": "Buat rekening sebanyak yang Anda mau, setor ke rekening mana pun, dan transfer antar rekening secara instan. Hapus satu rekening, saldonya otomatis berpindah ke rekening lain — di dalam ledger, uang tidak pernah begitu saja hilang."
     },
     "features": {
       "eyebrow": "Fitur utama",
-      "title": "Dibangun sesuai cara Anda bertransaksi."
+      "title": "Tiga fitur. Ini mekanisme sesungguhnya di balik masing-masing."
+    },
+    "architecture": {
+      "eyebrow": "Cara kerjanya",
+      "title": "Satu request, lima lompatan, tanpa sihir.",
+      "subtitle": "Saya bisa saja bilang ini \"dibangun dengan best practice modern.\" Atau saya bisa langsung tunjukkan apa yang sebenarnya terjadi saat Anda klik satu tombol.",
+      "steps": [
+        {
+          "title": "Client Component",
+          "description": "Sebuah form atau tombol. Ia memanggil feature hook — tidak pernah menyentuh Axios secara langsung."
+        },
+        {
+          "title": "hooks/query.ts",
+          "description": "TanStack Query — useQuery/useMutation, plus queryKeys factory yang sama dipakai di server."
+        },
+        {
+          "title": "client.ts",
+          "description": "Resource client bertipe — satu class per domain, satu method per endpoint."
+        },
+        {
+          "title": "apiClient + interceptor",
+          "description": "Satu instance Axios, satu interceptor, dipasang tepat sekali — header auth, header timezone, logging request."
+        },
+        {
+          "title": "Go core-service",
+          "description": "Ledger sesungguhnya ada di sini. Aplikasi ini tidak menyentuh database — ia cuma bertanya baik-baik lewat HTTP."
+        }
+      ],
+      "prefetch": {
+        "label": "+ SSR prefetch di muat pertama",
+        "description": "Setiap halaman juga melakukan prefetch dengan query key yang persis sama di server, lalu menyerahkan cache-nya ke browser. Render pertama sudah punya data asli — tanpa loading flash."
+      },
+      "callouts": [
+        "Setiap API call bertipe dari ujung ke ujung — dari form yang divalidasi Zod, ke Axios client, sampai response envelope yang dikirim Go service. Kalau backend mengubah bentuk responsnya, TypeScript akan memberi tahu saya sebelum user yang menemukannya.",
+        "Satu instance Axios, satu interceptor, dipasang tepat sekali — ada WeakSet guard untuk itu. Setiap request otomatis dapat auth header tanpa satu pun file feature yang mengimpor Axios langsung."
+      ],
+      "techStackLabel": "Stack yang sesungguhnya dipakai, bukan slide buzzword"
     },
     "howItWorks": {
       "eyebrow": "Cara kerja",
@@ -99,8 +135,9 @@
       ]
     },
     "finalCta": {
-      "title": "Siap membuat perbankan Anda lebih sederhana?",
-      "description": "Buat rekening Anda dalam hitungan menit dan kendalikan saldo Anda mulai hari ini."
+      "title": "Siap melihatnya langsung beraksi?",
+      "description": "Daftar rekening sungguhan di bawah dan coba-coba sendiri — atau langsung lompat ke kodenya dan lihat cara kerjanya.",
+      "viewSource": "Lihat source code di GitHub"
     },
     "footer": {
       "tagline": "Perbankan jadi sederhana.",

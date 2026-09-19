@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import { Layers, Clock, ShieldAlert } from "lucide-react";
+import { motion } from "motion/react";
 import { ScrollReveal } from "./scroll-reveal";
 
 const ICONS = [Layers, Clock, ShieldAlert];
@@ -31,16 +32,20 @@ export function ProblemSection() {
           {points.map((point, index) => {
             const Icon = ICONS[index];
             return (
-              <ScrollReveal
-                key={point.title}
-                delay={index * 0.1}
-                className="rounded-2xl bg-muted/40 p-5 ring-1 ring-foreground/5"
-              >
-                <Icon className="size-5 text-muted-foreground" aria-hidden />
-                <h3 className="mt-3 text-sm font-semibold">{point.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {point.description}
-                </p>
+              <ScrollReveal key={point.title} delay={index * 0.1}>
+                <motion.div
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full rounded-2xl bg-muted/40 p-5 ring-1 ring-foreground/5"
+                >
+                  <Icon className="size-5 text-muted-foreground" aria-hidden />
+                  <h3 className="mt-3 text-sm font-semibold">
+                    {point.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {point.description}
+                  </p>
+                </motion.div>
               </ScrollReveal>
             );
           })}
