@@ -14,11 +14,8 @@ export function BackendEngineeringSection() {
   }>;
 
   return (
-    <section
-      id="backend"
-      className="bg-muted/30 px-4 py-16 sm:px-6 sm:py-24"
-    >
-      <div className="mx-auto w-full max-w-6xl">
+    <section id="backend" className="bg-muted/30 px-4 py-16 sm:px-6 sm:py-24">
+      <div className="mx-auto w-full max-w-[84rem]">
         <ScrollReveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-muted-foreground">
             {t("backend.eyebrow")}
@@ -30,10 +27,11 @@ export function BackendEngineeringSection() {
             {t("backend.subtitle")}
           </p>
         </ScrollReveal>
-
-        <ScrollReveal delay={0.1} className="mt-12">
-          <InteractiveFlow steps={steps} />
-        </ScrollReveal>
+        <div className="mx-auto ">
+          <ScrollReveal delay={0.1} className="mt-12">
+            <InteractiveFlow steps={steps} />
+          </ScrollReveal>
+        </div>
       </div>
     </section>
   );

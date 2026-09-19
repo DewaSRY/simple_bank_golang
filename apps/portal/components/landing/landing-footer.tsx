@@ -14,7 +14,7 @@ export function LandingFooter() {
 
   return (
     <footer className="border-t px-4 py-10 sm:px-6">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
+      <div className="mx-auto flex w-full max-w-[84rem] flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col items-center gap-2 sm:items-start">
           <Link
             href="/"
@@ -48,7 +48,7 @@ export function LandingFooter() {
           </Link>
         </div>
       </div>
-      <div className="mx-auto mt-8 w-full max-w-6xl border-t pt-6">
+      <div className="mx-auto mt-8 w-full max-w-[84rem] border-t pt-6">
         <p className="text-center text-xs font-medium text-foreground sm:text-left">
           {tLanding("footer.author.heading", { name: AUTHOR.name })}
         </p>

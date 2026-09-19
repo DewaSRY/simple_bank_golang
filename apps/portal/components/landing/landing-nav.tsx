@@ -53,7 +53,7 @@ export function LandingNav() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-transparent bg-background/70 backdrop-blur-md transition-colors">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex h-16 w-full max-w-[84rem] items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
           className="flex items-center gap-2 text-base font-semibold tracking-tight"

@@ -16,7 +16,7 @@ export function FrontendEngineeringSection() {
 
   return (
     <section id="frontend" className="px-4 py-16 sm:px-6 sm:py-24">
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="mx-auto w-full max-w-[84rem]">
         <ScrollReveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-muted-foreground">
             {t("frontend.eyebrow")}

@@ -40,7 +40,7 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-4 py-6 sm:px-6">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+      <div className="mx-auto w-full max-w-[84rem] space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/dashboard"

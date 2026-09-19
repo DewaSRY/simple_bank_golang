@@ -31,7 +31,7 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
           className=" text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl sm:leading-tight"
         >
-          {t("hero.titleBefore")}
+          <span className="mr-0.5">{t("hero.titleBefore")} </span>
           <span className="text-primary">{t("hero.titleBrand")}</span>
         </motion.h1>
 

@@ -36,7 +36,7 @@ export default async function DashboardPage({ params }: props) {
 
   return (
     <div className="flex flex-1 flex-col bg-background px-4 py-6 font-sans sm:px-6">
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="mx-auto w-full max-w-[84rem]">
         <div className="flex w-full items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
