@@ -76,6 +76,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   return (
     <MotionConfig reducedMotion="user">
       <script
+        id="website-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
@@ -83,7 +84,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             "@type": "WebSite",
             name: "Simple Bank",
             url: canonicalFor(locale, ""),
-          }),
+          }).replace(/</g, "\\u003c"),
         }}
       />
       <main className="flex min-h-screen w-full flex-col">

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Simple Bank — Full-Stack Engineering Showcase",
-    "description": "A ledger-based banking system built end to end: Next.js frontend, a Go/Gin API, PostgreSQL with double-entry bookkeeping, Docker, and a real deployment pipeline."
+    "description": "Simple bank application built end to end: Next.js frontend, a Go/Gin API, PostgreSQL with double-entry bookkeeping, Docker, and a real deployment pipeline."
   },
   "nav": {
     "explore": "Explore the system",
@@ -21,10 +21,17 @@
   },
   "hero": {
     "eyebrow": "Full-stack engineering showcase",
-    "titleBefore": "A ledger-based banking system,",
+    "titleBefore": "Prototype banking system,",
     "titleBrand": "built end to end.",
     "description": "Simple Bank is a working application, not a mockup: a Next.js portal talking to a Go API that keeps a real double-entry ledger in PostgreSQL. This page walks through how it's actually built — frontend, API contract, backend, database, and the pipeline that ships it.",
-    "pipeline": ["Frontend", "API", "Backend", "Database", "Infrastructure", "Deployment"],
+    "pipeline": [
+      "Frontend",
+      "API",
+      "Backend",
+      "Database",
+      "Infrastructure",
+      "Deployment"
+    ],
     "ctaPrimary": "Read the architecture",
     "ctaSecondary": "Try the live demo",
     "note": "Every account, deposit, and transfer below moves through the same code path a production request would."
@@ -266,22 +273,53 @@
       {
         "name": "users",
         "description": "One row per registered person.",
-        "columns": ["id", "username (unique)", "email (unique)", "hashed_password (bcrypt)", "created_at", "updated_at"]
+        "columns": [
+          "id",
+          "username (unique)",
+          "email (unique)",
+          "hashed_password (bcrypt)",
+          "created_at",
+          "updated_at"
+        ]
       },
       {
         "name": "accounts",
         "description": "Balances the user holds — a soft-deletable row, not a permanent one.",
-        "columns": ["id", "user_id → users", "number (unique, generated)", "name", "balance NUMERIC(20,2)", "currency", "is_main", "deleted_at"]
+        "columns": [
+          "id",
+          "user_id → users",
+          "number (unique, generated)",
+          "name",
+          "balance NUMERIC(20,2)",
+          "currency",
+          "is_main",
+          "deleted_at"
+        ]
       },
       {
         "name": "transfers",
         "description": "One row per money movement between two accounts.",
-        "columns": ["id", "from_account_id → accounts", "to_account_id → accounts", "amount NUMERIC(20,2)", "description", "created_at"]
+        "columns": [
+          "id",
+          "from_account_id → accounts",
+          "to_account_id → accounts",
+          "amount NUMERIC(20,2)",
+          "description",
+          "created_at"
+        ]
       },
       {
         "name": "entries",
         "description": "The immutable ledger. Every balance change is a row here, never an edit.",
-        "columns": ["id", "account_id → accounts", "transfer_id → transfers (nullable)", "type", "amount", "description", "created_at"]
+        "columns": [
+          "id",
+          "account_id → accounts",
+          "transfer_id → transfers (nullable)",
+          "type",
+          "amount",
+          "description",
+          "created_at"
+        ]
       }
     ],
     "relationshipsLabel": "Relationships",
@@ -312,30 +350,100 @@
       {
         "name": "Auth",
         "endpoints": [
-          { "method": "POST", "path": "/auth/register", "auth": false, "description": "Create a user, auto-create their main account, issue a JWT." },
-          { "method": "POST", "path": "/auth/login", "auth": false, "description": "Authenticate and issue a JWT." },
-          { "method": "GET", "path": "/auth/profile", "auth": true, "description": "Return the current user's profile." }
+          {
+            "method": "POST",
+            "path": "/auth/register",
+            "auth": false,
+            "description": "Create a user, auto-create their main account, issue a JWT."
+          },
+          {
+            "method": "POST",
+            "path": "/auth/login",
+            "auth": false,
+            "description": "Authenticate and issue a JWT."
+          },
+          {
+            "method": "GET",
+            "path": "/auth/profile",
+            "auth": true,
+            "description": "Return the current user's profile."
+          }
         ]
       },
       {
         "name": "Accounts",
         "endpoints": [
-          { "method": "POST", "path": "/accounts", "auth": true, "description": "Create a new (non-main) account." },
-          { "method": "GET", "path": "/accounts/me", "auth": true, "description": "List the caller's accounts, paginated." },
-          { "method": "GET", "path": "/accounts/search-by-number", "auth": true, "description": "Look up a destination account by number." },
-          { "method": "GET", "path": "/accounts/:id", "auth": true, "description": "Get one account (403 if not the owner)." },
-          { "method": "PUT", "path": "/accounts/:id", "auth": true, "description": "Update an account's name/description." },
-          { "method": "DELETE", "path": "/accounts/:id", "auth": true, "description": "Soft-delete an account, sweeping any balance first." },
-          { "method": "POST", "path": "/accounts/:id/deposit", "auth": true, "description": "Deposit into an owned account." },
-          { "method": "GET", "path": "/accounts/:id/entries", "auth": true, "description": "List an account's ledger entries." },
-          { "method": "GET", "path": "/accounts/:id/transactions", "auth": true, "description": "List labeled transaction history." },
-          { "method": "GET", "path": "/accounts/:id/recent-destinations", "auth": true, "description": "Recent transfer destinations from this account." }
+          {
+            "method": "POST",
+            "path": "/accounts",
+            "auth": true,
+            "description": "Create a new (non-main) account."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/me",
+            "auth": true,
+            "description": "List the caller's accounts, paginated."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/search-by-number",
+            "auth": true,
+            "description": "Look up a destination account by number."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id",
+            "auth": true,
+            "description": "Get one account (403 if not the owner)."
+          },
+          {
+            "method": "PUT",
+            "path": "/accounts/:id",
+            "auth": true,
+            "description": "Update an account's name/description."
+          },
+          {
+            "method": "DELETE",
+            "path": "/accounts/:id",
+            "auth": true,
+            "description": "Soft-delete an account, sweeping any balance first."
+          },
+          {
+            "method": "POST",
+            "path": "/accounts/:id/deposit",
+            "auth": true,
+            "description": "Deposit into an owned account."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id/entries",
+            "auth": true,
+            "description": "List an account's ledger entries."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id/transactions",
+            "auth": true,
+            "description": "List labeled transaction history."
+          },
+          {
+            "method": "GET",
+            "path": "/accounts/:id/recent-destinations",
+            "auth": true,
+            "description": "Recent transfer destinations from this account."
+          }
         ]
       },
       {
         "name": "Transactions",
         "endpoints": [
-          { "method": "POST", "path": "/transactions/transfer", "auth": true, "description": "Transfer between two accounts the caller owns the source of." }
+          {
+            "method": "POST",
+            "path": "/transactions/transfer",
+            "auth": true,
+            "description": "Transfer between two accounts the caller owns the source of."
+          }
         ]
       }
     ]
@@ -518,41 +626,86 @@
       {
         "name": "Frontend",
         "items": [
-          { "title": "Next.js 16 App Router", "body": "Server Components for prefetch + auth checks, Client Components for interactivity, no unnecessary client-side JavaScript." },
-          { "title": "TanStack Query v5", "body": "Shared query-key factories between server prefetch and client hooks, so the two never drift apart." },
-          { "title": "React Hook Form + Zod", "body": "Typed, validated forms with translated error messages resolved through a shared resolver." }
+          {
+            "title": "Next.js 16 App Router",
+            "body": "Server Components for prefetch + auth checks, Client Components for interactivity, no unnecessary client-side JavaScript."
+          },
+          {
+            "title": "TanStack Query v5",
+            "body": "Shared query-key factories between server prefetch and client hooks, so the two never drift apart."
+          },
+          {
+            "title": "React Hook Form + Zod",
+            "body": "Typed, validated forms with translated error messages resolved through a shared resolver."
+          }
         ]
       },
       {
         "name": "Backend",
         "items": [
-          { "title": "Go + Gin", "body": "A layered API: handler → store → sqlc querier, with a fixed, load-bearing middleware order." },
-          { "title": "JWT authentication", "body": "Stateless bearer tokens, verified per protected route, with per-resource ownership checks in place of a roles system." },
-          { "title": "Centralized error handling", "body": "One AppError type, one response envelope, consistent across every endpoint." }
+          {
+            "title": "Go + Gin",
+            "body": "A layered API: handler → store → sqlc querier, with a fixed, load-bearing middleware order."
+          },
+          {
+            "title": "JWT authentication",
+            "body": "Stateless bearer tokens, verified per protected route, with per-resource ownership checks in place of a roles system."
+          },
+          {
+            "title": "Centralized error handling",
+            "body": "One AppError type, one response envelope, consistent across every endpoint."
+          }
         ]
       },
       {
         "name": "Data",
         "items": [
-          { "title": "PostgreSQL + sqlc", "body": "Hand-written SQL compiled to typed Go — no ORM, no hidden query generation." },
-          { "title": "Double-entry ledger", "body": "Balances are derived from immutable entries, not mutated directly, inside real database transactions." },
-          { "title": "Versioned migrations", "body": "Ten golang-migrate up/down pairs — schema history lives in git, not in someone's memory." }
+          {
+            "title": "PostgreSQL + sqlc",
+            "body": "Hand-written SQL compiled to typed Go — no ORM, no hidden query generation."
+          },
+          {
+            "title": "Double-entry ledger",
+            "body": "Balances are derived from immutable entries, not mutated directly, inside real database transactions."
+          },
+          {
+            "title": "Versioned migrations",
+            "body": "Ten golang-migrate up/down pairs — schema history lives in git, not in someone's memory."
+          }
         ]
       },
       {
         "name": "Infrastructure",
         "items": [
-          { "title": "Docker", "body": "Multi-stage builds producing a small Alpine runtime image, composed with Postgres via Docker Compose." },
-          { "title": "Terraform", "body": "The backend's EC2 host is provisioned as code, not clicked together in a console." },
-          { "title": "Separate deploy targets", "body": "API on EC2, portal on Vercel, connected only over a CORS-locked HTTP boundary." }
+          {
+            "title": "Docker",
+            "body": "Multi-stage builds producing a small Alpine runtime image, composed with Postgres via Docker Compose."
+          },
+          {
+            "title": "Terraform",
+            "body": "The backend's EC2 host is provisioned as code, not clicked together in a console."
+          },
+          {
+            "title": "Separate deploy targets",
+            "body": "API on EC2, portal on Vercel, connected only over a CORS-locked HTTP boundary."
+          }
         ]
       },
       {
         "name": "Engineering practices",
         "items": [
-          { "title": "Automated testing", "body": "Gin-based handler unit tests with mocked stores, plus integration tests that run against a real Postgres instance." },
-          { "title": "Continuous integration", "body": "GitHub Actions builds, vets, and tests the backend against a live Postgres service container on every push." },
-          { "title": "Honest documentation", "body": "Internal docs explicitly flag known gaps and drift instead of describing an idealized system that doesn't exist yet." }
+          {
+            "title": "Automated testing",
+            "body": "Gin-based handler unit tests with mocked stores, plus integration tests that run against a real Postgres instance."
+          },
+          {
+            "title": "Continuous integration",
+            "body": "GitHub Actions builds, vets, and tests the backend against a live Postgres service container on every push."
+          },
+          {
+            "title": "Honest documentation",
+            "body": "Internal docs explicitly flag known gaps and drift instead of describing an idealized system that doesn't exist yet."
+          }
         ]
       }
     ]
@@ -561,11 +714,56 @@
     "eyebrow": "Technical stack",
     "title": "Organized by responsibility, not by dependency count.",
     "groups": [
-      { "name": "Frontend", "items": ["Next.js 16", "React 19", "TypeScript", "TanStack Query v5", "Zustand", "Axios", "React Hook Form", "Zod", "Tailwind v4", "shadcn/ui on Base UI", "react-i18next"] },
-      { "name": "Backend", "items": ["Go", "Gin", "golang-jwt", "go-playground/validator", "shopspring/decimal", "log/slog"] },
-      { "name": "Database", "items": ["PostgreSQL 16", "sqlc", "golang-migrate", "lib/pq"] },
-      { "name": "Testing", "items": ["Go testing + testify", "go.uber.org/mock (gomock)", "Postgres integration tests"] },
-      { "name": "Infrastructure & deployment", "items": ["Docker", "Docker Compose", "Terraform", "AWS EC2", "GitHub Actions", "Vercel"] }
+      {
+        "name": "Frontend",
+        "items": [
+          "Next.js 16",
+          "React 19",
+          "TypeScript",
+          "TanStack Query v5",
+          "Zustand",
+          "Axios",
+          "React Hook Form",
+          "Zod",
+          "Tailwind v4",
+          "shadcn/ui on Base UI",
+          "react-i18next"
+        ]
+      },
+      {
+        "name": "Backend",
+        "items": [
+          "Go",
+          "Gin",
+          "golang-jwt",
+          "go-playground/validator",
+          "shopspring/decimal",
+          "log/slog"
+        ]
+      },
+      {
+        "name": "Database",
+        "items": ["PostgreSQL 16", "sqlc", "golang-migrate", "lib/pq"]
+      },
+      {
+        "name": "Testing",
+        "items": [
+          "Go testing + testify",
+          "go.uber.org/mock (gomock)",
+          "Postgres integration tests"
+        ]
+      },
+      {
+        "name": "Infrastructure & deployment",
+        "items": [
+          "Docker",
+          "Docker Compose",
+          "Terraform",
+          "AWS EC2",
+          "GitHub Actions",
+          "Vercel"
+        ]
+      }
     ]
   },
   "finalCta": {
