@@ -21,6 +21,7 @@ adding one).
 | [SETUP_TOP_PROGRESS_BAR.md](SETUP_TOP_PROGRESS_BAR.md) | Route-change progress bar |
 | [SETUP_NAVIGATION_GUARD.md](SETUP_NAVIGATION_GUARD.md) | "Unsaved changes" navigation guard: global store, shared confirm dialog, `beforeunload`, back/forward interception, `GuardedLink` |
 | [SETUP_FAVICON.md](SETUP_FAVICON.md) | Favicon/icon/apple-icon file conventions, the web app manifest, favicon.io asset provenance |
+| [CREATE_ACCOUNT_MODAL.md](CREATE_ACCOUNT_MODAL.md) | `components/create-account-model/*`: the two-step create-account wizard, its Zustand store, and its navigation-guard wiring |
 
 ## Meta
 

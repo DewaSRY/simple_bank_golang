@@ -405,12 +405,16 @@ no per-link wiring beyond swapping the component:
 
 - **The provider is mounted once, app-wide — any screen can arm it.**
   `app/[locale]/layout.tsx:62` mounts `<NavigationGuardProvider />` above
-  every route in every locale. `RegisterFormScreen` is the only current
-  caller of `setGuard`, but the store has no per-feature scoping — a second
-  screen arming the guard while the first is still mounted would silently
-  overwrite the first's `options` (last `setGuard` call wins). This isn't a
-  problem today (only one screen uses it), but it's a sharp edge worth
-  knowing before wiring a second form: two simultaneously-dirty guarded
+  every route in every locale. `RegisterFormScreen` was the first caller of
+  `setGuard`; `CreateAccountDialog` (`components/create-account-model/create-account-dialog.tsx`,
+  see `CREATE_ACCOUNT_MODAL.md`) is now a second, wiring the same
+  `isDirty`-effect recipe from Section 6 to a modal instead of a full-page
+  form. The store still has no per-feature scoping — a second screen arming
+  the guard while the first is still mounted would silently overwrite the
+  first's `options` (last `setGuard` call wins). This isn't a live bug today
+  (a logged-out register-form navigation and this dialog being open+dirty at
+  the same time isn't a realistic user path), but it's a sharp edge worth
+  knowing before wiring a third caller: two simultaneously-dirty guarded
   screens aren't supported by this store shape.
 - **Mounted inside `QueryProvider`, alongside `TopProgressBar`.**
   `app/[locale]/layout.tsx:59-63` places both inside `<QueryProvider>`. The

@@ -19,7 +19,7 @@ interface Props {
 export function PreviewStep({ onSuccess, form }: Props) {
   const { t } = useTranslation("account");
   const { t: tCommon } = useTranslation("common");
-  const { values, setStep, setFieldErrors } = useCreateAccountStore();
+  const { values, setStep, setFieldErrors, reset } = useCreateAccountStore();
   const { mutateAsync, isPending } = useCreateAccountMutation();
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +31,7 @@ export function PreviewStep({ onSuccess, form }: Props) {
       await mutateAsync(values);
       onSuccess();
       form.reset();
-      setFieldErrors(null);
+      reset();
     } catch (err) {
       const fieldErrors = getApiFieldErrors(err);
       if (fieldErrors) {

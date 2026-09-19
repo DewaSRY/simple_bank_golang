@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolverTranslate } from "@/lib/form";
@@ -9,21 +10,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
 
 import { FormStep } from "./form-step";
 import { PreviewStep } from "./preview-step";
 import { useCreateAccountStore } from "./store";
-import type { CreateAccountFormValues } from "./type";
 
 export interface props {
   open?: boolean;
   setOpen?: (open: boolean) => void;
 }
 
-export function useCreateAccountForm(
-  values: CreateAccountFormValues | null,
-  t: (key: string) => string,
-) {
+export function useCreateAccountForm(t: (key: string) => string) {
   return useForm({
     resolver: zodResolverTranslate(createAccountSchema, t),
     defaultValues: {
@@ -39,7 +37,24 @@ export function CreateAccountDialog({ open, setOpen }: props) {
   const { t } = useTranslation("account");
   const { step, reset, values } = useCreateAccountStore();
 
-  const form = useCreateAccountForm(values, t);
+  const form = useCreateAccountForm(t);
+  const isDirty = form.formState.isDirty;
+
+  const setGuard = useNavigationGuardStore((s) => s.setGuard);
+
+  const requestNavigation = useNavigationGuardStore((s) => s.requestNavigation);
+
+  useEffect(() => {
+    if (!open) return;
+    setGuard(isDirty, {
+      onAbort: () => {
+        form.reset();
+        reset();
+      },
+    });
+    return () => setGuard(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isDirty, setGuard, form]);
 
   const STEP_COPY = {
     form: {
@@ -55,8 +70,17 @@ export function CreateAccountDialog({ open, setOpen }: props) {
   const { title, description } = STEP_COPY[step];
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen?.(nextOpen);
-    if (nextOpen) reset();
+    if (nextOpen) {
+      setOpen?.(true);
+      reset();
+      return;
+    }
+    requestNavigation(() => setOpen?.(false));
+  }
+
+  function handleSuccessClose() {
+    setGuard(false);
+    setOpen?.(false);
   }
 
   return (
@@ -69,7 +93,7 @@ export function CreateAccountDialog({ open, setOpen }: props) {
 
         {step === "form" && <FormStep form={form} />}
         {step === "preview" && (
-          <PreviewStep onSuccess={() => handleOpenChange(false)} form={form} />
+          <PreviewStep onSuccess={handleSuccessClose} form={form} />
         )}
       </DialogContent>
     </Dialog>
