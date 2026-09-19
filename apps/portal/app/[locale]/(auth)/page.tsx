@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MotionConfig } from "motion/react";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
+import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { HeroSection } from "@/components/landing/hero-section";
 import { ProblemSection } from "@/components/landing/problem-section";
@@ -26,12 +27,32 @@ export async function generateMetadata({
   const description = t("landing.metaDescription");
 
   return {
-    title,
+    title: { absolute: title },
     description,
+    alternates: {
+      canonical: canonicalFor(locale, ""),
+      languages: buildLanguageAlternates(""),
+    },
     openGraph: {
       title,
       description,
       type: "website",
+      url: canonicalFor(locale, ""),
+      locale,
+      images: [
+        {
+          url: "/icons/android-chrome-512x512.png",
+          width: 512,
+          height: 512,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: ["/icons/android-chrome-512x512.png"],
     },
   };
 }
@@ -45,6 +66,17 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
   return (
     <MotionConfig reducedMotion="user">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Simple Bank",
+            url: canonicalFor(locale, ""),
+          }),
+        }}
+      />
       <main className="flex min-h-screen w-full flex-col">
         <LandingNav />
         <HeroSection />

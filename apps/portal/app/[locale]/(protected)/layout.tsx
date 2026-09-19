@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
 import {
@@ -15,6 +16,10 @@ import { SiteHeader } from "@/components/navigation/site-header";
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
 import { unwrapActionResult } from "@/lib/api/action-result";
 
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function ProtectedLayout({
   children,
   params,
@@ -29,10 +34,6 @@ export default async function ProtectedLayout({
 
   const queryClient = new QueryClient();
 
-  // Matches NavAccountList's own useAccounts({ page: 1, limit: 10, name: "" })
-  // call exactly, since TanStack Query hashes the params object into the
-  // cache key — a mismatched shape here would prefetch a key the sidebar
-  // never reads and it would fall back to fetching client-side anyway.
   const query = {
     page: 1,
     limit: 10,

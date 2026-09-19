@@ -369,6 +369,11 @@ there's no existing pattern to follow.
 - **`.env.local`** (not committed) — the only environment file. Must set
   `NEXT_PUBLIC_API_URL` (falls back to `http://localhost:8080/api/v1` if
   unset), pointing at the locally running `apps/core-service`.
+- **`NEXT_PUBLIC_SITE_URL`** (optional env var, falls back to
+  `http://localhost:3000`) — the portal's own canonical origin, used by
+  `lib/seo/metadata.ts` for `metadataBase`, canonical URLs, and
+  `alternates.languages`. Not the same thing as `NEXT_PUBLIC_API_URL` (the
+  backend). Set it to the real deployed origin in non-local environments.
 - **`LOG_LEVEL`** (optional env var) — winston log level, defaults to
   `"info"` (`lib/logger.ts`).
 - **`NODE_ENV`** — used directly in two places worth knowing about: the
