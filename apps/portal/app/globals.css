@@ -40,7 +40,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* Brand identity — golden yellow (#FFD51E), consistent across themes */
+  /* Brand identity — wallet-icon green (#12AE52), consistent across themes */
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-active: var(--brand-active);
@@ -75,44 +75,47 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.883 0.176 93.958);
-  --primary-foreground: oklch(0.2 0.04 94);
+  --primary: oklch(0.6578 0.1771 150);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.965 0.006 104);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.965 0.006 104);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0.045 94);
-  --accent-foreground: oklch(0.28 0.05 94);
+  --accent: oklch(0.97 0.045 150);
+  --accent-foreground: oklch(0.28 0.05 150);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0.004 104);
   --input: oklch(0.922 0.004 104);
-  --ring: oklch(0.883 0.176 93.958);
-  --chart-1: oklch(0.883 0.176 93.958);
-  --chart-2: oklch(0.28 0.05 94);
+  --ring: oklch(0.6578 0.1771 150);
+  --chart-1: oklch(0.6578 0.1771 150);
+  --chart-2: oklch(0.28 0.05 150);
   --chart-3: oklch(0.77 0.15 75);
   --chart-4: oklch(0.6 0.15 155);
   --chart-5: oklch(0.5 0.01 104);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0.004 104);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.883 0.176 93.958);
-  --sidebar-primary-foreground: oklch(0.2 0.04 94);
-  --sidebar-accent: oklch(0.97 0.045 94);
-  --sidebar-accent-foreground: oklch(0.28 0.05 94);
+  --sidebar-primary: oklch(0.6578 0.1771 150);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0.045 150);
+  --sidebar-accent-foreground: oklch(0.28 0.05 150);
   --sidebar-border: oklch(0.922 0.004 104);
-  --sidebar-ring: oklch(0.883 0.176 93.958);
+  --sidebar-ring: oklch(0.6578 0.1771 150);
 
-  /* Golden-yellow scale anchored on #FFD51E (Tailwind's yellow oklch steps
-     for the tints/shades); --brand-500 is the fixed identity color — the
-     exact FFD51E hex — and is intentionally identical in .dark below.
-     Foreground pairs use dark text throughout: white text on any step of
-     this scale fails WCAG contrast (yellow is simply too light for it). */
-  --brand-100: oklch(0.973 0.071 103.193);
-  --brand-300: oklch(0.905 0.182 98.111);
-  --brand-500: oklch(0.883 0.176 93.958);
-  --brand-600: oklch(0.681 0.162 75.834);
-  --brand-700: oklch(0.554 0.135 66.442);
-  --brand-900: oklch(0.421 0.095 57.708);
+  /* Green scale anchored on #12AE52 (sampled from the wallet icon), built
+     as Tailwind-style oklch tints/shades along the same hue (150);
+     --brand-500 is the fixed identity color — the exact #12AE52 hex — and
+     is intentionally identical in .dark below.
+     Unlike the old yellow scale, brand-500/600/700/900 are dark enough
+     that white foreground text works directly on them; brand-100/300 are
+     still light tints, so brand-foreground (used on brand-soft) stays a
+     dark shade (brand-900) for contrast there. */
+  --brand-100: oklch(0.94 0.06 150);
+  --brand-300: oklch(0.8 0.14 150);
+  --brand-500: oklch(0.6578 0.1771 150);
+  --brand-600: oklch(0.52 0.15 150);
+  --brand-700: oklch(0.43 0.13 150);
+  --brand-900: oklch(0.3 0.09 150);
   --brand: var(--brand-500);
   --brand-hover: var(--brand-600);
   --brand-active: var(--brand-700);
@@ -132,41 +135,42 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.26 0.016 104);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.883 0.176 93.958);
-  --primary-foreground: oklch(0.2 0.04 94);
+  --primary: oklch(0.6578 0.1771 150);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.28 0.016 104);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.28 0.016 104);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.3 0.05 94);
-  --accent-foreground: oklch(0.95 0.05 94);
+  --accent: oklch(0.3 0.05 150);
+  --accent-foreground: oklch(0.95 0.05 150);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.883 0.176 93.958);
-  --chart-1: oklch(0.883 0.176 93.958);
-  --chart-2: oklch(0.95 0.05 94);
+  --ring: oklch(0.6578 0.1771 150);
+  --chart-1: oklch(0.6578 0.1771 150);
+  --chart-2: oklch(0.95 0.05 150);
   --chart-3: oklch(0.8 0.16 80);
   --chart-4: oklch(0.72 0.17 155);
   --chart-5: oklch(0.708 0 0);
   --sidebar: oklch(0.2 0.014 104);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.883 0.176 93.958);
-  --sidebar-primary-foreground: oklch(0.2 0.04 94);
-  --sidebar-accent: oklch(0.3 0.05 94);
-  --sidebar-accent-foreground: oklch(0.95 0.05 94);
+  --sidebar-primary: oklch(0.6578 0.1771 150);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.3 0.05 150);
+  --sidebar-accent-foreground: oklch(0.95 0.05 150);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.883 0.176 93.958);
+  --sidebar-ring: oklch(0.6578 0.1771 150);
 
   /* --brand-500 matches :root exactly — the one fixed identity color.
-     100/300 darken into muted dark-mode tints, 900 flips light so it still
+     100/300 darken into muted dark-mode tints, 600/700 stay slightly
+     deeper than 500 for hover/active, and 900 flips light so it still
      reads as foreground text on the (now dark) brand-soft background. */
-  --brand-100: oklch(0.35 0.05 98);
-  --brand-300: oklch(0.53 0.15 96);
-  --brand-500: oklch(0.883 0.176 93.958);
-  --brand-600: oklch(0.665 0.14 78);
-  --brand-700: oklch(0.551 0.12 68);
-  --brand-900: oklch(0.92 0.06 90);
+  --brand-100: oklch(0.32 0.05 150);
+  --brand-300: oklch(0.48 0.12 150);
+  --brand-500: oklch(0.6578 0.1771 150);
+  --brand-600: oklch(0.58 0.15 150);
+  --brand-700: oklch(0.5 0.13 150);
+  --brand-900: oklch(0.88 0.1 150);
   --brand: var(--brand-500);
   --brand-hover: var(--brand-600);
   --brand-active: var(--brand-700);
