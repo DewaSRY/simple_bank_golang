@@ -34,7 +34,12 @@
     ],
     "ctaPrimary": "Baca arsitekturnya",
     "ctaSecondary": "Coba demo langsung",
-    "note": "Setiap akun, setoran, dan transfer di bawah ini melewati jalur kode yang sama persis dengan request produksi."
+    "note": "Setiap akun, setoran, dan transfer di bawah ini melewati jalur kode yang sama persis dengan request produksi.",
+    "scrollHint": "Gulir untuk menjelajahi",
+    "social": {
+      "github": "Lihat kode sumber di GitHub",
+      "linkedin": "Terhubung di LinkedIn"
+    }
   },
   "overview": {
     "eyebrow": "Ringkasan proyek",
@@ -776,6 +781,9 @@
   "footer": {
     "tagline": "Etalase rekayasa full-stack — dari frontend sampai infrastruktur.",
     "builtBy": "Dirancang dan dibangun oleh Dewa Surya Ariesta.",
-    "rights": "Hak cipta dilindungi."
+    "rights": "Hak cipta dilindungi.",
+    "author": {
+      "heading": "Hubungi {{name}}"
+    }
   }
 }

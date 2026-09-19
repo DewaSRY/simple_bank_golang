@@ -2,9 +2,11 @@
 
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { AUTHOR } from "@/components/landing/author";
+import { GithubIcon, LinkedinIcon } from "@/components/landing/social-icons";
 
 export function HeroSection() {
   const { t } = useTranslation("landing");
@@ -96,7 +98,50 @@ export function HeroSection() {
         >
           {t("hero.note")}
         </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="flex items-center gap-4"
+        >
+          <a
+            href={AUTHOR.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("hero.social.github")}
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <GithubIcon className="size-5" />
+          </a>
+          <a
+            href={AUTHOR.linkedinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("hero.social.linkedin")}
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <LinkedinIcon className="size-5" />
+          </a>
+        </motion.div>
       </div>
+
+      <motion.a
+        href="#journey"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:bottom-6"
+        aria-label={t("hero.scrollHint")}
+      >
+        <span>{t("hero.scrollHint")}</span>
+        <motion.span
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ChevronDown className="size-4" aria-hidden />
+        </motion.span>
+      </motion.a>
     </section>
   );
 }

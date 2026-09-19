@@ -50,6 +50,7 @@ function useIsNavigating() {
     const onClick = (event: MouseEvent) => {
       if (isNavigableClick(event)) start();
     };
+
     const onPopState = () => {
       if (window.location.hash) return;
       start();

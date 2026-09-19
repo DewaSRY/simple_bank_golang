@@ -34,7 +34,12 @@
     ],
     "ctaPrimary": "Read the architecture",
     "ctaSecondary": "Try the live demo",
-    "note": "Every account, deposit, and transfer below moves through the same code path a production request would."
+    "note": "Every account, deposit, and transfer below moves through the same code path a production request would.",
+    "scrollHint": "Scroll to explore",
+    "social": {
+      "github": "View source on GitHub",
+      "linkedin": "Connect on LinkedIn"
+    }
   },
   "overview": {
     "eyebrow": "Project overview",
@@ -776,6 +781,9 @@
   "footer": {
     "tagline": "A full-stack engineering showcase — frontend to infrastructure.",
     "builtBy": "Designed and built by Dewa Surya Ariesta.",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "author": {
+      "heading": "Contact {{name}}"
+    }
   }
 }

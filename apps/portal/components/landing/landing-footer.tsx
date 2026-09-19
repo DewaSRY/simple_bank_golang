@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Wallet, ExternalLink } from "lucide-react";
+import { Wallet, ExternalLink, Mail, Phone } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { AUTHOR } from "@/components/landing/author";
 
 const REPO_URL = "https://github.com/DewaSRY/simple_bank_golang";
 
@@ -45,6 +46,45 @@ export function LandingFooter() {
           >
             {tAuth("login")}
           </Link>
+        </div>
+      </div>
+      <div className="mx-auto mt-8 w-full max-w-6xl border-t pt-6">
+        <p className="text-center text-xs font-medium text-foreground sm:text-left">
+          {tLanding("footer.author.heading", { name: AUTHOR.name })}
+        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground sm:justify-start">
+          <a
+            href={`mailto:${AUTHOR.email}`}
+            className="flex items-center gap-1.5 hover:text-foreground"
+          >
+            <Mail className="size-3.5" aria-hidden />
+            {AUTHOR.email}
+          </a>
+          <a
+            href={`tel:${AUTHOR.phone.replace(/\s+/g, "")}`}
+            className="flex items-center gap-1.5 hover:text-foreground"
+          >
+            <Phone className="size-3.5" aria-hidden />
+            {AUTHOR.phone}
+          </a>
+          <a
+            href={AUTHOR.linkedinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 hover:text-foreground"
+          >
+            {AUTHOR.linkedinLabel}
+            <ExternalLink className="size-3.5" aria-hidden />
+          </a>
+          <a
+            href={AUTHOR.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 hover:text-foreground"
+          >
+            {AUTHOR.githubLabel}
+            <ExternalLink className="size-3.5" aria-hidden />
+          </a>
         </div>
       </div>
       <p className="mt-6 text-center text-xs text-muted-foreground sm:text-left">

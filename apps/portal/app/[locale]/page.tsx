@@ -21,6 +21,7 @@ import { CapabilitySummarySection } from "@/components/landing/capability-summar
 import { TechStackSection } from "@/components/landing/tech-stack-section";
 import { FinalCtaSection } from "@/components/landing/final-cta-section";
 import { LandingFooter } from "@/components/landing/landing-footer";
+import { AUTHOR } from "@/components/landing/author";
 
 export async function generateMetadata({
   params,
@@ -38,6 +39,8 @@ export async function generateMetadata({
   return {
     title: { absolute: title },
     description,
+    authors: [{ name: AUTHOR.name, url: AUTHOR.githubUrl }],
+    creator: AUTHOR.name,
     alternates: {
       canonical: canonicalFor(locale, ""),
       languages: buildLanguageAlternates(""),
@@ -84,6 +87,13 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             "@type": "WebSite",
             name: "Simple Bank",
             url: canonicalFor(locale, ""),
+            author: {
+              "@type": "Person",
+              name: AUTHOR.name,
+              email: AUTHOR.email,
+              url: AUTHOR.githubUrl,
+              sameAs: [AUTHOR.githubUrl, AUTHOR.linkedinUrl],
+            },
           }).replace(/</g, "\\u003c"),
         }}
       />
