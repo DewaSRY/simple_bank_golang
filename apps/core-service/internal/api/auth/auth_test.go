@@ -27,14 +27,14 @@ import (
 
 const testSecretKey = "12345678901234567890123456789012"
 
-// mockStorer adapts a *mockdb.MockQuerier (generated only from sqlc.Querier)
+// mockStorer adapts a *mockdb.MockStorer (generated only from sqlc.Querier)
 // into the store.Storer interface Handler.Store requires, which additionally
 // needs the hand-written store transactions. Each transaction method has an
 // optional override func so a test can assert on its args/control its
 // result; tests that don't care about a given transaction get a harmless
 // zero result.
 type mockStorer struct {
-	*mockdb.MockQuerier
+	*mockdb.MockStorer
 	createAccountTxFunc func(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
 }
 
@@ -112,13 +112,13 @@ func TestRegisterUser(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          registerUserRequest
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "registers successfully and returns an access token",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), validReq.Username).Return(false, nil)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -149,7 +149,7 @@ func TestRegisterUser(t *testing.T) {
 				Password:        "password123",
 				PasswordConfirm: "somethingelse",
 			},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), gomock.Any()).Times(0)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), gomock.Any()).Times(0)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Times(0)
@@ -161,7 +161,7 @@ func TestRegisterUser(t *testing.T) {
 		{
 			name: "rejects an email that is already registered",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{ID: 1, Email: validReq.Email}, nil)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), gomock.Any()).Times(0)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Times(0)
@@ -177,7 +177,7 @@ func TestRegisterUser(t *testing.T) {
 		{
 			name: "returns 500 when checking the email hits a db error",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrConnDone)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), gomock.Any()).Times(0)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Times(0)
@@ -193,7 +193,7 @@ func TestRegisterUser(t *testing.T) {
 			// a generic 500 instead of a proper conflict response.
 			name: "rejects a username that is already taken",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), validReq.Username).Return(true, nil)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Times(0)
@@ -209,7 +209,7 @@ func TestRegisterUser(t *testing.T) {
 		{
 			name: "returns 500 when checking the username hits a db error",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), validReq.Username).Return(false, sql.ErrConnDone)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Times(0)
@@ -224,7 +224,7 @@ func TestRegisterUser(t *testing.T) {
 			// must surface as a 409 conflict, not a 500.
 			name: "returns 409 when CreateUser hits a unique constraint race",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), validReq.Username).Return(false, nil)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(db.CreateUserRow{}, &pq.Error{Code: "23505"})
@@ -236,7 +236,7 @@ func TestRegisterUser(t *testing.T) {
 		{
 			name: "returns 500 when CreateUser fails for an unrelated reason",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), validReq.Username).Return(false, nil)
 				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(db.CreateUserRow{}, sql.ErrConnDone)
@@ -248,7 +248,7 @@ func TestRegisterUser(t *testing.T) {
 		{
 			name: "rejects a request missing required fields without touching the db",
 			body: registerUserRequest{Email: "dewa@example.com", Password: "password123", PasswordConfirm: "password123"},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -264,7 +264,7 @@ func TestRegisterUser(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router := newTestRouter(newTestHandler(t, &mockStorer{MockQuerier: q}))
@@ -302,13 +302,13 @@ func TestLoginUser(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          loginUserRequest
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "logs in successfully and returns an access token",
 			body: loginUserRequest{Email: email, Password: password},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(existingUser, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -325,7 +325,7 @@ func TestLoginUser(t *testing.T) {
 		{
 			name: "rejects a request missing required fields without touching the db",
 			body: loginUserRequest{Email: email},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -339,7 +339,7 @@ func TestLoginUser(t *testing.T) {
 		{
 			name: "returns 401 when the email is not registered",
 			body: loginUserRequest{Email: email, Password: password},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -349,7 +349,7 @@ func TestLoginUser(t *testing.T) {
 		{
 			name: "returns 500 when looking up the user hits a db error",
 			body: loginUserRequest{Email: email, Password: password},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(db.GetUserByEmailRow{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -359,7 +359,7 @@ func TestLoginUser(t *testing.T) {
 		{
 			name: "returns 401 when the password is wrong",
 			body: loginUserRequest{Email: email, Password: "wrong-password"},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(existingUser, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -371,7 +371,7 @@ func TestLoginUser(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router := newTestRouter(newTestHandler(t, &mockStorer{MockQuerier: q}))
@@ -402,7 +402,7 @@ func TestGetProfile(t *testing.T) {
 	testCases := []struct {
 		name          string
 		authHeader    func(t *testing.T, h *Handler) string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
@@ -412,7 +412,7 @@ func TestGetProfile(t *testing.T) {
 				require.NoError(t, err)
 				return "Bearer " + accessToken
 			},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserById(gomock.Any(), userID).Return(db.GetUserByIdRow{
 					ID:        userID,
 					Username:  username,
@@ -437,7 +437,7 @@ func TestGetProfile(t *testing.T) {
 			authHeader: func(t *testing.T, h *Handler) string {
 				return ""
 			},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserById(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -451,7 +451,7 @@ func TestGetProfile(t *testing.T) {
 				require.NoError(t, err)
 				return "Bearer " + accessToken
 			},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserById(gomock.Any(), userID).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -465,7 +465,7 @@ func TestGetProfile(t *testing.T) {
 				require.NoError(t, err)
 				return "Bearer " + accessToken
 			},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserById(gomock.Any(), userID).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -477,7 +477,7 @@ func TestGetProfile(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			h := newTestHandler(t, &mockStorer{MockQuerier: q})

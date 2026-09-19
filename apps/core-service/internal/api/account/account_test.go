@@ -31,14 +31,14 @@ const (
 	testEmail     = "dewa@example.com"
 )
 
-// mockStorer adapts a *mockdb.MockQuerier (generated only from sqlc.Querier)
+// mockStorer adapts a *mockdb.MockStorer (generated only from sqlc.Querier)
 // into the store.Storer interface Handler.Store requires, which additionally
 // needs the hand-written store transactions. Each transaction method has an
 // optional override func so a test can assert on its args/control its
 // result; tests that don't care about a given transaction get a harmless
 // zero result.
 type mockStorer struct {
-	*mockdb.MockQuerier
+	*mockdb.MockStorer
 	createAccountTxFunc func(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
 	deleteAccountTxFunc func(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error)
 }
@@ -157,7 +157,7 @@ func TestCreateAccount(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			storer := &mockStorer{MockQuerier: q}
 			tc.buildStorer(t, storer)
 
@@ -178,13 +178,13 @@ func TestUpdateAccount(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          updateAccountRequest
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "updates the account name and description",
 			body: updateAccountRequest{Name: "New Name", Description: "new description"},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), existingAccount.ID).Return(existingAccount, nil)
 				q.EXPECT().UpdateAccount(gomock.Any(), db.UpdateAccountParams{
 					ID:          existingAccount.ID,
@@ -199,7 +199,7 @@ func TestUpdateAccount(t *testing.T) {
 		{
 			name: "keeps the existing name when only description is sent",
 			body: updateAccountRequest{Description: "new description only"},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), existingAccount.ID).Return(existingAccount, nil)
 				q.EXPECT().UpdateAccount(gomock.Any(), db.UpdateAccountParams{
 					ID:          existingAccount.ID,
@@ -214,7 +214,7 @@ func TestUpdateAccount(t *testing.T) {
 		{
 			name: "returns 404 when the account does not exist",
 			body: updateAccountRequest{Name: "New Name"},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), existingAccount.ID).Return(db.Account{}, sql.ErrNoRows)
 				q.EXPECT().UpdateAccount(gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -225,7 +225,7 @@ func TestUpdateAccount(t *testing.T) {
 		{
 			name: "rejects updating an account owned by another user",
 			body: updateAccountRequest{Name: "New Name"},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), existingAccount.ID).Return(
 					db.Account{ID: existingAccount.ID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
@@ -240,7 +240,7 @@ func TestUpdateAccount(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
@@ -264,12 +264,12 @@ func TestDetailAccount(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "returns the account details for the owning user",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountViewById(gomock.Any(), accountID).Return(ownedAccountView, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -284,7 +284,7 @@ func TestDetailAccount(t *testing.T) {
 		},
 		{
 			name: "returns 404 when the account does not exist",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountViewById(gomock.Any(), accountID).Return(db.GetAccountViewByIdRow{}, sql.ErrNoRows)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -293,7 +293,7 @@ func TestDetailAccount(t *testing.T) {
 		},
 		{
 			name: "rejects viewing an account owned by another user",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountViewById(gomock.Any(), accountID).Return(db.GetAccountViewByIdRow{
 					AccountUserDetailsView: db.AccountUserDetailsView{
 						ID:     accountID,
@@ -307,7 +307,7 @@ func TestDetailAccount(t *testing.T) {
 		},
 		{
 			name: "returns 500 on an unexpected db error",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountViewById(gomock.Any(), accountID).Return(db.GetAccountViewByIdRow{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -319,7 +319,7 @@ func TestDetailAccount(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
@@ -334,13 +334,13 @@ func TestListmeAccounts(t *testing.T) {
 	testCases := []struct {
 		name          string
 		query         string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:  "lists the authenticated user's accounts",
 			query: "",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListMeAccountsByUserId(gomock.Any(), db.ListMeAccountsByUserIdParams{
 					UserID:      sql.NullInt64{Int64: testUserID, Valid: true},
 					Name:        sql.NullString{Valid: true},
@@ -369,7 +369,7 @@ func TestListmeAccounts(t *testing.T) {
 		{
 			name:  "rejects an out-of-range limit without touching the db",
 			query: "?limit=1000",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListMeAccountsByUserId(gomock.Any(), gomock.Any()).Times(0)
 				q.EXPECT().ListMeAccountsByUserIdCount(gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -380,7 +380,7 @@ func TestListmeAccounts(t *testing.T) {
 		{
 			name:  "returns 500 when listing accounts hits a db error",
 			query: "",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListMeAccountsByUserId(gomock.Any(), gomock.Any()).Return(nil, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -392,7 +392,7 @@ func TestListmeAccounts(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
@@ -406,13 +406,13 @@ func TestSearchAccountByNumber(t *testing.T) {
 	testCases := []struct {
 		name          string
 		query         string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:  "finds accounts matching the number",
 			query: "?number=12345",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListAccountsSearchByUserNumber(gomock.Any(), db.ListAccountsSearchByUserNumberParams{
 					Number:      sql.NullString{String: "12345", Valid: true},
 					OffsetCount: 0,
@@ -436,7 +436,7 @@ func TestSearchAccountByNumber(t *testing.T) {
 		{
 			name:  "rejects a request missing the required number without touching the db",
 			query: "",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListAccountsSearchByUserNumber(gomock.Any(), gomock.Any()).Times(0)
 				q.EXPECT().CountAccountsSearchByUserNumber(gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -447,7 +447,7 @@ func TestSearchAccountByNumber(t *testing.T) {
 		{
 			name:  "returns 500 when the search hits a db error",
 			query: "?number=12345",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListAccountsSearchByUserNumber(gomock.Any(), gomock.Any()).Return(nil, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -459,7 +459,7 @@ func TestSearchAccountByNumber(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
@@ -476,13 +476,13 @@ func TestDeleteAccount(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		buildStorer   func(storer *mockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "deletes a zero-balance account with no sweep",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 			},
 			buildStorer: func(storer *mockStorer) {
@@ -504,7 +504,7 @@ func TestDeleteAccount(t *testing.T) {
 		},
 		{
 			name: "deletes a positive-balance account and reports the sweep destination",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 			},
 			buildStorer: func(storer *mockStorer) {
@@ -528,7 +528,7 @@ func TestDeleteAccount(t *testing.T) {
 		},
 		{
 			name: "rejects deleting the main account with a conflict",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 			},
 			buildStorer: func(storer *mockStorer) {
@@ -542,7 +542,7 @@ func TestDeleteAccount(t *testing.T) {
 		},
 		{
 			name: "returns 404 when the account does not exist",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -552,7 +552,7 @@ func TestDeleteAccount(t *testing.T) {
 		},
 		{
 			name: "rejects deleting an account owned by another user",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
 					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
@@ -567,7 +567,7 @@ func TestDeleteAccount(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			storer := &mockStorer{MockQuerier: q}

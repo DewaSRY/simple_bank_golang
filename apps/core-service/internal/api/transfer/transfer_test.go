@@ -32,14 +32,14 @@ const (
 	testEmail     = "dewa@example.com"
 )
 
-// mockStorer adapts a *mockdb.MockQuerier (generated only from sqlc.Querier)
+// mockStorer adapts a *mockdb.MockStorer (generated only from sqlc.Querier)
 // into the store.Storer interface Handler.Store requires, which additionally
 // needs the hand-written store transactions. TransferTx and DepositTx are the
 // only ones transfer's handlers call, so those get an optional override func;
 // the other two exist only to satisfy the interface and return a harmless
 // zero result.
 type mockStorer struct {
-	*mockdb.MockQuerier
+	*mockdb.MockStorer
 	transferTxFunc func(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error)
 	depositTxFunc  func(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error)
 }
@@ -132,14 +132,14 @@ func TestDeposit(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          depositRequest
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		buildStorer   func(storer *mockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "deposits into an owned account",
 			body: depositRequest{Amount: mustDecimal(t, "100.00"), Description: "top up"},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().AccountEntriesByAccountId(gomock.Any(), int64(7)).Return(db.AccountEntriesByAccountIdRow{
 					AccountEntriesView: db.AccountEntriesView{ID: 7, AccountID: accountID, Amount: "100.00"},
@@ -159,7 +159,7 @@ func TestDeposit(t *testing.T) {
 		{
 			name: "rejects a non-positive amount without touching the db",
 			body: depositRequest{Amount: mustDecimal(t, "0")},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), gomock.Any()).Times(0)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -170,7 +170,7 @@ func TestDeposit(t *testing.T) {
 		{
 			name: "returns 404 when the account does not exist",
 			body: depositRequest{Amount: mustDecimal(t, "50")},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -181,7 +181,7 @@ func TestDeposit(t *testing.T) {
 		{
 			name: "rejects depositing into an account owned by another user",
 			body: depositRequest{Amount: mustDecimal(t, "50")},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
 					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
@@ -194,7 +194,7 @@ func TestDeposit(t *testing.T) {
 		{
 			name: "returns 400 when DepositTx rejects the amount",
 			body: depositRequest{Amount: mustDecimal(t, "50")},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 			},
 			buildStorer: func(storer *mockStorer) {
@@ -211,7 +211,7 @@ func TestDeposit(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			storer := &mockStorer{MockQuerier: q}
@@ -231,13 +231,13 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 	testCases := []struct {
 		name          string
 		query         string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:  "lists entries for the account",
 			query: "",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return([]db.ListAccountEntriesByAccountIdRow{
 					{AccountEntriesView: db.AccountEntriesView{ID: 1, AccountID: accountID}},
 				}, nil)
@@ -258,7 +258,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 		{
 			name:  "rejects an out-of-range month",
 			query: "?month=13",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -268,7 +268,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 		{
 			name:  "returns 500 when listing entries hits a db error",
 			query: "",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return(nil, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -278,7 +278,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 		{
 			name:  "returns 500 when counting entries hits a db error",
 			query: "",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return([]db.ListAccountEntriesByAccountIdRow{}, nil)
 				q.EXPECT().CountAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return(int64(0), sql.ErrConnDone)
 			},
@@ -291,7 +291,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
@@ -309,12 +309,12 @@ func TestListRecentTransferDestinations(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "lists recent destinations for an owned account",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().ListRecentTransferDestinations(gomock.Any(), db.ListRecentTransferDestinationsParams{
 					FromAccountID: accountID,
@@ -337,7 +337,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 		},
 		{
 			name: "returns 404 when the source account does not exist",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -346,7 +346,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 		},
 		{
 			name: "rejects a source account owned by another user",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
 					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
@@ -357,7 +357,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 		},
 		{
 			name: "returns 500 when listing destinations hits a db error",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().ListRecentTransferDestinations(gomock.Any(), gomock.Any()).Return(nil, sql.ErrConnDone)
 			},
@@ -370,7 +370,7 @@ func TestListRecentTransferDestinations(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
@@ -388,12 +388,12 @@ func TestListAccountTransactionHistory(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "lists transaction history for an owned account",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().ListAccountTransactionHistory(gomock.Any(), gomock.Any()).Return([]db.ListAccountTransactionHistoryRow{
 					{ID: 1, Type: "DEPOSIT", Amount: "10.00", CreatedAt: time.Now()},
@@ -414,7 +414,7 @@ func TestListAccountTransactionHistory(t *testing.T) {
 		},
 		{
 			name: "returns 404 when the account does not exist",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -423,7 +423,7 @@ func TestListAccountTransactionHistory(t *testing.T) {
 		},
 		{
 			name: "rejects an account owned by another user",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
 					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
@@ -434,7 +434,7 @@ func TestListAccountTransactionHistory(t *testing.T) {
 		},
 		{
 			name: "returns 500 when listing history hits a db error",
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().ListAccountTransactionHistory(gomock.Any(), gomock.Any()).Return(nil, sql.ErrConnDone)
 			},
@@ -447,7 +447,7 @@ func TestListAccountTransactionHistory(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			router, tokenMaker := newTestRouter(t, &mockStorer{MockQuerier: q})
@@ -476,14 +476,14 @@ func TestTransactionTransfer(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          createTransactionTransferRequest
-		buildStubs    func(q *mockdb.MockQuerier)
+		buildStubs    func(q *mockdb.MockStorer)
 		buildStorer   func(storer *mockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "transfers between accounts",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), fromAccountID).Return(ownedFromAccount, nil)
 				q.EXPECT().AccountEntriesByAccountId(gomock.Any(), int64(11)).Return(db.AccountEntriesByAccountIdRow{
 					AccountEntriesView: db.AccountEntriesView{ID: 11, AccountID: fromAccountID, Amount: "-25.00"},
@@ -504,7 +504,7 @@ func TestTransactionTransfer(t *testing.T) {
 		{
 			name: "rejects a non-positive amount without touching the db",
 			body: createTransactionTransferRequest{FromAccountID: fromAccountID, ToAccountID: toAccountID, Amount: mustDecimal(t, "0")},
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), gomock.Any()).Times(0)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -515,7 +515,7 @@ func TestTransactionTransfer(t *testing.T) {
 		{
 			name: "returns 404 when the source account does not exist",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), fromAccountID).Return(db.Account{}, sql.ErrNoRows)
 			},
 			buildStorer: func(storer *mockStorer) {},
@@ -526,7 +526,7 @@ func TestTransactionTransfer(t *testing.T) {
 		{
 			name: "rejects transferring from an account owned by another user",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), fromAccountID).Return(
 					db.Account{ID: fromAccountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
 				)
@@ -539,7 +539,7 @@ func TestTransactionTransfer(t *testing.T) {
 		{
 			name: "returns 409 when the account has insufficient funds",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), fromAccountID).Return(ownedFromAccount, nil)
 			},
 			buildStorer: func(storer *mockStorer) {
@@ -554,7 +554,7 @@ func TestTransactionTransfer(t *testing.T) {
 		{
 			name: "returns 400 when the accounts have mismatched currencies",
 			body: validReq,
-			buildStubs: func(q *mockdb.MockQuerier) {
+			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetAccountById(gomock.Any(), fromAccountID).Return(ownedFromAccount, nil)
 			},
 			buildStorer: func(storer *mockStorer) {
@@ -571,7 +571,7 @@ func TestTransactionTransfer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			q := mockdb.NewMockQuerier(ctrl)
+			q := mockdb.NewMockStorer(ctrl)
 			tc.buildStubs(q)
 
 			storer := &mockStorer{MockQuerier: q}

@@ -10,11 +10,11 @@ Anyone touching `db/`, `internal/api/`, or adding a new query — whether you've
 
 ## Section 0 — Background Primer: why sqlc, not the alternatives
 
-| Approach | You write | Codegen writes | Typical failure mode |
-|---|---|---|---|
-| Full ORM (GORM, ent) | Struct tags + builder calls | Query construction + scanning | Builder fights you the moment a query gets non-trivial (row locking, custom joins) |
-| Raw `database/sql` | SQL string + struct + `rows.Scan(&a, &b, &c)` | Nothing | Scan-order/SELECT-list mismatch is a silent runtime bug, not a compile error |
-| sqlc | SQL only, in `.sql` files | Struct + params + method per query | None of the above — but you're locked to one SQL dialect |
+| Approach             | You write                                     | Codegen writes                     | Typical failure mode                                                               |
+| -------------------- | --------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------- |
+| Full ORM (GORM, ent) | Struct tags + builder calls                   | Query construction + scanning      | Builder fights you the moment a query gets non-trivial (row locking, custom joins) |
+| Raw `database/sql`   | SQL string + struct + `rows.Scan(&a, &b, &c)` | Nothing                            | Scan-order/SELECT-list mismatch is a silent runtime bug, not a compile error       |
+| sqlc                 | SQL only, in `.sql` files                     | Struct + params + method per query | None of the above — but you're locked to one SQL dialect                           |
 
 This service talks to Postgres through [sqlc](https://sqlc.dev). sqlc reads the migrations in [db/migrations](../db/migrations) and the query files in [db/query](../db/query) and generates typed Go: one struct per row shape, one params struct per query's inputs, and one method per query. You write SQL; sqlc writes the boilerplate that would otherwise be hand-maintained in parallel with it.
 
@@ -55,19 +55,19 @@ db/store/*.go            <- hand-written: Store, execTx, transferTx (business lo
 internal/api/*_router.go <- handlers call server.store.<Method>(ctx, params)
 ```
 
-| Concern | Owner (file/package) | Analogy |
-|---|---|---|
-| Schema source of truth | [db/migrations/*.sql](../db/migrations) | The database's own change log |
-| Query source of truth | [db/query/*.sql](../db/query) | Hand-written SQL, never generated |
-| Codegen config | [sqlc.yaml](../sqlc.yaml) | Build config for the generation step |
-| Generated query methods | [db/sqlc/*.sql.go](../db/sqlc) | Compiler-generated glue code |
-| Generated interface seam | [db/sqlc/querier.go](../db/sqlc/querier.go) | An abstract base class with no logic |
-| Generated table models | [db/sqlc/models.go](../db/sqlc/models.go) | Plain data records |
-| Row → model translation | [db/mapper/account.go](../db/mapper/account.go) | An adapter plug between two sockets |
-| Transaction composition | [db/store/store.go](../db/store/store.go) | A unit-of-work wrapper |
-| Multi-step business logic | [db/store/store_transaction.go](../db/store/store_transaction.go) | The actual "transfer money" recipe |
-| Mock for the seam | [db/mock/querier.go](../db/mock/querier.go) (generated) | A stunt double for the database |
-| API entry points | [internal/api/*_router.go](../internal/api) | The front desk that only knows the interface |
+| Concern                   | Owner (file/package)                                              | Analogy                                      |
+| ------------------------- | ----------------------------------------------------------------- | -------------------------------------------- |
+| Schema source of truth    | [db/migrations/\*.sql](../db/migrations)                          | The database's own change log                |
+| Query source of truth     | [db/query/\*.sql](../db/query)                                    | Hand-written SQL, never generated            |
+| Codegen config            | [sqlc.yaml](../sqlc.yaml)                                         | Build config for the generation step         |
+| Generated query methods   | [db/sqlc/\*.sql.go](../db/sqlc)                                   | Compiler-generated glue code                 |
+| Generated interface seam  | [db/sqlc/querier.go](../db/sqlc/querier.go)                       | An abstract base class with no logic         |
+| Generated table models    | [db/sqlc/models.go](../db/sqlc/models.go)                         | Plain data records                           |
+| Row → model translation   | [db/mapper/account.go](../db/mapper/account.go)                   | An adapter plug between two sockets          |
+| Transaction composition   | [db/store/store.go](../db/store/store.go)                         | A unit-of-work wrapper                       |
+| Multi-step business logic | [db/store/store_transaction.go](../db/store/store_transaction.go) | The actual "transfer money" recipe           |
+| Mock for the seam         | [db/mock/querier.go](../db/mock/querier.go) (generated)           | A stunt double for the database              |
+| API entry points          | [internal/api/\*\_router.go](../internal/api)                     | The front desk that only knows the interface |
 
 One paragraph on why it's split this way: the `Querier` interface is what makes `transferTx` testable without a database — a mock can stand in for it in a unit test (Section 8), while a real `*sqlc.Queries` (built against either a `*sql.DB` or a `*sql.Tx`) stands in for it in production and in DB-backed integration tests. That split is also the source of one of this doc's more important callouts: the two kinds of tests that use a real database (`db/sqlc` vs `db/store`) clean up in genuinely different ways, and assuming they behave the same will surprise you (Section 8).
 
@@ -79,12 +79,12 @@ One paragraph on why it's split this way: the `Querier` interface is what makes 
 
 **How it's actually implemented.** Migrations live under [db/migrations/](../db/migrations) as four numbered `.up.sql` / `.down.sql` pairs, run through the golang-migrate CLI wrapped by [cmd/migration/main.go](../cmd/migration/main.go):
 
-| Migration | What it does |
-|---|---|
-| `000001_init-transaction-feature` | Creates `accounts` (`balance NUMERIC(20,2)`, `currency VARCHAR(3)`), `transfers`, `entries`; FKs from entries/transfers to accounts; indexes on `accounts(owner)`, `entries(account_id)`, `transfers(from_account_id)`, `transfers(to_account_id)` |
-| `000002_add-balance-constraints` | Idempotently adds `CHECK (balance >= 0)` on accounts, `CHECK (amount > 0)` on transfers |
-| `000003_add-users-table` | Creates `users` (unique `username`/`email`, `hashed_password`), index on `email` |
-| `000004_authorization_by_user_tabel` | Adds nullable `user_id` to `accounts` and `entries`, each with an idempotent FK to `users(id)` |
+| Migration                            | What it does                                                                                                                                                                                                                                       |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `000001_init-transaction-feature`    | Creates `accounts` (`balance NUMERIC(20,2)`, `currency VARCHAR(3)`), `transfers`, `entries`; FKs from entries/transfers to accounts; indexes on `accounts(owner)`, `entries(account_id)`, `transfers(from_account_id)`, `transfers(to_account_id)` |
+| `000002_add-balance-constraints`     | Idempotently adds `CHECK (balance >= 0)` on accounts, `CHECK (amount > 0)` on transfers                                                                                                                                                            |
+| `000003_add-users-table`             | Creates `users` (unique `username`/`email`, `hashed_password`), index on `email`                                                                                                                                                                   |
+| `000004_authorization_by_user_tabel` | Adds nullable `user_id` to `accounts` and `entries`, each with an idempotent FK to `users(id)`                                                                                                                                                     |
 
 sqlc reads this same directory as its `schema:` source ([sqlc.yaml:7](../sqlc.yaml)), so a migration and the queries that depend on it should land in the same PR — sqlc generates against whatever schema is on disk, not what's actually applied to any database.
 
@@ -102,30 +102,30 @@ Makefile targets: `make migrate-create name=...`, `make migrate-up`, `make migra
 
 **How it's actually implemented.** One file per table under [db/query/](../db/query). Every query is a `-- name: MethodName :one|:many|:exec` comment directly above a SQL statement — that annotation, not the SQL body, is the contract deciding whether the generated method returns a single struct, a slice, or nothing.
 
-| File | Query | Annotation | Notable detail |
-|---|---|---|---|
-| [account.sql](../db/query/account.sql) | `CreateAccount` | `:one` | `RETURNING id, owner, balance, currency, user_id, created_at` |
-| | `GetAccountById` | `:one` | Plain SELECT by id |
-| | `GetAccountByIdForUpdate` | `:one` | Adds `FOR UPDATE` — pessimistic row lock used by `transferTx` |
-| | `IncrementAccountBalance` | `:one` | `SET balance = balance + $2` — see rough edge below |
-| | `CheckIsAccountWithIdExist` | `:one` | `SELECT EXISTS(...)` |
-| | `ListAccountsByUserId` | `:many` | `sqlc.arg(user_id)`, `sqlc.arg(limit_count)`, `sqlc.arg(offset_count)` |
-| | `CountAccountsByUserId` | `:one` | Plain `$1`, no `sqlc.arg` |
-| [entries.sql](../db/query/entries.sql) | `CreateEntries` | `:one` | `RETURNING id, account_id, type, amount, created_at` |
-| | `ListEntriesByAccount` | `:many` | `sqlc.arg(...)` for account/limit/offset |
-| | `CountEntriesByAccount` | `:one` | Plain `$1` |
-| [transfers.sql](../db/query/transfers.sql) | `CreateTransfer` | `:one` | `RETURNING id, from_account_id, to_account_id, amount, created_at` |
-| | `GetTransferById` | `:one` | Plain SELECT by id |
-| | `ListTransfersByOwner` | `:many` | Two-way `JOIN accounts` (`fa`/`ta` aliases) matching either the from- or to-owner; `sqlc.arg(owner)` |
-| | `CountTransfersByOwner` | `:one` | Same join pattern, plain `$1` |
-| [user.sql](../db/query/user.sql) | `CreateUser` | `:one` | `RETURNING id, username, email, created_at` — deliberately excludes `hashed_password` |
-| | `GetUserByEmail` | `:one` | Includes `hashed_password` (used for login) |
-| | `GetUserById` | `:one` | Excludes `hashed_password` (used for profile reads) |
-| | `CheckIsUsernameExist` | `:one` | `SELECT EXISTS(...)` |
+| File                                       | Query                       | Annotation | Notable detail                                                                                       |
+| ------------------------------------------ | --------------------------- | ---------- | ---------------------------------------------------------------------------------------------------- |
+| [account.sql](../db/query/account.sql)     | `CreateAccount`             | `:one`     | `RETURNING id, owner, balance, currency, user_id, created_at`                                        |
+|                                            | `GetAccountById`            | `:one`     | Plain SELECT by id                                                                                   |
+|                                            | `GetAccountByIdForUpdate`   | `:one`     | Adds `FOR UPDATE` — pessimistic row lock used by `transferTx`                                        |
+|                                            | `IncrementAccountBalance`   | `:one`     | `SET balance = balance + $2` — see rough edge below                                                  |
+|                                            | `CheckIsAccountWithIdExist` | `:one`     | `SELECT EXISTS(...)`                                                                                 |
+|                                            | `ListAccountsByUserId`      | `:many`    | `sqlc.arg(user_id)`, `sqlc.arg(limit_count)`, `sqlc.arg(offset_count)`                               |
+|                                            | `CountAccountsByUserId`     | `:one`     | Plain `$1`, no `sqlc.arg`                                                                            |
+| [entries.sql](../db/query/entries.sql)     | `CreateEntries`             | `:one`     | `RETURNING id, account_id, type, amount, created_at`                                                 |
+|                                            | `ListEntriesByAccount`      | `:many`    | `sqlc.arg(...)` for account/limit/offset                                                             |
+|                                            | `CountEntriesByAccount`     | `:one`     | Plain `$1`                                                                                           |
+| [transfers.sql](../db/query/transfers.sql) | `CreateTransfer`            | `:one`     | `RETURNING id, from_account_id, to_account_id, amount, created_at`                                   |
+|                                            | `GetTransferById`           | `:one`     | Plain SELECT by id                                                                                   |
+|                                            | `ListTransfersByOwner`      | `:many`    | Two-way `JOIN accounts` (`fa`/`ta` aliases) matching either the from- or to-owner; `sqlc.arg(owner)` |
+|                                            | `CountTransfersByOwner`     | `:one`     | Same join pattern, plain `$1`                                                                        |
+| [user.sql](../db/query/user.sql)           | `CreateUser`                | `:one`     | `RETURNING id, username, email, created_at` — deliberately excludes `hashed_password`                |
+|                                            | `GetUserByEmail`            | `:one`     | Includes `hashed_password` (used for login)                                                          |
+|                                            | `GetUserById`               | `:one`     | Excludes `hashed_password` (used for profile reads)                                                  |
+|                                            | `CheckIsUsernameExist`      | `:one`     | `SELECT EXISTS(...)`                                                                                 |
 
 **`sqlc.arg(name)`.** Plain `$1`-style positional params work fine for one or two arguments, but any query with three or more (the `List*` queries above) uses `sqlc.arg(...)` instead — this names the generated params struct fields (`LimitCount`, `OffsetCount`, ...) rather than leaving them ordinal, which stays readable as a query grows.
 
-**Rough edge — generated params field order isn't argument order.** `ListAccountsByUserIdParams` ends up as `{UserID, OffsetCount, LimitCount}` ([db/sqlc/account.sql.go:190-194](../db/sqlc/account.sql.go)) even though the SQL names `user_id`, `limit_count`, `offset_count` in that order — sqlc assigns struct field order by each arg's first *positional* occurrence in the rendered SQL (`LIMIT $3 OFFSET $2`), not by the order you wrote `sqlc.arg(...)` calls. It's easy to pass the wrong field to the wrong meaning if you're skimming instead of reading the generated struct.
+**Rough edge — generated params field order isn't argument order.** `ListAccountsByUserIdParams` ends up as `{UserID, OffsetCount, LimitCount}` ([db/sqlc/account.sql.go:190-194](../db/sqlc/account.sql.go)) even though the SQL names `user_id`, `limit_count`, `offset_count` in that order — sqlc assigns struct field order by each arg's first _positional_ occurrence in the rendered SQL (`LIMIT $3 OFFSET $2`), not by the order you wrote `sqlc.arg(...)` calls. It's easy to pass the wrong field to the wrong meaning if you're skimming instead of reading the generated struct.
 
 **Rough edge — `IncrementAccountBalanceParams.Balance` is a delta, not a new balance.** The query is `balance = balance + $2` ([db/query/account.sql:27](../db/query/account.sql)), so `Balance` in the params struct means "amount to add," signed. It's only safe because every caller passes a signed string — see `"-" + arg.Amount` at [store_transaction.go:88](../db/store/store_transaction.go). The field name alone would mislead a new caller into passing an absolute value.
 
@@ -145,11 +145,11 @@ packages:
     queries: "./db/query"
     schema: "./db/migrations"
     engine: "postgresql"
-    emit_json_tags: true          # generated structs get `json:"..."` tags for free
-    emit_prepared_queries: true   # queries are prepared statements, not ad-hoc SQL each call
-    emit_interface: true          # generates the Querier interface — required for mocking
+    emit_json_tags: true # generated structs get `json:"..."` tags for free
+    emit_prepared_queries: true # queries are prepared statements, not ad-hoc SQL each call
+    emit_interface: true # generates the Querier interface — required for mocking
     emit_exact_table_names: false # `accounts` table -> `Account` struct, not `Accounts`
-    emit_empty_slices: true       # a :many query with 0 rows returns []T{}, not nil
+    emit_empty_slices: true # a :many query with 0 rows returns []T{}, not nil
 ```
 
 Every file it writes is stamped `// Code generated by sqlc. DO NOT EDIT.` — never hand-edit under [db/sqlc/](../db/sqlc); if the generated code is wrong, the query or the schema is wrong.
@@ -177,7 +177,7 @@ Business logic that needs to be tested without Postgres — `transferTx` in [db/
 
 ---
 
-## Section 5 — `db/mapper`: Bridging Row Types Back to Models *(deleted — see [SQLC_ROW_MAPPING.md](SQLC_ROW_MAPPING.md))*
+## Section 5 — `db/mapper`: Bridging Row Types Back to Models _(deleted — see [SQLC_ROW_MAPPING.md](SQLC_ROW_MAPPING.md))_
 
 **This package no longer exists.** The narrative below describes the state of the codebase before a later change removed `db/mapper` entirely by fixing query shapes at the source (`SELECT *`/`RETURNING *`, `sqlc.embed()`) instead of hand-translating row types after the fact. Left here for historical context only.
 
@@ -267,17 +267,18 @@ func (store *Store) execTx(ctx context.Context, fn func(sqlc.Querier) error) err
    ```
 
    The end-to-end consequence: transfer A→B and transfer B→A running concurrently both lock the lower account ID first, so neither can hold a lock the other is waiting on — no deadlock, regardless of transfer direction.
+
 6. **Currency mismatch** (65-67): `fromAccount.Currency != toAccount.Currency` → `ErrCurrencyMismatch`.
 7. **Insufficient funds** (69-75): parse `fromAccount.Balance` as decimal, compare to the transfer amount → `ErrInsufficientFunds`.
 8. **Ordered writes** (78-131): `CreateTransfer` → debit `CreateEntries` (amount negated, `"-" + arg.Amount`, type `ENTRY_TYPE_SEND`) → debit `IncrementAccountBalance` (mapped back to `sqlc.Account` via [db/mapper](../db/mapper)) → credit `CreateEntries` (type `ENTRY_TYPE_RECEIVED`) → credit `IncrementAccountBalance` (mapped). Every step returns on its own error, so nothing after a failing step executes — this exact property is what the gomock-based unit tests assert via `.Times(0)` on the calls that shouldn't happen.
 
 Sentinel errors, [db/store/errors.go](../db/store/errors.go), in full:
 
-| Error | Meaning |
-|---|---|
-| `ErrSameAccount` | `from_account_id` and `to_account_id` are identical |
-| `ErrCurrencyMismatch` | The two accounts don't share a currency |
-| `ErrInvalidAmount` | Transfer amount is not greater than zero |
+| Error                  | Meaning                                                     |
+| ---------------------- | ----------------------------------------------------------- |
+| `ErrSameAccount`       | `from_account_id` and `to_account_id` are identical         |
+| `ErrCurrencyMismatch`  | The two accounts don't share a currency                     |
+| `ErrInvalidAmount`     | Transfer amount is not greater than zero                    |
 | `ErrInsufficientFunds` | The from-account's balance is less than the transfer amount |
 
 **Rough edge — an unused entry type.** `constant.ENTRY_TYPE_DEPOSIT` is defined ([domain/constant/entries.go:6](../domain/constant/entries.go)) but never referenced anywhere else in the codebase — only `ENTRY_TYPE_SEND` and `ENTRY_TYPE_RECEIVED` are actually used, both exclusively inside `transferTx`. Reads as scaffolding for a deposit feature that was never wired up.
@@ -291,18 +292,20 @@ Sentinel errors, [db/store/errors.go](../db/store/errors.go), in full:
 **How it's actually implemented.**
 
 **Mocking.** `make generate-mock` ([Makefile:16-17](../Makefile)) runs:
+
 ```
 go run go.uber.org/mock/mockgen@latest -package mockdb -destination db/mock/querier.go github.com/DewaSRY/core-service/db/sqlc Querier
 ```
+
 regenerating [db/mock/querier.go](../db/mock/querier.go) — a `MockQuerier` with one mock method + one `EXPECT()` recorder method per `Querier` method. There's no `//go:generate` directive anywhere in source; regeneration is Makefile-driven only, so it's easy to forget after changing `Querier` — see [GOMOCK_TESTING.md](GOMOCK_TESTING.md) for the mechanics of writing tests against the mock (`gomock.NewController`, `gomock.Any()`, `gomock.InOrder`), which this doc doesn't repeat.
 
 `MockQuerier` is used in exactly three places:
 
-| File | What it tests |
-|---|---|
-| [db/store/store_transaction_test.go](../db/store/store_transaction_test.go) | `transferTx` directly — no `Store`, no DB |
-| [internal/api/auth_router_test.go](../internal/api/auth_router_test.go) | Auth handlers, via a `mockStorer` that embeds `*mockdb.MockQuerier` and stubs `TransferTx` to satisfy the `Storer` interface |
-| [internal/api/profile_router_test.go](../internal/api/profile_router_test.go) | Profile handlers, same `mockStorer` pattern |
+| File                                                                          | What it tests                                                                                                               |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| [db/store/store_transaction_test.go](../db/store/store_transaction_test.go)   | `transferTx` directly — no `Store`, no DB                                                                                   |
+| [internal/api/auth_router_test.go](../internal/api/auth_router_test.go)       | Auth handlers, via a `mockStorer` that embeds `*mockdb.MockStorer` and stubs `TransferTx` to satisfy the `Storer` interface |
+| [internal/api/profile_router_test.go](../internal/api/profile_router_test.go) | Profile handlers, same `mockStorer` pattern                                                                                 |
 
 **Rough edge — the two DB-backed test suites clean up differently; don't assume they behave the same.** Both connect to the same local Postgres instance, but:
 
@@ -358,25 +361,25 @@ Error path: any of `ErrSameAccount`, `ErrCurrencyMismatch`, `ErrInvalidAmount`, 
 
 ## Final Reference: Every `Querier` Method
 
-| Method | Annotation | Source file | Purpose |
-|---|---|---|---|
-| `CreateAccount` | `:one` | account.sql | Insert a new account |
-| `GetAccountById` | `:one` | account.sql | Fetch an account, no lock |
-| `GetAccountByIdForUpdate` | `:one` | account.sql | Fetch an account with `FOR UPDATE`, used only inside `transferTx` |
-| `IncrementAccountBalance` | `:one` | account.sql | Add a signed delta to `balance` |
-| `CheckIsAccountWithIdExist` | `:one` | account.sql | Existence check |
-| `ListAccountsByUserId` | `:many` | account.sql | Paginated accounts for a user |
-| `CountAccountsByUserId` | `:one` | account.sql | Total count, paired with the above |
-| `CreateEntries` | `:one` | entries.sql | Insert a ledger entry (debit or credit) |
-| `ListEntriesByAccount` | `:many` | entries.sql | Paginated entries for an account |
-| `CountEntriesByAccount` | `:one` | entries.sql | Total count, paired with the above |
-| `CreateTransfer` | `:one` | transfers.sql | Insert a transfer record |
-| `GetTransferById` | `:one` | transfers.sql | Fetch a transfer by id |
-| `ListTransfersByOwner` | `:many` | transfers.sql | Paginated transfers where the owner is either party |
-| `CountTransfersByOwner` | `:one` | transfers.sql | Total count, paired with the above |
-| `CreateUser` | `:one` | user.sql | Insert a user; deliberately doesn't return `hashed_password` |
-| `GetUserByEmail` | `:one` | user.sql | Login lookup, includes `hashed_password` |
-| `GetUserById` | `:one` | user.sql | Profile lookup, excludes `hashed_password` |
-| `CheckIsUsernameExist` | `:one` | user.sql | Existence check |
+| Method                      | Annotation | Source file   | Purpose                                                           |
+| --------------------------- | ---------- | ------------- | ----------------------------------------------------------------- |
+| `CreateAccount`             | `:one`     | account.sql   | Insert a new account                                              |
+| `GetAccountById`            | `:one`     | account.sql   | Fetch an account, no lock                                         |
+| `GetAccountByIdForUpdate`   | `:one`     | account.sql   | Fetch an account with `FOR UPDATE`, used only inside `transferTx` |
+| `IncrementAccountBalance`   | `:one`     | account.sql   | Add a signed delta to `balance`                                   |
+| `CheckIsAccountWithIdExist` | `:one`     | account.sql   | Existence check                                                   |
+| `ListAccountsByUserId`      | `:many`    | account.sql   | Paginated accounts for a user                                     |
+| `CountAccountsByUserId`     | `:one`     | account.sql   | Total count, paired with the above                                |
+| `CreateEntries`             | `:one`     | entries.sql   | Insert a ledger entry (debit or credit)                           |
+| `ListEntriesByAccount`      | `:many`    | entries.sql   | Paginated entries for an account                                  |
+| `CountEntriesByAccount`     | `:one`     | entries.sql   | Total count, paired with the above                                |
+| `CreateTransfer`            | `:one`     | transfers.sql | Insert a transfer record                                          |
+| `GetTransferById`           | `:one`     | transfers.sql | Fetch a transfer by id                                            |
+| `ListTransfersByOwner`      | `:many`    | transfers.sql | Paginated transfers where the owner is either party               |
+| `CountTransfersByOwner`     | `:one`     | transfers.sql | Total count, paired with the above                                |
+| `CreateUser`                | `:one`     | user.sql      | Insert a user; deliberately doesn't return `hashed_password`      |
+| `GetUserByEmail`            | `:one`     | user.sql      | Login lookup, includes `hashed_password`                          |
+| `GetUserById`               | `:one`     | user.sql      | Profile lookup, excludes `hashed_password`                        |
+| `CheckIsUsernameExist`      | `:one`     | user.sql      | Existence check                                                   |
 
 Plus one method not on `Querier` at all: `TransferTx` (on `Storer`/`Store`), the hand-written composition of several of the above inside a transaction — see [Section 7](#section-7--business-logic-transfertx-dbstorestore_transactiongo).

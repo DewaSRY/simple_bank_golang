@@ -30,8 +30,8 @@ migrate-force:
 migrate-goto:
 	go run ./cmd/migration/main.go goto $(version)
 
-generate-mock:
-	go run go.uber.org/mock/mockgen@latest -package mockdb -destination internal/db/mock/querier.go github.com/DewaSRY/core-service/internal/db/sqlc Querier
+generate-mock: 
+	go run go.uber.org/mock/mockgen@latest -package mockdb -destination internal/db/mock/querier.go github.com/DewaSRY/core-service/internal/db/store Storer
 
 sqlc: 
 	sqlc generate
