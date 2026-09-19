@@ -1,4 +1,4 @@
-package api
+package account
 
 import (
 	"database/sql"
@@ -7,13 +7,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/DewaSRY/core-service/internal/api/core"
+
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	"github.com/DewaSRY/core-service/internal/db/store"
 )
 
-type manageAccountParams struct {
-	ID int64 `uri:"id" binding:"required,min=1"`
-}
+// errCodeMainAccount is account-specific (only deleteAccountAppError uses
+// it), so unlike the generic codes it doesn't live in core.
+const errCodeMainAccount = "MAIN_ACCOUNT"
 
 // detailAccount godoc
 // @Summary      Get account details
@@ -29,30 +31,30 @@ type manageAccountParams struct {
 // @Failure      409  {object}  errorResponse
 // @Failure      500  {object}  errorResponse
 // @Router       /accounts/{id} [get]
-func (server *Server) detailAccount(ctx *gin.Context) {
-	var params manageAccountParams
+func (h *Handler) detailAccount(ctx *gin.Context) {
+	var params idPathParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	account, err := server.store.GetAccountViewById(ctx, params.ID)
+	account, err := h.Store.GetAccountViewById(ctx, params.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
+			core.Fail(ctx, core.NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
+	authPayload := core.GetAuthPayload(ctx)
 	if account.AccountUserDetailsView.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
+		core.Fail(ctx, core.ForbiddenErr("account does not belong to the authenticated user"))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountuserResponse(account.AccountUserDetailsView), "Account retrieved successfully")
+	core.Succeed(ctx, http.StatusOK, toAccountuserResponse(account.AccountUserDetailsView), "Account retrieved successfully")
 }
 
 type updateAccountRequest struct {
@@ -76,32 +78,32 @@ type updateAccountRequest struct {
 // @Failure      404      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
 // @Router       /accounts/{id} [put]
-func (server *Server) updateAccount(ctx *gin.Context) {
-	var params manageAccountParams
+func (h *Handler) updateAccount(ctx *gin.Context) {
+	var params idPathParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	var req updateAccountRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	account, err := server.store.GetAccountById(ctx, params.ID)
+	account, err := h.Store.GetAccountById(ctx, params.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
+			core.Fail(ctx, core.NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
+	authPayload := core.GetAuthPayload(ctx)
 	if account.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
+		core.Fail(ctx, core.ForbiddenErr("account does not belong to the authenticated user"))
 		return
 	}
 
@@ -114,17 +116,17 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 		description = account.Description.String
 	}
 
-	updated, err := server.store.UpdateAccount(ctx, db.UpdateAccountParams{
+	updated, err := h.Store.UpdateAccount(ctx, db.UpdateAccountParams{
 		ID:          params.ID,
 		Name:        sql.NullString{String: name, Valid: name != ""},
 		Description: sql.NullString{String: description, Valid: description != ""},
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountResponse(updated), "Account updated successfully")
+	core.Succeed(ctx, http.StatusOK, toAccountResponse(updated), "Account updated successfully")
 }
 
 type deleteAccountResponse struct {
@@ -146,35 +148,35 @@ type deleteAccountResponse struct {
 // @Failure      409  {object}  errorResponse
 // @Failure      500  {object}  errorResponse
 // @Router       /accounts/{id} [delete]
-func (server *Server) deleteAccount(ctx *gin.Context) {
-	var params manageAccountParams
+func (h *Handler) deleteAccount(ctx *gin.Context) {
+	var params idPathParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	account, err := server.store.GetAccountById(ctx, params.ID)
+	account, err := h.Store.GetAccountById(ctx, params.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
+			core.Fail(ctx, core.NotFoundErr("account not found"))
 			return
 		}
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
+	authPayload := core.GetAuthPayload(ctx)
 	if account.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
+		core.Fail(ctx, core.ForbiddenErr("account does not belong to the authenticated user"))
 		return
 	}
 
-	result, err := server.store.DeleteAccountTx(ctx, store.DeleteAccountTxParams{
+	result, err := h.Store.DeleteAccountTx(ctx, store.DeleteAccountTxParams{
 		AccountID: params.ID,
 		UserID:    authPayload.ID,
 	})
 	if err != nil {
-		fail(ctx, deleteAccountAppError(err))
+		core.Fail(ctx, deleteAccountAppError(err))
 		return
 	}
 
@@ -183,17 +185,17 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 		resp.BalanceSweptToID = &result.SweepTransfer.ToAccountID
 	}
 
-	succeed(ctx, http.StatusOK, resp, "Account deleted successfully")
+	core.Succeed(ctx, http.StatusOK, resp, "Account deleted successfully")
 }
 
 // deleteAccountAppError maps a DeleteAccountTx failure to an AppError.
-func deleteAccountAppError(err error) *AppError {
+func deleteAccountAppError(err error) *core.AppError {
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return NotFoundErr("account not found")
+		return core.NotFoundErr("account not found")
 	case errors.Is(err, store.ErrCannotDeleteMainAccount):
-		return ConflictErr(errCodeMainAccount, err.Error())
+		return core.ConflictErr(errCodeMainAccount, err.Error())
 	default:
-		return InternalErr(err)
+		return core.InternalErr(err)
 	}
 }

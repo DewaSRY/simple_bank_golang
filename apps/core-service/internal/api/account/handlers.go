@@ -1,10 +1,12 @@
-package api
+package account
 
 import (
 	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/DewaSRY/core-service/internal/api/core"
 
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	"github.com/DewaSRY/core-service/internal/db/store"
@@ -29,16 +31,16 @@ type createAccountRequest struct {
 // @Failure      401      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
 // @Router       /accounts [post]
-func (server *Server) createAccount(ctx *gin.Context) {
+func (h *Handler) createAccount(ctx *gin.Context) {
 	var req createAccountRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
+	authPayload := core.GetAuthPayload(ctx)
 
-	account, err := server.store.CreateAccountTx(ctx, store.CreateAccountTxParams{
+	account, err := h.Store.CreateAccountTx(ctx, store.CreateAccountTxParams{
 		UserID: sql.NullInt64{
 			Int64: authPayload.ID,
 			Valid: true,
@@ -48,15 +50,15 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		IsMain:      false,
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountResponse(account), "Account created successfully")
+	core.Succeed(ctx, http.StatusOK, toAccountResponse(account), "Account created successfully")
 }
 
 type listmeAccountsQuery struct {
-	paginationQuery
+	core.PaginationQuery
 	Name string `form:"name" binding:"omitempty"`
 }
 
@@ -74,30 +76,30 @@ type listmeAccountsQuery struct {
 // @Failure      401    {object}  errorResponse
 // @Failure      500    {object}  errorResponse
 // @Router       /accounts/me [get]
-func (server *Server) listmeAccounts(ctx *gin.Context) {
+func (h *Handler) listmeAccounts(ctx *gin.Context) {
 	var query listmeAccountsQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
+	authPayload := core.GetAuthPayload(ctx)
 
-	accounts, err := server.store.ListMeAccountsByUserId(ctx, db.ListMeAccountsByUserIdParams{
+	accounts, err := h.Store.ListMeAccountsByUserId(ctx, db.ListMeAccountsByUserIdParams{
 		Name: sql.NullString{String: query.Name, Valid: true},
 		UserID: sql.NullInt64{
 			Int64: authPayload.ID,
 			Valid: true,
 		},
 		LimitCount:  query.Limit,
-		OffsetCount: query.offset(),
+		OffsetCount: query.Offset(),
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	total, err := server.store.ListMeAccountsByUserIdCount(ctx, db.ListMeAccountsByUserIdCountParams{
+	total, err := h.Store.ListMeAccountsByUserIdCount(ctx, db.ListMeAccountsByUserIdCountParams{
 		Name: sql.NullString{String: query.Name, Valid: true},
 		UserID: sql.NullInt64{
 			Int64: authPayload.ID,
@@ -105,7 +107,7 @@ func (server *Server) listmeAccounts(ctx *gin.Context) {
 		},
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
@@ -113,13 +115,13 @@ func (server *Server) listmeAccounts(ctx *gin.Context) {
 		return toAccountuserResponse(row.AccountUserDetailsView)
 	})
 
-	succeedWithMeta(ctx, http.StatusOK, responses, "Accounts retrieved successfully", Meta{
+	core.SucceedWithMeta(ctx, http.StatusOK, responses, "Accounts retrieved successfully", core.Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 }
 
 type searchAccountByNumberQuery struct {
-	paginationQuery
+	core.PaginationQuery
 	Number string `form:"number" binding:"required"`
 }
 
@@ -138,27 +140,27 @@ type searchAccountByNumberQuery struct {
 // @Failure      404     {object}  errorResponse
 // @Failure      500     {object}  errorResponse
 // @Router       /accounts/search-by-number [get]
-func (server *Server) searchAccountByNumber(ctx *gin.Context) {
+func (h *Handler) searchAccountByNumber(ctx *gin.Context) {
 	var query searchAccountByNumberQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	accountList, err := server.store.ListAccountsSearchByUserNumber(ctx, db.ListAccountsSearchByUserNumberParams{
+	accountList, err := h.Store.ListAccountsSearchByUserNumber(ctx, db.ListAccountsSearchByUserNumberParams{
 		Number:      sql.NullString{String: query.Number, Valid: true},
-		OffsetCount: query.offset(),
+		OffsetCount: query.Offset(),
 		LimitCount:  query.Limit,
 	})
 
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	total, err := server.store.CountAccountsSearchByUserNumber(ctx, sql.NullString{String: query.Number, Valid: true})
+	total, err := h.Store.CountAccountsSearchByUserNumber(ctx, sql.NullString{String: query.Number, Valid: true})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
@@ -166,7 +168,7 @@ func (server *Server) searchAccountByNumber(ctx *gin.Context) {
 		return toAccountuserResponse(row.AccountUserDetailsView)
 	})
 
-	succeedWithMeta(ctx, http.StatusOK, responses, "Accounts retrieved successfully", Meta{
+	core.SucceedWithMeta(ctx, http.StatusOK, responses, "Accounts retrieved successfully", core.Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 

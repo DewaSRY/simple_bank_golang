@@ -1,4 +1,4 @@
-package api
+package transfer
 
 import (
 	"database/sql"
@@ -9,10 +9,52 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 
+	"github.com/DewaSRY/core-service/internal/api/core"
+
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	"github.com/DewaSRY/core-service/internal/db/store"
 	"github.com/DewaSRY/core-service/internal/util"
 )
+
+// requireOwnedAccount fetches the account by id and verifies it belongs to
+// the authenticated user, writing the appropriate failure response (404 if
+// missing, 403 if owned by someone else, 500 on any other error) and
+// returning ok=false when either check fails. Callers should return
+// immediately when ok is false.
+func (h *Handler) requireOwnedAccount(ctx *gin.Context, accountID int64) (account db.Account, ok bool) {
+	account, err := h.Store.GetAccountById(ctx, accountID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			core.Fail(ctx, core.NotFoundErr("account not found"))
+			return db.Account{}, false
+		}
+		core.Fail(ctx, core.InternalErr(err))
+		return db.Account{}, false
+	}
+
+	authPayload := core.GetAuthPayload(ctx)
+	if account.UserID.Int64 != authPayload.ID {
+		core.Fail(ctx, core.ForbiddenErr("account does not belong to the authenticated user"))
+		return db.Account{}, false
+	}
+
+	return account, true
+}
+
+// periodFromMonthYear turns a (possibly zero) month/year pair into the
+// [start, end) UTC range covering that calendar month, defaulting a zero
+// month or year to the current one.
+func periodFromMonthYear(month, year int32) (start, end time.Time) {
+	now := time.Now().UTC()
+	if month == 0 {
+		month = int32(now.Month())
+	}
+	if year == 0 {
+		year = int32(now.Year())
+	}
+	start = time.Date(int(year), time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	return start, start.AddDate(0, 1, 0)
+}
 
 type depositRequest struct {
 	Amount      decimal.Decimal `json:"amount"`
@@ -35,61 +77,49 @@ type depositRequest struct {
 // @Failure      404      {object}  errorResponse
 // @Failure      500      {object}  errorResponse
 // @Router       /accounts/{id}/deposit [post]
-func (server *Server) deposit(ctx *gin.Context) {
-	var params manageAccountParams
+func (h *Handler) deposit(ctx *gin.Context) {
+	var params idPathParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	var req depositRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	if !req.Amount.IsPositive() {
-		fail(ctx, ValidationErr(FieldError{Field: "amount", Message: "amount must be greater than zero"}))
+		core.Fail(ctx, core.ValidationErr(core.FieldError{Field: "amount", Message: "amount must be greater than zero"}))
 		return
 	}
 
-	account, err := server.store.GetAccountById(ctx, params.ID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
-			return
-		}
-		fail(ctx, InternalErr(err))
+	if _, ok := h.requireOwnedAccount(ctx, params.ID); !ok {
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
-	if account.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
-		return
-	}
-
-	result, err := server.store.DepositTx(ctx, store.DepositTxParams{
+	result, err := h.Store.DepositTx(ctx, store.DepositTxParams{
 		AccountID:   params.ID,
 		Amount:      req.Amount.StringFixed(2),
 		Description: req.Description,
 	})
 	if err != nil {
-		fail(ctx, transferAppError(err))
+		core.Fail(ctx, transferAppError(err))
 		return
 	}
 
-	accountEntries, err := server.store.AccountEntriesByAccountId(ctx, result.Entry.ID)
+	accountEntries, err := h.Store.AccountEntriesByAccountId(ctx, result.Entry.ID)
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries.AccountEntriesView), "Deposit completed successfully")
+	core.Succeed(ctx, http.StatusOK, toAccountEntriesViewResponse(accountEntries.AccountEntriesView), "Deposit completed successfully")
 }
 
 type listAccountEntriesQuery struct {
-	paginationQuery
+	core.PaginationQuery
 	Month int32 `form:"month" binding:"omitempty,min=1,max=12"`
 	Year  int32 `form:"year" binding:"omitempty,min=1"`
 }
@@ -112,54 +142,43 @@ type listAccountEntriesQuery struct {
 // @Failure      404    {object}  errorResponse
 // @Failure      500    {object}  errorResponse
 // @Router       /accounts/{id}/entries [get]
-func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
-	var params manageAccountParams
+func (h *Handler) listAccountEntriesByAccountId(ctx *gin.Context) {
+	var params idPathParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	var query listAccountEntriesQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	now := time.Now().UTC()
-	month := query.Month
-	if month == 0 {
-		month = int32(now.Month())
-	}
-	year := query.Year
-	if year == 0 {
-		year = int32(now.Year())
-	}
+	periodStart, periodEnd := periodFromMonthYear(query.Month, query.Year)
 
-	periodStart := time.Date(int(year), time.Month(month), 1, 0, 0, 0, 0, time.UTC)
-	periodEnd := periodStart.AddDate(0, 1, 0)
-
-	accountEntries, err := server.store.ListAccountEntriesByAccountId(ctx, db.ListAccountEntriesByAccountIdParams{
+	accountEntries, err := h.Store.ListAccountEntriesByAccountId(ctx, db.ListAccountEntriesByAccountIdParams{
 		AccountID:   params.ID,
 		PeriodStart: sql.NullTime{Time: periodStart, Valid: true},
 		PeriodEnd:   sql.NullTime{Time: periodEnd, Valid: true},
 		EntryType:   sql.NullString{},
-		OffsetCount: query.offset(),
+		OffsetCount: query.Offset(),
 		LimitCount:  query.Limit,
 	})
 
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	total, err := server.store.CountAccountEntriesByAccountId(ctx, db.CountAccountEntriesByAccountIdParams{
+	total, err := h.Store.CountAccountEntriesByAccountId(ctx, db.CountAccountEntriesByAccountIdParams{
 		AccountID:   params.ID,
 		PeriodStart: sql.NullTime{Time: periodStart, Valid: true},
 		PeriodEnd:   sql.NullTime{Time: periodEnd, Valid: true},
 		EntryType:   sql.NullString{},
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
@@ -167,7 +186,7 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 		return toAccountEntriesViewResponse(row.AccountEntriesView)
 	})
 
-	succeedWithMeta(ctx, http.StatusOK, entries, "Account entries retrieved successfully", Meta{
+	core.SucceedWithMeta(ctx, http.StatusOK, entries, "Account entries retrieved successfully", core.Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 }
@@ -187,51 +206,39 @@ func (server *Server) listAccountEntriesByAccountId(ctx *gin.Context) {
 // @Failure      404  {object}  errorResponse
 // @Failure      500  {object}  errorResponse
 // @Router       /accounts/{id}/recent-destinations [get]
-func (server *Server) listRecentTransferDestinations(ctx *gin.Context) {
-	var params manageAccountParams
+func (h *Handler) listRecentTransferDestinations(ctx *gin.Context) {
+	var params idPathParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
-	var query paginationQuery
+	var query core.PaginationQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	account, err := server.store.GetAccountById(ctx, params.ID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
-			return
-		}
-		fail(ctx, InternalErr(err))
+	if _, ok := h.requireOwnedAccount(ctx, params.ID); !ok {
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
-	if account.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
-		return
-	}
-
-	destinations, err := server.store.ListRecentTransferDestinations(ctx, db.ListRecentTransferDestinationsParams{
+	destinations, err := h.Store.ListRecentTransferDestinations(ctx, db.ListRecentTransferDestinationsParams{
 		FromAccountID: params.ID,
 		LimitCount:    query.Limit,
-		OffsetCount:   query.offset(),
+		OffsetCount:   query.Offset(),
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
 	responses := util.MapSlice(destinations, toPublicAccountResponseFromDestination)
 
-	succeed(ctx, http.StatusOK, responses, "Recent transfer destinations retrieved successfully")
+	core.Succeed(ctx, http.StatusOK, responses, "Recent transfer destinations retrieved successfully")
 }
 
 type listAccountTransactionHistoryQuery struct {
-	paginationQuery
+	core.PaginationQuery
 	Month int32 `form:"month" binding:"omitempty,min=1,max=12"`
 	Year  int32 `form:"year" binding:"omitempty,min=1"`
 }
@@ -254,73 +261,50 @@ type listAccountTransactionHistoryQuery struct {
 // @Failure      404    {object}  errorResponse
 // @Failure      500    {object}  errorResponse
 // @Router       /accounts/{id}/transactions [get]
-func (server *Server) listAccountTransactionHistory(ctx *gin.Context) {
-	var params manageAccountParams
+func (h *Handler) listAccountTransactionHistory(ctx *gin.Context) {
+	var params idPathParam
 	if err := ctx.ShouldBindUri(&params); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
 	var query listAccountTransactionHistoryQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		fail(ctx, ValidationErr(fieldErrorsFromBindErr(err)...))
+		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
 		return
 	}
 
-	account, err := server.store.GetAccountById(ctx, params.ID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			fail(ctx, NotFoundErr("account not found"))
-			return
-		}
-		fail(ctx, InternalErr(err))
+	if _, ok := h.requireOwnedAccount(ctx, params.ID); !ok {
 		return
 	}
 
-	authPayload := getAuthPayload(ctx)
-	if account.UserID.Int64 != authPayload.ID {
-		fail(ctx, ForbiddenErr("account does not belong to the authenticated user"))
-		return
-	}
+	periodStart, periodEnd := periodFromMonthYear(query.Month, query.Year)
 
-	now := time.Now().UTC()
-	month := query.Month
-	if month == 0 {
-		month = int32(now.Month())
-	}
-	year := query.Year
-	if year == 0 {
-		year = int32(now.Year())
-	}
-
-	periodStart := time.Date(int(year), time.Month(month), 1, 0, 0, 0, 0, time.UTC)
-	periodEnd := periodStart.AddDate(0, 1, 0)
-
-	history, err := server.store.ListAccountTransactionHistory(ctx, db.ListAccountTransactionHistoryParams{
+	history, err := h.Store.ListAccountTransactionHistory(ctx, db.ListAccountTransactionHistoryParams{
 		AccountID:   params.ID,
 		PeriodStart: periodStart,
 		PeriodEnd:   periodEnd,
-		OffsetCount: query.offset(),
+		OffsetCount: query.Offset(),
 		LimitCount:  query.Limit,
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	total, err := server.store.CountAccountTransactionHistory(ctx, db.CountAccountTransactionHistoryParams{
+	total, err := h.Store.CountAccountTransactionHistory(ctx, db.CountAccountTransactionHistoryParams{
 		AccountID:   params.ID,
 		PeriodStart: periodStart,
 		PeriodEnd:   periodEnd,
 	})
 	if err != nil {
-		fail(ctx, InternalErr(err))
+		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
 	items := util.MapSlice(history, toTransactionHistoryItem)
 
-	succeedWithMeta(ctx, http.StatusOK, items, "Transaction history retrieved successfully", Meta{
+	core.SucceedWithMeta(ctx, http.StatusOK, items, "Transaction history retrieved successfully", core.Meta{
 		Page: query.Page, Limit: query.Limit, Total: total,
 	})
 }

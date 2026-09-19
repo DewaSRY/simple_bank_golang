@@ -1,4 +1,4 @@
-package api
+package auth
 
 import (
 	"bytes"
@@ -17,30 +17,28 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	config "github.com/DewaSRY/core-service/internal/config"
+	"github.com/DewaSRY/core-service/internal/api/core"
 	mockdb "github.com/DewaSRY/core-service/internal/db/mock"
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	store "github.com/DewaSRY/core-service/internal/db/store"
+	"github.com/DewaSRY/core-service/internal/token"
 	"github.com/DewaSRY/core-service/internal/util"
 )
 
+const testSecretKey = "12345678901234567890123456789012"
+
 // mockStorer adapts a *mockdb.MockQuerier (generated only from sqlc.Querier)
-// into the Server's Storer interface, which additionally requires the
-// hand-written store transactions. Each transaction method has an optional
-// override func so a test can assert on its args/control its result; tests
-// that don't care about a given transaction get a harmless zero result.
+// into the store.Storer interface Handler.Store requires, which additionally
+// needs the hand-written store transactions. Each transaction method has an
+// optional override func so a test can assert on its args/control its
+// result; tests that don't care about a given transaction get a harmless
+// zero result.
 type mockStorer struct {
 	*mockdb.MockQuerier
-	transferTxFunc      func(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error)
 	createAccountTxFunc func(ctx context.Context, arg store.CreateAccountTxParams) (db.Account, error)
-	depositTxFunc       func(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error)
-	deleteAccountTxFunc func(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error)
 }
 
 func (m *mockStorer) TransferTx(ctx context.Context, arg db.CreateTransferParams) (store.TransferTxResult, error) {
-	if m.transferTxFunc != nil {
-		return m.transferTxFunc(ctx, arg)
-	}
 	return store.TransferTxResult{}, nil
 }
 
@@ -52,37 +50,46 @@ func (m *mockStorer) CreateAccountTx(ctx context.Context, arg store.CreateAccoun
 }
 
 func (m *mockStorer) DepositTx(ctx context.Context, arg store.DepositTxParams) (store.DepositTxResult, error) {
-	if m.depositTxFunc != nil {
-		return m.depositTxFunc(ctx, arg)
-	}
 	return store.DepositTxResult{}, nil
 }
 
 func (m *mockStorer) DeleteAccountTx(ctx context.Context, arg store.DeleteAccountTxParams) (store.DeleteAccountTxResult, error) {
-	if m.deleteAccountTxFunc != nil {
-		return m.deleteAccountTxFunc(ctx, arg)
-	}
 	return store.DeleteAccountTxResult{}, nil
 }
 
-func newTestServerWithStorer(t *testing.T, storer store.Storer) *Server {
-	gin.SetMode(gin.TestMode)
+type errorResponse struct {
+	Error struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
 
-	cfg := config.Config{
-		JWTSecretKey:           testSecretKeyForMiddleware,
-		JWTAccessTokenDuration: time.Minute,
-	}
-
-	server, err := NewServer(storer, cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+func newTestHandler(t *testing.T, storer store.Storer) *Handler {
+	tokenMaker, err := token.NewJWTMaker(testSecretKey)
 	require.NoError(t, err)
-	return server
+
+	return &Handler{Store: storer, TokenMaker: tokenMaker, AccessTokenDuration: time.Minute}
 }
 
-func newTestServerWithMockStore(t *testing.T, q *mockdb.MockQuerier) *Server {
-	return newTestServerWithStorer(t, &mockStorer{MockQuerier: q})
+// newTestRouter wires the same route groups NewServer does (public "/api/v1"
+// routes, then an authorized group behind core.AuthMiddleware), so these
+// tests exercise auth's Handler exactly as it runs in production.
+func newTestRouter(h *Handler) *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(core.ErrorHandlerMiddleware(slog.New(slog.NewTextHandler(io.Discard, nil))))
+
+	v1 := router.Group("/api/v1")
+	h.RegisterPublicRoutes(v1)
+
+	authorized := v1.Group("/")
+	authorized.Use(core.AuthMiddleware(h.TokenMaker))
+	h.RegisterAuthorizedRoutes(authorized)
+
+	return router
 }
 
-func doRegisterRequest(t *testing.T, server *Server, body registerUserRequest) *httptest.ResponseRecorder {
+func doRegisterRequest(t *testing.T, router *gin.Engine, body registerUserRequest) *httptest.ResponseRecorder {
 	payload, err := json.Marshal(body)
 	require.NoError(t, err)
 
@@ -90,7 +97,7 @@ func doRegisterRequest(t *testing.T, server *Server, body registerUserRequest) *
 	req.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()
-	server.router.ServeHTTP(recorder, req)
+	router.ServeHTTP(recorder, req)
 	return recorder
 }
 
@@ -249,7 +256,7 @@ func TestRegisterUser(t *testing.T) {
 
 				var resp errorResponse
 				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
-				require.Equal(t, errCodeValidation, resp.Error.Code)
+				require.Equal(t, core.ErrCodeValidation, resp.Error.Code)
 			},
 		},
 	}
@@ -260,8 +267,115 @@ func TestRegisterUser(t *testing.T) {
 			q := mockdb.NewMockQuerier(ctrl)
 			tc.buildStubs(q)
 
-			server := newTestServerWithMockStore(t, q)
-			recorder := doRegisterRequest(t, server, tc.body)
+			router := newTestRouter(newTestHandler(t, &mockStorer{MockQuerier: q}))
+			recorder := doRegisterRequest(t, router, tc.body)
+			tc.checkResponse(t, recorder)
+		})
+	}
+}
+
+func doGetProfileRequest(t *testing.T, router *gin.Engine, authHeader string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/profile", nil)
+	if authHeader != "" {
+		req.Header.Set("Authorization", authHeader)
+	}
+
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+	return recorder
+}
+
+func TestGetProfile(t *testing.T) {
+	const (
+		userID   = int64(1)
+		username = "dewa"
+		email    = "dewa@example.com"
+	)
+
+	testCases := []struct {
+		name          string
+		authHeader    func(t *testing.T, h *Handler) string
+		buildStubs    func(q *mockdb.MockQuerier)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "returns the authenticated user's profile",
+			authHeader: func(t *testing.T, h *Handler) string {
+				accessToken, _, err := h.TokenMaker.CreateToken(userID, username, email, time.Minute)
+				require.NoError(t, err)
+				return "Bearer " + accessToken
+			},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserById(gomock.Any(), userID).Return(db.GetUserByIdRow{
+					ID:        userID,
+					Username:  username,
+					Email:     email,
+					CreatedAt: time.Now(),
+				}, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+
+				var resp struct {
+					Data profileResponse `json:"data"`
+				}
+				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
+				require.Equal(t, userID, resp.Data.ID)
+				require.Equal(t, username, resp.Data.Username)
+				require.Equal(t, email, resp.Data.Email)
+			},
+		},
+		{
+			name: "rejects a request without an access token",
+			authHeader: func(t *testing.T, h *Handler) string {
+				return ""
+			},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserById(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			name: "returns 404 when the token's user no longer exists",
+			authHeader: func(t *testing.T, h *Handler) string {
+				accessToken, _, err := h.TokenMaker.CreateToken(userID, username, email, time.Minute)
+				require.NoError(t, err)
+				return "Bearer " + accessToken
+			},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserById(gomock.Any(), userID).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			name: "returns 500 when fetching the user hits a db error",
+			authHeader: func(t *testing.T, h *Handler) string {
+				accessToken, _, err := h.TokenMaker.CreateToken(userID, username, email, time.Minute)
+				require.NoError(t, err)
+				return "Bearer " + accessToken
+			},
+			buildStubs: func(q *mockdb.MockQuerier) {
+				q.EXPECT().GetUserById(gomock.Any(), userID).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			q := mockdb.NewMockQuerier(ctrl)
+			tc.buildStubs(q)
+
+			h := newTestHandler(t, &mockStorer{MockQuerier: q})
+			router := newTestRouter(h)
+			recorder := doGetProfileRequest(t, router, tc.authHeader(t, h))
 			tc.checkResponse(t, recorder)
 		})
 	}

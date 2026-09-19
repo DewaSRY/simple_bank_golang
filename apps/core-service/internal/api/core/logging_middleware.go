@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"bytes"
@@ -30,13 +30,13 @@ const (
 	requestIDContextKey = "request_id"
 )
 
-// requestIDMiddleware assigns every request a short opaque ID — reusing one
+// RequestIDMiddleware assigns every request a short opaque ID — reusing one
 // supplied by the caller (e.g. an upstream proxy/load balancer) via
 // X-Request-Id, or generating one otherwise — and echoes it back on the
 // response. Every log line for a request carries this ID, so a client-
 // reported problem can be traced to its exact log lines by asking for the
 // header value instead of grepping by timestamp.
-func requestIDMiddleware() gin.HandlerFunc {
+func RequestIDMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id := ctx.GetHeader(requestIDHeader)
 		if id == "" {
@@ -73,7 +73,7 @@ func loggerFromContext(ctx *gin.Context, base *slog.Logger) *slog.Logger {
 	return base.With(slog.String("request_id", getRequestID(ctx)))
 }
 
-func loggingMiddleware(log *slog.Logger, cfg config.Config) gin.HandlerFunc {
+func LoggingMiddleware(log *slog.Logger, cfg config.Config) gin.HandlerFunc {
 	maxBodySize := effectiveMaxBodySize(cfg)
 
 	return func(ctx *gin.Context) {
@@ -313,7 +313,7 @@ func authenticatedUserID(ctx *gin.Context) (int64, bool) {
 	return payload.ID, true
 }
 
-func recoveryMiddleware(log *slog.Logger) gin.HandlerFunc {
+func RecoveryMiddleware(log *slog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -323,7 +323,7 @@ func recoveryMiddleware(log *slog.Logger) gin.HandlerFunc {
 					slog.String("path", ctx.Request.URL.Path),
 					slog.String("stack", string(debug.Stack())),
 				)
-				fail(ctx, InternalErr(fmt.Errorf("panic: %v", r)))
+				Fail(ctx, InternalErr(fmt.Errorf("panic: %v", r)))
 			}
 		}()
 		ctx.Next()
