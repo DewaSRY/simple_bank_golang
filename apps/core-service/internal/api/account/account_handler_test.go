@@ -390,7 +390,7 @@ func TestSearchAccountByNumber(t *testing.T) {
 				require.Equal(t, http.StatusOK, recorder.Code)
 
 				var resp struct {
-					Data []accountuserResponse `json:"data"`
+					Data []accountSearchResponse `json:"data"`
 				}
 				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
 				require.Len(t, resp.Data, 1)

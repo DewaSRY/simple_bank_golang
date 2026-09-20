@@ -33,8 +33,8 @@ migrate-force:
 migrate-goto:
 	go run ./cmd/migration/main.go goto $(version)
 
-generate-mock: 
-	go run go.uber.org/mock/mockgen@latest -package mockdb -destination internal/db/mock/querier.go github.com/DewaSRY/core-service/internal/db/store Storer
+generate-mock:
+	go run go.uber.org/mock/mockgen@v0.6.0 -package mockdb -destination internal/db/mock/querier.go github.com/DewaSRY/core-service/internal/db/store Storer
 
 sqlc: 
 	sqlc generate
@@ -64,7 +64,7 @@ docker-dep-push:
 	docker push $(DEP_IMAGE_NAME):latest
 
 swag-gen:
-	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency
+	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency --parseInternal
 
 TF_DIR := terraform
 

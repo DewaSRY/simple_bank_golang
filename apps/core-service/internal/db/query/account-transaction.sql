@@ -38,7 +38,7 @@ FOR UPDATE;
 -- name: IncrementAccountBalance :one
 UPDATE accounts
 SET balance =  balance + $2, updated_at = now()
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;
 
 -- name: CheckIsAccountWithIdExist :one

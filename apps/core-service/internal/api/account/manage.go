@@ -24,12 +24,12 @@ const errCodeMainAccount = "MAIN_ACCOUNT"
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int  true  "Account ID"
-// @Success      200  {object}  successResponse{data=accountuserResponse}
-// @Failure      401  {object}  errorResponse
-// @Failure      403  {object}  errorResponse
-// @Failure      404  {object}  errorResponse
-// @Failure      409  {object}  errorResponse
-// @Failure      500  {object}  errorResponse
+// @Success      200  {object}  core.successResponse{data=accountuserResponse}
+// @Failure      401  {object}  core.errorResponse
+// @Failure      403  {object}  core.errorResponse
+// @Failure      404  {object}  core.errorResponse
+// @Failure      409  {object}  core.errorResponse
+// @Failure      500  {object}  core.errorResponse
 // @Router       /accounts/{id} [get]
 func (h *Handler) detailAccount(ctx *gin.Context) {
 	var params idPathParam
@@ -71,12 +71,12 @@ type updateAccountRequest struct {
 // @Security     BearerAuth
 // @Param        id       path      int                    true  "Account ID"
 // @Param        request  body      updateAccountRequest   true  "Account update payload"
-// @Success      200      {object}  successResponse{data=accountResponse}
-// @Failure      400      {object}  errorResponse
-// @Failure      401      {object}  errorResponse
-// @Failure      403      {object}  errorResponse
-// @Failure      404      {object}  errorResponse
-// @Failure      500      {object}  errorResponse
+// @Success      200      {object}  core.successResponse{data=accountResponse}
+// @Failure      400      {object}  core.errorResponse
+// @Failure      401      {object}  core.errorResponse
+// @Failure      403      {object}  core.errorResponse
+// @Failure      404      {object}  core.errorResponse
+// @Failure      500      {object}  core.errorResponse
 // @Router       /accounts/{id} [put]
 func (h *Handler) updateAccount(ctx *gin.Context) {
 	var params idPathParam
@@ -141,12 +141,12 @@ type deleteAccountResponse struct {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int  true  "Account ID"
-// @Success      200  {object}  successResponse{data=deleteAccountResponse}
-// @Failure      401  {object}  errorResponse
-// @Failure      403  {object}  errorResponse
-// @Failure      404  {object}  errorResponse
-// @Failure      409  {object}  errorResponse
-// @Failure      500  {object}  errorResponse
+// @Success      200  {object}  core.successResponse{data=deleteAccountResponse}
+// @Failure      401  {object}  core.errorResponse
+// @Failure      403  {object}  core.errorResponse
+// @Failure      404  {object}  core.errorResponse
+// @Failure      409  {object}  core.errorResponse
+// @Failure      500  {object}  core.errorResponse
 // @Router       /accounts/{id} [delete]
 func (h *Handler) deleteAccount(ctx *gin.Context) {
 	var params idPathParam
@@ -195,6 +195,8 @@ func deleteAccountAppError(err error) *core.AppError {
 		return core.NotFoundErr("account not found")
 	case errors.Is(err, store.ErrCannotDeleteMainAccount):
 		return core.ConflictErr(errCodeMainAccount, err.Error())
+	case errors.Is(err, store.ErrAccountOwnershipMismatch):
+		return core.ForbiddenErr("account does not belong to the authenticated user")
 	default:
 		return core.InternalErr(err)
 	}

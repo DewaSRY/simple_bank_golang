@@ -57,7 +57,7 @@ func (server *Server) bindRouters(engine *gin.Engine) {
 // @Description  Report service health status
 // @Tags         health
 // @Produce      json
-// @Success      200  {object}  successResponse
+// @Success      200  {object}  core.successResponse
 // @Router       /health [get]
 func (server *Server) health(ctx *gin.Context) {
 	core.Succeed(ctx, http.StatusOK, gin.H{"status": "ok"}, "Service is healthy")

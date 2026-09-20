@@ -186,6 +186,8 @@ func TestDeposit(t *testing.T) {
 func TestListAccountEntriesByAccountId(t *testing.T) {
 	const accountID = int64(5)
 
+	ownedAccount := db.Account{ID: accountID, UserID: sql.NullInt64{Int64: testUserID, Valid: true}}
+
 	testCases := []struct {
 		name          string
 		query         string
@@ -196,6 +198,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 			name:  "lists entries for the account",
 			query: "",
 			buildStubs: func(q *mockdb.MockStorer) {
+				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return([]db.ListAccountEntriesByAccountIdRow{
 					{AccountEntriesView: db.AccountEntriesView{ID: 1, AccountID: accountID}},
 				}, nil)
@@ -217,6 +220,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 			name:  "rejects an out-of-range month",
 			query: "?month=13",
 			buildStubs: func(q *mockdb.MockStorer) {
+				q.EXPECT().GetAccountById(gomock.Any(), gomock.Any()).Times(0)
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -224,9 +228,34 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 			},
 		},
 		{
+			name:  "returns 404 when the account does not exist",
+			query: "",
+			buildStubs: func(q *mockdb.MockStorer) {
+				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(db.Account{}, sql.ErrNoRows)
+				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			name:  "rejects an account owned by another user",
+			query: "",
+			buildStubs: func(q *mockdb.MockStorer) {
+				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(
+					db.Account{ID: accountID, UserID: sql.NullInt64{Int64: 999, Valid: true}}, nil,
+				)
+				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
+		{
 			name:  "returns 500 when listing entries hits a db error",
 			query: "",
 			buildStubs: func(q *mockdb.MockStorer) {
+				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return(nil, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -237,6 +266,7 @@ func TestListAccountEntriesByAccountId(t *testing.T) {
 			name:  "returns 500 when counting entries hits a db error",
 			query: "",
 			buildStubs: func(q *mockdb.MockStorer) {
+				q.EXPECT().GetAccountById(gomock.Any(), accountID).Return(ownedAccount, nil)
 				q.EXPECT().ListAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return([]db.ListAccountEntriesByAccountIdRow{}, nil)
 				q.EXPECT().CountAccountEntriesByAccountId(gomock.Any(), gomock.Any()).Return(int64(0), sql.ErrConnDone)
 			},

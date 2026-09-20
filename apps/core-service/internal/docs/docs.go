@@ -40,7 +40,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.createAccountRequest"
+                            "$ref": "#/definitions/api_account.createAccountRequest"
                         }
                     }
                 ],
@@ -50,13 +50,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.accountResponse"
+                                            "$ref": "#/definitions/api_account.accountResponse"
                                         }
                                     }
                                 }
@@ -66,19 +66,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -127,7 +127,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
@@ -135,11 +135,11 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/api.accountuserResponse"
+                                                "$ref": "#/definitions/api_account.accountuserResponse"
                                             }
                                         },
                                         "meta": {
-                                            "$ref": "#/definitions/api.Meta"
+                                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta"
                                         }
                                     }
                                 }
@@ -149,19 +149,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -211,7 +211,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
@@ -219,11 +219,11 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/api.accountuserResponse"
+                                                "$ref": "#/definitions/api_account.accountSearchResponse"
                                             }
                                         },
                                         "meta": {
-                                            "$ref": "#/definitions/api.Meta"
+                                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta"
                                         }
                                     }
                                 }
@@ -233,25 +233,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -287,13 +287,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.accountuserResponse"
+                                            "$ref": "#/definitions/api_account.accountuserResponse"
                                         }
                                     }
                                 }
@@ -303,31 +303,31 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -363,7 +363,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.updateAccountRequest"
+                            "$ref": "#/definitions/api_account.updateAccountRequest"
                         }
                     }
                 ],
@@ -373,13 +373,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.accountResponse"
+                                            "$ref": "#/definitions/api_account.accountResponse"
                                         }
                                     }
                                 }
@@ -389,31 +389,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -447,13 +447,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.deleteAccountResponse"
+                                            "$ref": "#/definitions/api_account.deleteAccountResponse"
                                         }
                                     }
                                 }
@@ -463,31 +463,31 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -525,7 +525,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.depositRequest"
+                            "$ref": "#/definitions/api_transfer.depositRequest"
                         }
                     }
                 ],
@@ -535,13 +535,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.accountEntriesViewResponse"
+                                            "$ref": "#/definitions/api_transfer.accountEntriesViewResponse"
                                         }
                                     }
                                 }
@@ -551,31 +551,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -637,7 +637,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
@@ -645,11 +645,11 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/api.accountEntriesViewResponse"
+                                                "$ref": "#/definitions/api_transfer.accountEntriesViewResponse"
                                             }
                                         },
                                         "meta": {
-                                            "$ref": "#/definitions/api.Meta"
+                                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta"
                                         }
                                     }
                                 }
@@ -659,31 +659,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -733,7 +733,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
@@ -741,7 +741,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/api.publicAccountResponse"
+                                                "$ref": "#/definitions/api_transfer.publicAccountResponse"
                                             }
                                         }
                                     }
@@ -752,25 +752,133 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{id}/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List labeled transaction history for an account owned by the authenticated user, paginated",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts-transaction"
+                ],
+                "summary": "List account transaction history",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Month (1-12), defaults to the current month",
+                        "name": "month",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Year, defaults to the current year",
+                        "name": "year",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/api_transfer.transactionHistoryItem"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -796,7 +904,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.loginUserRequest"
+                            "$ref": "#/definitions/api_auth.loginUserRequest"
                         }
                     }
                 ],
@@ -806,13 +914,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.AuthResponse"
+                                            "$ref": "#/definitions/api_auth.AuthResponse"
                                         }
                                     }
                                 }
@@ -822,19 +930,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -861,13 +969,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.profileResponse"
+                                            "$ref": "#/definitions/api_auth.profileResponse"
                                         }
                                     }
                                 }
@@ -877,19 +985,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -915,7 +1023,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.registerUserRequest"
+                            "$ref": "#/definitions/api_auth.registerUserRequest"
                         }
                     }
                 ],
@@ -925,13 +1033,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.AuthResponse"
+                                            "$ref": "#/definitions/api_auth.AuthResponse"
                                         }
                                     }
                                 }
@@ -941,19 +1049,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -973,7 +1081,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.successResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                         }
                     }
                 }
@@ -1004,7 +1112,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.createTransactionTransferRequest"
+                            "$ref": "#/definitions/api_transfer.createTransactionTransferRequest"
                         }
                     }
                 ],
@@ -1014,13 +1122,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.successResponse"
+                                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.accountEntriesViewResponse"
+                                            "$ref": "#/definitions/api_transfer.accountEntriesViewResponse"
                                         }
                                     }
                                 }
@@ -1030,37 +1138,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.errorResponse"
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
                     }
                 }
@@ -1068,7 +1176,130 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.AuthResponse": {
+        "api_account.accountResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_main": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api_account.accountSearchResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_account.accountuserResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_main": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_account.createAccountRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_account.deleteAccountResponse": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "$ref": "#/definitions/api_account.accountResponse"
+                },
+                "balance_swept_to_account_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api_account.updateAccountRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_auth.AuthResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -1082,32 +1313,63 @@ const docTemplate = `{
                 }
             }
         },
-        "api.FieldError": {
+        "api_auth.loginUserRequest": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
-                "field": {
+                "email": {
                     "type": "string"
                 },
-                "message": {
+                "password": {
                     "type": "string"
                 }
             }
         },
-        "api.Meta": {
+        "api_auth.profileResponse": {
             "type": "object",
             "properties": {
-                "limit": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "integer"
                 },
-                "page": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
+                "username": {
+                    "type": "string"
                 }
             }
         },
-        "api.accountEntriesViewResponse": {
+        "api_auth.registerUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "password_confirm",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "password_confirm": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_transfer.accountEntriesViewResponse": {
             "type": "object",
             "properties": {
                 "account_id": {
@@ -1148,88 +1410,7 @@ const docTemplate = `{
                 }
             }
         },
-        "api.accountResponse": {
-            "type": "object",
-            "properties": {
-                "balance": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_main": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "number": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "api.accountuserResponse": {
-            "type": "object",
-            "properties": {
-                "balance": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_main": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "number": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.createAccountRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.createTransactionTransferRequest": {
+        "api_transfer.createTransactionTransferRequest": {
             "type": "object",
             "required": [
                 "from_account_id",
@@ -1252,18 +1433,7 @@ const docTemplate = `{
                 }
             }
         },
-        "api.deleteAccountResponse": {
-            "type": "object",
-            "properties": {
-                "account": {
-                    "$ref": "#/definitions/api.accountResponse"
-                },
-                "balance_swept_to_account_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "api.depositRequest": {
+        "api_transfer.depositRequest": {
             "type": "object",
             "properties": {
                 "amount": {
@@ -1274,64 +1444,7 @@ const docTemplate = `{
                 }
             }
         },
-        "api.errorBody": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "details": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.FieldError"
-                    }
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.errorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "$ref": "#/definitions/api.errorBody"
-                }
-            }
-        },
-        "api.loginUserRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.profileResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.publicAccountResponse": {
+        "api_transfer.publicAccountResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1351,31 +1464,97 @@ const docTemplate = `{
                 }
             }
         },
-        "api.registerUserRequest": {
+        "api_transfer.transactionHistoryCounterparty": {
             "type": "object",
-            "required": [
-                "email",
-                "password",
-                "password_confirm",
-                "username"
-            ],
             "properties": {
-                "email": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string",
-                    "minLength": 8
-                },
-                "password_confirm": {
-                    "type": "string"
-                },
-                "username": {
+                "number": {
                     "type": "string"
                 }
             }
         },
-        "api.successResponse": {
+        "api_transfer.transactionHistoryItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "counterparty": {
+                    "$ref": "#/definitions/api_transfer.transactionHistoryCounterparty"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_DewaSRY_core-service_internal_api_core.FieldError": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_DewaSRY_core-service_internal_api_core.Meta": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_DewaSRY_core-service_internal_api_core.errorBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.FieldError"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_DewaSRY_core-service_internal_api_core.errorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorBody"
+                }
+            }
+        },
+        "github_com_DewaSRY_core-service_internal_api_core.successResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -1383,17 +1562,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "meta": {}
-            }
-        },
-        "api.updateAccountRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
             }
         }
     },

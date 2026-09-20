@@ -30,9 +30,23 @@ func NewStore(db *sql.DB) Storer {
 	}
 }
 
+// execTxLockTimeout bounds how long a statement inside a store transaction
+// will wait on a row lock. Correctness here otherwise relies entirely on the
+// manual ascending-ID FOR UPDATE ordering (see transferTx/deleteAccountTx);
+// this is a server-side backstop against an unrelated stalled transaction
+// wedging the pool, not a substitute for that ordering.
+const execTxLockTimeout = "5s"
+
 func (store *_store) execTx(ctx context.Context, fn func(sqlc.Querier) error) error {
-	tx, err := store.db.BeginTx(ctx, nil)
+	tx, err := store.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
+		return err
+	}
+
+	if _, err := tx.ExecContext(ctx, fmt.Sprintf("SET LOCAL lock_timeout = '%s'", execTxLockTimeout)); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("tx err: %w, rb err: %v", err, rbErr)
+		}
 		return err
 	}
 

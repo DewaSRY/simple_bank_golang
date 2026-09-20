@@ -28,13 +28,13 @@ type createTransactionTransferRequest struct {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request  body      createTransactionTransferRequest  true  "Transfer payload"
-// @Success      200      {object}  successResponse{data=accountEntriesViewResponse}
-// @Failure      400      {object}  errorResponse
-// @Failure      401      {object}  errorResponse
-// @Failure      403      {object}  errorResponse
-// @Failure      404      {object}  errorResponse
-// @Failure      409      {object}  errorResponse
-// @Failure      500      {object}  errorResponse
+// @Success      200      {object}  core.successResponse{data=accountEntriesViewResponse}
+// @Failure      400      {object}  core.errorResponse
+// @Failure      401      {object}  core.errorResponse
+// @Failure      403      {object}  core.errorResponse
+// @Failure      404      {object}  core.errorResponse
+// @Failure      409      {object}  core.errorResponse
+// @Failure      500      {object}  core.errorResponse
 // @Router       /transactions/transfer [post]
 func (h *Handler) transactionTransfer(ctx *gin.Context) {
 	var req createTransactionTransferRequest

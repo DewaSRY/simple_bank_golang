@@ -104,7 +104,7 @@ func LoggingMiddleware(log *slog.Logger, cfg config.Config) gin.HandlerFunc {
 			slog.String("method", ctx.Request.Method),
 			slog.String("url", requestURL),
 			slog.String("path", ctx.Request.URL.Path),
-			slog.Any("query", ctx.Request.URL.Query()),
+			slog.Any("query", corelog.RedactQuery(ctx.Request.URL.Query())),
 			slog.Any("headers", corelog.RedactHeaders(ctx.Request.Header)),
 			slog.Any("params", routeParams(ctx)),
 		}

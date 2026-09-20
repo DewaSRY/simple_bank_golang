@@ -34,10 +34,10 @@ type AuthResponse struct {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      loginUserRequest  true  "Login credentials"
-// @Success      200      {object}  successResponse{data=AuthResponse}
-// @Failure      400      {object}  errorResponse
-// @Failure      401      {object}  errorResponse
-// @Failure      500      {object}  errorResponse
+// @Success      200      {object}  core.successResponse{data=AuthResponse}
+// @Failure      400      {object}  core.errorResponse
+// @Failure      401      {object}  core.errorResponse
+// @Failure      500      {object}  core.errorResponse
 // @Router       /auth/login [post]
 func (h *Handler) loginUser(ctx *gin.Context) {
 	var req loginUserRequest
@@ -88,10 +88,10 @@ type registerUserRequest struct {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      registerUserRequest  true  "Registration details"
-// @Success      200      {object}  successResponse{data=AuthResponse}
-// @Failure      400      {object}  errorResponse
-// @Failure      401      {object}  errorResponse
-// @Failure      500      {object}  errorResponse
+// @Success      200      {object}  core.successResponse{data=AuthResponse}
+// @Failure      400      {object}  core.errorResponse
+// @Failure      401      {object}  core.errorResponse
+// @Failure      500      {object}  core.errorResponse
 // @Router       /auth/register [post]
 func (h *Handler) registerUser(ctx *gin.Context) {
 	var req registerUserRequest
@@ -194,10 +194,10 @@ type profileResponse struct {
 // @Tags         auth
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200  {object}  successResponse{data=profileResponse}
-// @Failure      401  {object}  errorResponse
-// @Failure      404  {object}  errorResponse
-// @Failure      500  {object}  errorResponse
+// @Success      200  {object}  core.successResponse{data=profileResponse}
+// @Failure      401  {object}  core.errorResponse
+// @Failure      404  {object}  core.errorResponse
+// @Failure      500  {object}  core.errorResponse
 // @Router       /auth/profile [get]
 func (h *Handler) getProfile(ctx *gin.Context) {
 	authPayload := core.GetAuthPayload(ctx)
