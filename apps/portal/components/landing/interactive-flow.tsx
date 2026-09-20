@@ -24,6 +24,7 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { amount: 0.4 });
   const stepRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const stepStripRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isInView || steps.length < 2) return;
@@ -36,16 +37,31 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
   }, [isInView, steps.length]);
 
   useEffect(() => {
-    stepRefs.current[activeIndex]?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "center",
-    });
+    const strip = stepStripRef.current;
+    const activeButton = stepRefs.current[activeIndex];
+    if (!strip || !activeButton) return;
+
+    const stripRect = strip.getBoundingClientRect();
+    const buttonRect = activeButton.getBoundingClientRect();
+
+    if (
+      buttonRect.left < stripRect.left ||
+      buttonRect.right > stripRect.right
+    ) {
+      const offset =
+        buttonRect.left -
+        stripRect.left -
+        (stripRect.width - buttonRect.width) / 2;
+      strip.scrollBy({ left: offset, behavior: "smooth" });
+    }
   }, [activeIndex]);
 
   return (
     <div ref={containerRef} className={cn("w-full", className)}>
-      <div className="flex scroll-smooth flex-col gap-2 overflow-x-auto md:flex-row md:items-center md:gap-0 md:pb-2">
+      <div
+        ref={stepStripRef}
+        className="flex scroll-smooth flex-col gap-2 overflow-x-auto md:flex-row md:items-center md:gap-0 md:pb-2"
+      >
         {steps.map((step, index) => (
           <div
             key={step.title}
@@ -100,7 +116,7 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.5 }}
               className="col-start-1 row-start-1 rounded-2xl bg-muted/90 p-5 text-sm leading-relaxed  text-muted-foreground ring-1 ring-foreground/5"
             >
               <p className="mb-1 text-lg font-semibold tracking-wide text-foreground uppercase">
