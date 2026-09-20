@@ -136,6 +136,7 @@ locals {
   # for both means there's no separate, driftable "redeploy script."
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     app_port                  = var.app_port
+    docker_compose_version    = var.docker_compose_version
     db_driver                 = var.db_driver
     db_source                 = var.db_source
     jwt_secret_key            = var.jwt_secret_key

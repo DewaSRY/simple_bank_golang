@@ -22,6 +22,12 @@ variable "app_port" {
   default     = 8080
 }
 
+variable "docker_compose_version" {
+  description = "docker compose CLI plugin release to install on the instance at boot (see https://github.com/docker/compose/releases). Defaults to a pinned version for reproducibility; set to \"latest\" to resolve GitHub's current release at boot time instead (retried and validated, unlike the old unconditional latest-lookup)."
+  type        = string
+  default     = "v5.5.1"
+}
+
 variable "ssh_cidr_blocks" {
   description = "CIDR blocks allowed to SSH into the instance"
   type        = list(string)

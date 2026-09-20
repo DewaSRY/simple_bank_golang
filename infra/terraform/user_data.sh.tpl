@@ -7,12 +7,34 @@ systemctl enable --now docker
 usermod -aG docker ec2-user
 
 # docker compose plugin — Amazon Linux 2023's `docker` package doesn't bundle
-# it. Fetches whatever is currently latest rather than a pinned version,
-# since this only runs at instance boot / redeploy time, not in CI.
+# it. Defaults to a pinned release (var.docker_compose_version) for
+# reproducibility; set that variable to "latest" to opt back into resolving
+# GitHub's current release at boot instead. Either way this now uses
+# --retry and an explicit `docker compose version` check afterward — the
+# previous always-latest lookup had neither, so a transient network blip or
+# GitHub rate limit during boot silently left docker-compose missing/empty
+# and the whole stack never started, with `set -e` aborting the script right
+# there before `docker ps` ever had anything to show.
+COMPOSE_VERSION="${docker_compose_version}"
+if [ "$COMPOSE_VERSION" = "latest" ]; then
+  COMPOSE_VERSION=$(curl -fsSL --retry 5 --retry-delay 5 --retry-connrefused \
+    https://api.github.com/repos/docker/compose/releases/latest \
+    | grep -m1 '"tag_name"' | cut -d '"' -f4)
+  if [ -z "$COMPOSE_VERSION" ]; then
+    echo "ERROR: failed to resolve the latest docker compose release from GitHub's API" >&2
+    exit 1
+  fi
+fi
+
 mkdir -p /usr/local/lib/docker/cli-plugins
-COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | grep -m1 '"tag_name"' | cut -d '"' -f4)
-curl -fsSL "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose
+curl -fsSL --retry 5 --retry-delay 5 --retry-connrefused \
+  "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-linux-x86_64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# Fail loudly here, with a clear error in cloud-init-output.log, rather than
+# silently reaching `docker compose up -d` with a broken/missing plugin.
+docker compose version
 
 mkdir -p /opt/core-service
 
