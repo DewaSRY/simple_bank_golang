@@ -7,14 +7,60 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o main ./cmd/server
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o migration ./cmd/migration
+# CLI the migration binary shells out to (see cmd/migration/main.go); needs
+# the postgres driver build tag since golang-migrate ships drivers behind tags.
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Run stage
 FROM alpine:3.20
+# bash: cmd/migration shells out via "bash -c"; ca-certificates: TLS to Postgres/etc.
+RUN apk add --no-cache bash ca-certificates
+
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY internal/db/migrations ./internal/db/migrations
+COPY --from=builder /app/migration .
+COPY --from=builder /go/bin/migrate /usr/local/bin/migrate
+COPY --from=builder /app/internal/db/migrations ./internal/db/migrations
+COPY docker-entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
+# Every setting is overridable at build time (--build-arg) or run time
+# (-e/--env-file); defaults below only cover non-secret values. DB_SOURCE
+# and JWT_SECRET_KEY have no safe default and must be supplied at runtime.
+ARG DB_DRIVER=postgres
+ARG DB_SOURCE=
+ARG SERVER_ADDRESS=0.0.0.0:8080
+ARG JWT_SECRET_KEY=
+ARG JWT_ACCESS_TOKEN_DURATION=15m
+ARG CORS_ALLOWED_ORIGINS=
+ARG LOG_LEVEL=debug
+ARG LOG_FORMAT=json
+ARG LOG_PRETTY_JSON=true
+ARG LOG_REQUEST_BODY=true
+ARG LOG_RESPONSE_BODY=true
+ARG LOG_MAX_BODY_SIZE=1048576
+ARG RATE_LIMIT_ENABLED=true
+ARG RATE_LIMIT_REQUESTS_PER_SECOND=5
+ARG RATE_LIMIT_BURST=20
+ARG DEVICE_FINGERPRINT_TRUSTED_IPS=
 
+ENV DB_DRIVER=$DB_DRIVER \
+    DB_SOURCE=$DB_SOURCE \
+    SERVER_ADDRESS=$SERVER_ADDRESS \
+    JWT_SECRET_KEY=$JWT_SECRET_KEY \
+    JWT_ACCESS_TOKEN_DURATION=$JWT_ACCESS_TOKEN_DURATION \
+    CORS_ALLOWED_ORIGINS=$CORS_ALLOWED_ORIGINS \
+    LOG_LEVEL=$LOG_LEVEL \
+    LOG_FORMAT=$LOG_FORMAT \
+    LOG_PRETTY_JSON=$LOG_PRETTY_JSON \
+    LOG_REQUEST_BODY=$LOG_REQUEST_BODY \
+    LOG_RESPONSE_BODY=$LOG_RESPONSE_BODY \
+    LOG_MAX_BODY_SIZE=$LOG_MAX_BODY_SIZE \
+    RATE_LIMIT_ENABLED=$RATE_LIMIT_ENABLED \
+    RATE_LIMIT_REQUESTS_PER_SECOND=$RATE_LIMIT_REQUESTS_PER_SECOND \
+    RATE_LIMIT_BURST=$RATE_LIMIT_BURST \
+    DEVICE_FINGERPRINT_TRUSTED_IPS=$DEVICE_FINGERPRINT_TRUSTED_IPS
 
 EXPOSE 8080
-ENTRYPOINT ["/app/main"]
+ENTRYPOINT ["./entrypoint.sh"]
