@@ -35,7 +35,6 @@ const Pagination: React.FC<PaginationProps> = ({
   const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const showEllipsisThreshold = 2;
 
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
