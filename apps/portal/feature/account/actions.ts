@@ -14,19 +14,19 @@ import type {
 
 export async function listMeAccountsAction(
   params: SearchMeAccountsParams,
-): Promise<ActionResult<AccountWithUserName[]>> {
+): Promise<ActionResult<CommonSuccessResponse<AccountWithUserName[]>>> {
   return runServerAction(async () => {
     const response = await accountClient.listMeAccounts(params);
-    return response.data.data;
+    return response.data;
   });
 }
 
 export async function searchAccountByNumberAction(
   params: SearchAccountsParams,
-): Promise<ActionResult<AccountWithUserName[]>> {
+): Promise<ActionResult<CommonSuccessResponse<AccountWithUserName[]>>> {
   return runServerAction(async () => {
     const response = await accountClient.searchAccountByNumber(params);
-    return response.data.data;
+    return response.data;
   });
 }
 

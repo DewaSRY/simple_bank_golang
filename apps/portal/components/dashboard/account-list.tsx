@@ -14,7 +14,7 @@ import { AccountListMessage } from "./account-list-message";
 export function AccountList() {
   const { t } = useTranslation("common");
   const {
-    data: accounts = [],
+    data: accounts,
     error,
     isPending,
   } = useAccounts({ page: 1, limit: 10 });
@@ -31,7 +31,7 @@ export function AccountList() {
     );
   }
 
-  if (accounts.length === 0) {
+  if (!accounts || accounts.data.length === 0) {
     return (
       <AccountListMessage icon={Wallet}>{t("noAccounts")}</AccountListMessage>
     );
@@ -40,7 +40,7 @@ export function AccountList() {
   return (
     <div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {accounts.map((account) => (
+        {accounts.data.map((account) => (
           <Fragment key={account.id}>
             <AccountListItem account={account} />
           </Fragment>

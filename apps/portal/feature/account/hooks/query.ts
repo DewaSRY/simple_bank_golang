@@ -5,10 +5,7 @@ import type {
   SearchAccountsParams,
   SearchMeAccountsParams,
 } from "@/feature/account/type";
-import type {
-  CommonSuccessResponse,
-  PaginationParams,
-} from "@/feature/common";
+import type { CommonSuccessResponse, PaginationParams } from "@/feature/common";
 import { unwrapActionResult } from "@/lib/api/action-result";
 import {
   createAccountAction,
@@ -56,8 +53,7 @@ export function useSearchAccountByNumber(
 ) {
   return useQuery({
     queryKey: queryKeys.searchByNumber(params),
-    queryFn: () =>
-      searchAccountByNumberAction(params).then(unwrapActionResult),
+    queryFn: () => searchAccountByNumberAction(params).then(unwrapActionResult),
     enabled: options.enabled ?? true,
   });
 }

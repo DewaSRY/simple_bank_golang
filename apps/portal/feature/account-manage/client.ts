@@ -15,7 +15,7 @@ export class AccountManageClient extends BaseClient {
   }
 
   updateAccount(id: number, body: RequestAccountbody) {
-    return this.post<CommonSuccessResponse<AccountResponse>>({
+    return this.put<CommonSuccessResponse<AccountResponse>>({
       endpoint: `/accounts/${id}`,
       body,
     });

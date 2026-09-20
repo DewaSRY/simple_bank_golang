@@ -11,6 +11,7 @@ import { TopProgressBar } from "@/components/common/top-progress-bar";
 import { NavigationGuardProvider } from "@/components/common/navigation-guard/provider";
 import { TimezoneSync } from "@/lib/timezone-sync";
 import { SITE_URL } from "@/lib/seo/metadata";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "../globals.css";
 
 const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"system";var d=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;if(d==="dark"){e.classList.add("dark")}else{e.classList.remove("dark")}e.style.colorScheme=d}catch(e){}})()`;
@@ -61,16 +62,18 @@ export default async function RootLayout({
         <InlineScript html={THEME_SCRIPT} />
       </head>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
-          <TranslationsProvider locale={locale} messages={messages}>
-            <QueryProvider>
-              <TimezoneSync />
-              <TopProgressBar />
-              {children}
-              <NavigationGuardProvider />
-            </QueryProvider>
-          </TranslationsProvider>
-        </ThemeProvider>
+        <NuqsAdapter>
+          <ThemeProvider>
+            <TranslationsProvider locale={locale} messages={messages}>
+              <QueryProvider>
+                <TimezoneSync />
+                <TopProgressBar />
+                {children}
+                <NavigationGuardProvider />
+              </QueryProvider>
+            </TranslationsProvider>
+          </ThemeProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

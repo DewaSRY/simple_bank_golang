@@ -21,11 +21,7 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const {
-    data: accountDetail,
-    isLoading: accountDetailLoading,
-    isError: accountDetailError,
-  } = useAccountDetail(accountId);
+  const { data: accountDetail } = useAccountDetail(accountId);
 
   const account = accountDetail?.data;
 

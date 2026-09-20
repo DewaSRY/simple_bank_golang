@@ -2,6 +2,7 @@ export type AccountList = {
   id: number;
   name: string;
   number: string;
+  currency: string;
 };
 
 export type DepositeStep = "account" | "details" | "preview";

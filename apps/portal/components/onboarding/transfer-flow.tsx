@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SearchInput } from "@/components/common/search-input";
-import { InputField } from "@/components/form/input-field";
+import { MoneyInputField } from "@/components/form/money-input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { PreviewRow } from "@/components/common/preview-row";
 import { AccountCard } from "@/components/transfer-modal/account-card";
@@ -247,16 +247,12 @@ export function TransferFlow() {
                   value={contact.name}
                   subValue={contact.number}
                 />
-                <InputField
+                <MoneyInputField
                   name="amount"
                   label={t("amount")}
                   control={form.control}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  inputMode="decimal"
+                  currency={account?.currency}
                   placeholder={t("amountPlaceholder")}
-                  autoComplete="off"
                 />
                 <TextareaField
                   name="description"
