@@ -5,15 +5,19 @@ import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 
 import { AccountList } from "./account-list";
 import { useDepositeStore } from "./store";
+import { DepositeForm } from "./deposite-dialog";
+interface Props {
+  form: DepositeForm;
+}
 
-export function AccountStep() {
+export function AccountStep({ form }: Props) {
   const { t: tCommon } = useTranslation("common");
   const { selectedAccount, setStep } = useDepositeStore();
 
   return (
     <div>
       <div className="max-h-80 overflow-y-auto">
-        <AccountList />
+        <AccountList form={form} />
       </div>
 
       <DialogFooter>

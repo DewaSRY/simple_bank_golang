@@ -37,25 +37,27 @@ export type DepositeForm = ReturnType<typeof useDepositeDetailsForm>;
 
 export function DepositeDialog({ open, setOpen }: Props) {
   const { t } = useTranslation("deposit");
-  const { step, reset } = useDepositeStore();
+  const { step, reset, selectedAccount } = useDepositeStore();
 
   const form = useDepositeDetailsForm(t);
   const isDirty = form.formState.isDirty;
 
   const setGuard = useNavigationGuardStore((s) => s.setGuard);
-  const requestNavigation = useNavigationGuardStore(
-    (s) => s.requestNavigation,
-  );
+  const requestNavigation = useNavigationGuardStore((s) => s.requestNavigation);
 
   useEffect(() => {
     if (!open) return;
+
     setGuard(isDirty, {
       onAbort: () => {
         form.reset();
         reset();
       },
     });
-    return () => setGuard(false);
+    return () => {
+      setGuard(false);
+      reset();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isDirty, setGuard, form]);
 
@@ -98,7 +100,7 @@ export function DepositeDialog({ open, setOpen }: Props) {
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        {step === "account" && <AccountStep />}
+        {step === "account" && <AccountStep form={form} />}
         {step === "details" && <DetailsStep form={form} />}
         {step === "preview" && (
           <PreviewStep form={form} onSuccess={handleSuccessClose} />

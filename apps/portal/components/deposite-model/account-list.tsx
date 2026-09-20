@@ -1,13 +1,18 @@
 import { useTranslation } from "react-i18next";
-import { useAccounts } from "@/feature/account";
+import { AccountWithUserName, useAccounts } from "@/feature/account";
 import { SearchInput } from "@/components/common/search-input";
 
 import { AccountCard } from "./account-card";
 
 import { useDepositeStore } from "./store";
 import { useState } from "react";
+import { DepositeForm } from "./deposite-dialog";
 
-export function AccountList() {
+interface Props {
+  form: DepositeForm;
+}
+
+export function AccountList({ form }: Props) {
   const { t } = useTranslation("common");
   const { setSelectedAccount, selectedAccount } = useDepositeStore();
 
@@ -21,6 +26,11 @@ export function AccountList() {
 
   function handleSearch(value: string) {
     setName(value);
+  }
+
+  function handleSelectAccount(account: AccountWithUserName) {
+    setSelectedAccount(account);
+    form.setValue("accountId", account.id, { shouldDirty: true });
   }
 
   return (
@@ -40,7 +50,7 @@ export function AccountList() {
               name={account.name}
               number={account.number}
               selected={selectedAccount?.id === account.id}
-              onClick={() => setSelectedAccount(account)}
+              onClick={() => handleSelectAccount(account)}
             />
           ))}
       </div>
