@@ -26,8 +26,8 @@ const listMeAccountsByUserId = `-- name: ListMeAccountsByUserId :many
 SELECT v.id, v.balance, v.currency, v.created_at, v.updated_at, v.user_id, v.name, v.description, v.is_main, v.number, v.username
 FROM account_user_details_view v
 WHERE v.user_id = $1
-    AND v.name LIKE '%' || $2 || '%'
-ORDER BY v.created_at DESC
+    AND v.name LIKE '%' || $2 || '%' ESCAPE '\'
+ORDER BY v.created_at ASC
 LIMIT  $4 OFFSET  $3
 `
 
@@ -87,7 +87,7 @@ SELECT
     COUNT(*)
 FROM account_user_details_view
 WHERE user_id = $1
-    AND name LIKE '%' || $2 || '%'
+    AND name LIKE '%' || $2 || '%' ESCAPE '\'
 `
 
 type ListMeAccountsByUserIdCountParams struct {

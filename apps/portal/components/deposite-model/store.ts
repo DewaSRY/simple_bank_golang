@@ -7,11 +7,13 @@ type State = {
   accountList: AccountList[];
   selectedAccount: AccountList | null;
   details: DepositeDetails | null;
+  fieldErrors: Record<string, string> | null;
 
   setAccountList: (accountList: AccountList[]) => void;
   setSelectedAccount: (account: AccountList | null) => void;
   setStep: (step: DepositeStep) => void;
   setDetails: (details: DepositeDetails) => void;
+  setFieldErrors: (fieldErrors: Record<string, string> | null) => void;
   reset: () => void;
 };
 
@@ -20,6 +22,7 @@ const initialState = {
   accountList: [] as AccountList[],
   selectedAccount: null as AccountList | null,
   details: null as DepositeDetails | null,
+  fieldErrors: null as Record<string, string> | null,
 };
 
 export const useDepositeStore = create<State>((set) => {
@@ -39,6 +42,10 @@ export const useDepositeStore = create<State>((set) => {
     set({ details });
   }
 
+  function setFieldErrors(fieldErrors: Record<string, string> | null) {
+    set({ fieldErrors });
+  }
+
   function reset() {
     set(initialState);
   }
@@ -49,6 +56,7 @@ export const useDepositeStore = create<State>((set) => {
     setSelectedAccount,
     setStep,
     setDetails,
+    setFieldErrors,
     reset,
   };
 });

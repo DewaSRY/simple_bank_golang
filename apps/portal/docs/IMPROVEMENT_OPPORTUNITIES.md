@@ -1,8 +1,8 @@
 # Portal — Improvement Opportunities
 
-_As observed in the codebase on 2026-09-18 (previously 2026-09-11 — see
-"Resolved since last pass" for what changed). Every claim below is cited to
-a file, so it's greppable and easy to re-verify as the code moves._
+_As observed in the codebase on 2026-09-19 (previously 2026-09-18, 2026-09-11
+— see "Resolved since last pass" for what changed). Every claim below is
+cited to a file, so it's greppable and easy to re-verify as the code moves._
 
 This is a young, well-structured app (clean `feature/<name>/{client,hooks,type,schema}.ts`
 layering, one Axios instance, a documented `docs/SETUP_*` series). The issues
@@ -10,6 +10,16 @@ below are the gaps between that intended shape and what's actually shipped —
 not a rewrite list.
 
 ---
+
+## Resolved since last pass (2026-09-18 → 2026-09-19)
+
+- **§1.1, session token security** — the full-SSR migration
+  (`docs/MIGRATION_TO_FULL_SSR.md`) moved every mutation and read onto a
+  `"use server"` action per feature (see each `feature/*/actions.ts`), so
+  the browser no longer calls `../core-service` directly at all. The
+  session cookie (`feature/auth/session.ts`) is now `httpOnly`, and
+  `feature/auth/session-client.ts` (the client-side cookie writer) is
+  deleted. See "1. Security" below for what's left.
 
 ## Resolved since last pass (2026-09-11 → 2026-09-18)
 
@@ -40,34 +50,25 @@ not a rewrite list.
 
 ## 1. Security
 
-### 1.1 Session token is readable/writable by any JS on the page — still true
+### 1.1 Session token is readable/writable by any JS on the page — resolved
 
-The auth token is stored in a **non-httpOnly** cookie by design:
-[feature/auth/session.ts:4-6](../feature/auth/session.ts#L4-L6) and
-[feature/auth/session-client.ts:3-7](../feature/auth/session-client.ts#L3-L7)
-both say so explicitly — it has to be readable from `document.cookie`
-because [lib/api/api-interceptor.ts](../lib/api/api-interceptor.ts)'s
-`addAuthorizationHeader()` reads it that way for client-side requests, and
-login/register write it from the browser after a client-driven mutation
-([login-form.tsx:32](../components/auth/login-form.tsx#L32)).
-
-This is a real tradeoff, not an oversight, but it means any XSS anywhere in
-the app is a full session-token theft, not just a DOM defacement. Now that
-there's also a `/logout` redirect wired to every 401 (see "Resolved since
-last pass"), the *consequence* of a leaked/expired token is better handled
-— but the leak surface itself is unchanged. Worth reconsidering before this
-app handles anything higher-stakes than a demo bank:
-
-- **Better**: route login/register through a Next.js Route Handler that sets
-  the cookie server-side as `httpOnly`, and have the server attach the
-  `Authorization` header itself (a BFF/proxy pattern) so client JS never
-  needs to see the raw token at all.
-- **If keeping this shape**: at minimum, add a CSP and shorten `expires_in`
-  server-side.
+**Resolved by the full-SSR migration** (`docs/MIGRATION_TO_FULL_SSR.md`,
+2026-09-19). Login/register now run as `"use server"` actions
+(`feature/auth/actions.ts`'s `loginAction`/`registerAction`) that call
+`setSessionCookie()` (`feature/auth/session.ts`) with `httpOnly: true` —
+the exact "Better" fix this section used to suggest (minus the separate
+Route Handler; a Server Action does the same job). `feature/auth/session-client.ts`
+(the `document.cookie` writer) is deleted, and
+[lib/api/api-interceptor.ts](../lib/api/api-interceptor.ts)'s
+`addAuthorizationHeader()` only reads the token via `next/headers`'
+`cookies()` now — there's no browser code path left that needs to see the
+raw token, so an XSS on this app can no longer read it out of
+`document.cookie`.
 
 `proxy.ts:35-37` still only checks that the session cookie *exists*, not
-that the backend considers it valid — but this is now a secondary concern
-since the response interceptor handles invalid/expired tokens reactively.
+that the backend considers it valid — this remains a secondary concern
+since the response interceptor handles invalid/expired tokens reactively,
+and it works identically whether the cookie is `httpOnly` or not.
 
 ---
 
@@ -165,5 +166,5 @@ CI convention for the repo.
 2. **2.1 / 2.4** — cheap renames/dedup, best done before more code imports
    the wrong name.
 3. **2.3** — mechanical `queryOptions()` extraction, isolated per feature.
-4. **1.1**, **3** — larger or process-level changes; worth a deliberate
-   discussion rather than a drive-by fix.
+4. **3** — larger or process-level changes; worth a deliberate discussion
+   rather than a drive-by fix.

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Translate } from "@/feature/common/type";
+import type { Translate } from "@/feature/common";
 
 export function createLoginSchema(t: Translate) {
   return z.object({
@@ -8,7 +8,9 @@ export function createLoginSchema(t: Translate) {
   });
 }
 
-export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
+export type LoginFormScreenValues = z.infer<
+  ReturnType<typeof createLoginSchema>
+>;
 
 export function createRegisterSchema(t: Translate) {
   return z
@@ -24,6 +26,6 @@ export function createRegisterSchema(t: Translate) {
     });
 }
 
-export type RegisterFormValues = z.infer<
+export type RegisterFormScreenValues = z.infer<
   ReturnType<typeof createRegisterSchema>
 >;

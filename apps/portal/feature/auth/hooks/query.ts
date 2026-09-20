@@ -1,13 +1,17 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { authClient } from "@/feature/auth/client";
 import type {
   LoginRequest,
-  AuthResponse,
   ProfileResponse,
   RegisterRequest,
-} from "@/feature/auth/client";
-import type { CommonSuccessResponse } from "@/feature/common/type";
-import { logoutAction } from "../actions";
+} from "@/feature/auth/type";
+import type { CommonSuccessResponse } from "@/feature/common";
+import { unwrapActionResult } from "@/lib/api/action-result";
+import {
+  getProfileAction,
+  loginAction,
+  logoutAction,
+  registerAction,
+} from "../actions";
 import type { AppLocale } from "@/i18n/settings";
 
 /**
@@ -19,26 +23,22 @@ export const authQueryKeys = {
 };
 
 /**
- * Login
+ * Login. `loginAction` is a Server Action — it runs `authClient.login` and
+ * sets the session cookie server-side, so the browser never talks to
+ * ../core-service directly.
  */
 export const useLoginMutation = () => {
-  return useMutation<CommonSuccessResponse<AuthResponse>, Error, LoginRequest>({
-    mutationFn: (body) =>
-      authClient.login(body).then((response) => response.data),
+  return useMutation<null, Error, LoginRequest>({
+    mutationFn: (body) => loginAction(body).then(unwrapActionResult),
   });
 };
 
 /**
- * Register
+ * Register. Same Server Action shape as login.
  */
 export const useRegisterMutation = () => {
-  return useMutation<
-    CommonSuccessResponse<AuthResponse>,
-    Error,
-    RegisterRequest
-  >({
-    mutationFn: (body) =>
-      authClient.register(body).then((response) => response.data),
+  return useMutation<null, Error, RegisterRequest>({
+    mutationFn: (body) => registerAction(body).then(unwrapActionResult),
   });
 };
 
@@ -48,7 +48,7 @@ export const useRegisterMutation = () => {
 export const useProfileQuery = () => {
   return useQuery<CommonSuccessResponse<ProfileResponse>, Error>({
     queryKey: authQueryKeys.profile(),
-    queryFn: () => authClient.getProfile().then((response) => response.data),
+    queryFn: () => getProfileAction().then(unwrapActionResult),
   });
 };
 

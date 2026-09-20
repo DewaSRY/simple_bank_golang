@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
 import {
@@ -6,14 +7,18 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import { verifySession } from "@/feature/auth/dal";
+import { SessionGuard } from "@/feature/auth";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
 import { SiteHeader } from "@/components/navigation/site-header";
-import { SessionGuard } from "@/feature/auth/components/session-guard";
 
-import { queryKeys } from "@/feature/account/hooks/query";
-import { accountClient } from "@/feature/account/client";
+import { queryKeys, listMeAccountsAction } from "@/feature/account";
+import { unwrapActionResult } from "@/lib/api/action-result";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function ProtectedLayout({
   children,
@@ -29,10 +34,6 @@ export default async function ProtectedLayout({
 
   const queryClient = new QueryClient();
 
-  // Matches NavAccountList's own useAccounts({ page: 1, limit: 10, name: "" })
-  // call exactly, since TanStack Query hashes the params object into the
-  // cache key — a mismatched shape here would prefetch a key the sidebar
-  // never reads and it would fall back to fetching client-side anyway.
   const query = {
     page: 1,
     limit: 10,
@@ -40,8 +41,7 @@ export default async function ProtectedLayout({
   };
   await queryClient.prefetchQuery({
     queryKey: queryKeys.list(query),
-    queryFn: () =>
-      accountClient.listMeAccounts(query).then((res) => res.data.data),
+    queryFn: () => listMeAccountsAction(query).then(unwrapActionResult),
   });
 
   return (

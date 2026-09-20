@@ -93,6 +93,15 @@ CloudWatch, etc.) configured here — logs go to stdout/stderr only, so
 whatever hosts this app (Vercel, a container platform) is responsible for
 collecting them from there.
 
+**Production is intentionally silent** (`silent: process.env.NODE_ENV ===
+"production"` in `lib/logger.ts`): with no log drain wired up, writing JSON
+to stdout on every request is pure cost with nobody reading it. `silent`
+short-circuits inside winston's `Logger#_transform` before any
+formatting/redaction or transport write runs, so this is cheap, not just
+unread. If external log shipping is ever added, remove the `silent` flag
+(or gate it on that shipping being configured) so production logs actually
+flow somewhere.
+
 ## Extending it
 
 To log from a new server-side code path, `import logger from "@/lib/logger"`

@@ -6,12 +6,9 @@ import {
   metaHelper,
   tableFeatures,
 } from "@tanstack/react-table";
-import type { AccountEntriesResponse } from "@/feature/account-transaction/type";
-import {
-  formatAccountAmount,
-  getEntryLabel,
-  isIncomingEntry,
-} from "@/feature/account-transaction/utils";
+import type { DisplayLedgerEntry } from "@/feature/account-transaction";
+import { getEntryLabel } from "@/feature/account-transaction";
+import { formatAccountAmount } from "@/lib/number";
 
 type AccountEntryColumnMeta = {
   align?: "left" | "right";
@@ -23,7 +20,7 @@ export const accountEntriesTableFeatures = tableFeatures({
 
 const columnHelper = createColumnHelper<
   typeof accountEntriesTableFeatures,
-  AccountEntriesResponse
+  DisplayLedgerEntry
 >();
 
 export function getAccountEntriesColumns({
@@ -47,7 +44,7 @@ export function getAccountEntriesColumns({
       header: t("transactionType"),
       cell: ({ row }) => {
         const entry = row.original;
-        const isIncoming = isIncomingEntry(entry, accountId);
+        const isIncoming = entry.direction === "incoming";
         const Icon = isIncoming ? ArrowDownLeft : ArrowUpRight;
 
         return (
@@ -78,7 +75,7 @@ export function getAccountEntriesColumns({
       header: t("description"),
       cell: ({ row }) => {
         const entry = row.original;
-        const isIncoming = isIncomingEntry(entry, accountId);
+        const isIncoming = entry.direction === "incoming";
         const isTransfer = !["deposit", "withdraw"].includes(
           entry.type.toLowerCase(),
         );
@@ -114,8 +111,7 @@ export function getAccountEntriesColumns({
       meta: { align: "right" },
       cell: ({ row }) => {
         const entry = row.original;
-        console.log({ entry, accountId });
-        const isIncoming = isIncomingEntry(entry, accountId);
+        const isIncoming = entry.direction === "incoming";
 
         return (
           <span

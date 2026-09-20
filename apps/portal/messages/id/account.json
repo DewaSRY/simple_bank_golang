@@ -45,5 +45,7 @@
   "toEntry": "Ke {{name}}",
   "fromEntry": "Dari {{name}}",
   "toAccountNumber": "Ke rekening {{number}}",
-  "fromAccountNumber": "Dari rekening {{number}}"
+  "fromAccountNumber": "Dari rekening {{number}}",
+  "namePlaceholder": "Masukkan nama rekening",
+  "descriptionPlaceholder": "Masukkan deskripsi rekening"
 }

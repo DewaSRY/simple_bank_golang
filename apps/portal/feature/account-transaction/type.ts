@@ -13,6 +13,12 @@ export interface AccountEntriesResponse {
   user_id: number;
 }
 
+export type LedgerDirection = "incoming" | "outgoing";
+
+export interface DisplayLedgerEntry extends AccountEntriesResponse {
+  direction: LedgerDirection;
+}
+
 export type DepositRequestBody = {
   amount: number;
   description: string;

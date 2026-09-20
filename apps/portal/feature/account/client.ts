@@ -1,6 +1,5 @@
 import { BaseClient } from "../../lib/api/base-client";
-import type { CommonSuccessResponse } from "@/feature/common/type";
-import type { PaginationParams } from "@/feature/common/type";
+import type { CommonSuccessResponse } from "@/feature/common";
 import type {
   AccountResponse,
   AccountWithUserName,

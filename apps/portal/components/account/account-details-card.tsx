@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { AccountWithUserName } from "@/feature/account/type";
+import type { AccountWithUserName } from "@/feature/account";
 
 export function AccountDetailsCard({
   account,

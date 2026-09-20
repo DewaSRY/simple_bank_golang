@@ -4,14 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function AccountDetailLoading() {
   return (
     <main className="flex flex-1 flex-col bg-background px-4 py-6 sm:px-6">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+      <div className="mx-auto w-full max-w-[84rem] space-y-6">
         <Skeleton className="h-5 w-36" />
 
         <section className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <Card className="border-0 shadow-lg">
             <CardHeader className="gap-6 p-6 sm:p-8">
               <div className="flex items-center gap-3">
-                <Skeleton className="size-11 rounded-xl" />
+                <Skeleton className="size-11 rounded-sm" />
                 <div className="flex flex-col gap-2">
                   <Skeleton className="h-5 w-32" />
                   <Skeleton className="h-4 w-24" />

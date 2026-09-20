@@ -26,10 +26,10 @@ type createAccountRequest struct {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request  body      createAccountRequest  true  "Account creation payload"
-// @Success      200      {object}  successResponse{data=accountResponse}
-// @Failure      400      {object}  errorResponse
-// @Failure      401      {object}  errorResponse
-// @Failure      500      {object}  errorResponse
+// @Success      200      {object}  core.successResponse{data=accountResponse}
+// @Failure      400      {object}  core.errorResponse
+// @Failure      401      {object}  core.errorResponse
+// @Failure      500      {object}  core.errorResponse
 // @Router       /accounts [post]
 func (h *Handler) createAccount(ctx *gin.Context) {
 	var req createAccountRequest
@@ -71,10 +71,10 @@ type listmeAccountsQuery struct {
 // @Param        name    query     string  false  "Account name"
 // @Param        page   query     int  false  "Page number"     default(1)
 // @Param        limit  query     int  false  "Items per page"  default(10)
-// @Success      200    {object}  successResponse{data=[]accountuserResponse,meta=Meta}
-// @Failure      400    {object}  errorResponse
-// @Failure      401    {object}  errorResponse
-// @Failure      500    {object}  errorResponse
+// @Success      200    {object}  core.successResponse{data=[]accountuserResponse,meta=core.Meta}
+// @Failure      400    {object}  core.errorResponse
+// @Failure      401    {object}  core.errorResponse
+// @Failure      500    {object}  core.errorResponse
 // @Router       /accounts/me [get]
 func (h *Handler) listmeAccounts(ctx *gin.Context) {
 	var query listmeAccountsQuery
@@ -85,8 +85,10 @@ func (h *Handler) listmeAccounts(ctx *gin.Context) {
 
 	authPayload := core.GetAuthPayload(ctx)
 
+	name := sql.NullString{String: util.EscapeLikePattern(query.Name), Valid: true}
+
 	accounts, err := h.Store.ListMeAccountsByUserId(ctx, db.ListMeAccountsByUserIdParams{
-		Name: sql.NullString{String: query.Name, Valid: true},
+		Name: name,
 		UserID: sql.NullInt64{
 			Int64: authPayload.ID,
 			Valid: true,
@@ -100,7 +102,7 @@ func (h *Handler) listmeAccounts(ctx *gin.Context) {
 	}
 
 	total, err := h.Store.ListMeAccountsByUserIdCount(ctx, db.ListMeAccountsByUserIdCountParams{
-		Name: sql.NullString{String: query.Name, Valid: true},
+		Name: name,
 		UserID: sql.NullInt64{
 			Int64: authPayload.ID,
 			Valid: true,
@@ -134,11 +136,11 @@ type searchAccountByNumberQuery struct {
 // @Param        number  query     string  true  "Account number"
 // @Param        page    query     int  false  "Page number"     default(1)
 // @Param        limit   query     int  false  "Items per page"  default(10)
-// @Success      200     {object}  successResponse{data=[]accountuserResponse,meta=Meta}
-// @Failure      400     {object}  errorResponse
-// @Failure      401     {object}  errorResponse
-// @Failure      404     {object}  errorResponse
-// @Failure      500     {object}  errorResponse
+// @Success      200     {object}  core.successResponse{data=[]accountSearchResponse,meta=core.Meta}
+// @Failure      400     {object}  core.errorResponse
+// @Failure      401     {object}  core.errorResponse
+// @Failure      404     {object}  core.errorResponse
+// @Failure      500     {object}  core.errorResponse
 // @Router       /accounts/search-by-number [get]
 func (h *Handler) searchAccountByNumber(ctx *gin.Context) {
 	var query searchAccountByNumberQuery
@@ -147,8 +149,10 @@ func (h *Handler) searchAccountByNumber(ctx *gin.Context) {
 		return
 	}
 
+	number := sql.NullString{String: util.EscapeLikePattern(query.Number), Valid: true}
+
 	accountList, err := h.Store.ListAccountsSearchByUserNumber(ctx, db.ListAccountsSearchByUserNumberParams{
-		Number:      sql.NullString{String: query.Number, Valid: true},
+		Number:      number,
 		OffsetCount: query.Offset(),
 		LimitCount:  query.Limit,
 	})
@@ -158,14 +162,14 @@ func (h *Handler) searchAccountByNumber(ctx *gin.Context) {
 		return
 	}
 
-	total, err := h.Store.CountAccountsSearchByUserNumber(ctx, sql.NullString{String: query.Number, Valid: true})
+	total, err := h.Store.CountAccountsSearchByUserNumber(ctx, number)
 	if err != nil {
 		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	responses := util.MapSlice(accountList, func(row db.ListAccountsSearchByUserNumberRow) accountuserResponse {
-		return toAccountuserResponse(row.AccountUserDetailsView)
+	responses := util.MapSlice(accountList, func(row db.ListAccountsSearchByUserNumberRow) accountSearchResponse {
+		return toAccountSearchResponse(row.AccountUserDetailsView)
 	})
 
 	core.SucceedWithMeta(ctx, http.StatusOK, responses, "Accounts retrieved successfully", core.Meta{

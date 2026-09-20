@@ -2,6 +2,7 @@ package logger
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -54,6 +55,28 @@ func RedactHeaders(h http.Header) map[string]any {
 	for key, values := range h {
 		lower := strings.ToLower(key)
 		if SensitiveHeaderKeys[lower] {
+			out[lower] = RedactedPlaceholder
+			continue
+		}
+		if len(values) == 1 {
+			out[lower] = values[0]
+			continue
+		}
+		out[lower] = values
+	}
+	return out
+}
+
+// RedactQuery returns a lowercase-keyed copy of q suitable for logging,
+// replacing the value of any parameter in SensitiveFieldKeys with
+// RedactedPlaceholder — a token/reset-code/API key accepted as a query
+// param must not land in logs unredacted, the same guarantee RedactHeaders
+// and RedactJSONValue already give headers and JSON bodies.
+func RedactQuery(q url.Values) map[string]any {
+	out := make(map[string]any, len(q))
+	for key, values := range q {
+		lower := strings.ToLower(key)
+		if SensitiveFieldKeys[lower] {
 			out[lower] = RedactedPlaceholder
 			continue
 		}

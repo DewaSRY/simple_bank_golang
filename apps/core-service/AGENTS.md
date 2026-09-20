@@ -82,8 +82,11 @@ other way. `internal/db/store` depends only on `internal/db/sqlc`, never on
   for a generated query, adding SQL + running `make sqlc`).
 - **`Handler`** (one per domain package: `auth.Handler`, `account.Handler`,
   `transfer.Handler`) — holds a `store.Storer` (and, for `auth`, a
-  `token.Maker`), exposes a `RegisterRoutes`/`RegisterPublicRoutes` +
-  `RegisterAuthorizedRoutes` method. Handlers never call `ctx.JSON` directly.
+  `token.Maker`), and implements the single `RegisterRoutes(public,
+  authorized *gin.RouterGroup)` method every domain package uses (the
+  `router` interface in `internal/api/router.go`). A domain with no public
+  endpoints (`account`, `transfer`) just ignores the `public` argument.
+  Handlers never call `ctx.JSON` directly.
 - **`*Tx` functions** (`store_transaction.go`, `store_account_create_tx.go`,
   `store_account_deposit_tx.go`, `store_account.go`) — the business-logic
   layer. Each has a public `FooTx(ctx, arg)` method on `*_store` that opens a
@@ -174,11 +177,11 @@ Follow the shape already used by `account`/`transfer`/`auth`:
 6. **Handler** — add the endpoint function to the owning domain package (or
    create a new domain package under `internal/api/` if it's a genuinely new
    resource), following the bind → call Store → map error → `core.Succeed`
-   shape below. Register the route in that package's `RegisterRoutes`/
-   `RegisterPublicRoutes`/`RegisterAuthorizedRoutes`. Wire a brand-new domain
-   package's `Handler` construction + route registration into
-   `internal/api/router.go`'s `bindRouters` — existing domains never need
-   `router.go` touched for a new endpoint on an existing resource.
+   shape below. Register the route in that package's `RegisterRoutes(public,
+   authorized *gin.RouterGroup)`. Wire a brand-new domain package's `Handler`
+   into the `routers` slice in `internal/api/router.go`'s `bindRouters` —
+   existing domains never need `router.go` touched for a new endpoint on an
+   existing resource.
 7. **Error mapping** — extend or add an `*AppError`-mapping function in that
    domain's `apperror.go` for any new sentinel/DB error the handler can hit.
 8. **Response DTO** — add a response struct + `toXResponse` mapper in that

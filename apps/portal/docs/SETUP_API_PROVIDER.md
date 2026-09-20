@@ -15,11 +15,12 @@ Files:
 
 ## Why this shape
 
-Next.js App Router code runs in three different contexts — the build step,
-the server (RSC / route handlers), and the browser — and each one has a
-different way of reading the session token. If every API call site had to
-know which context it was in, that logic would leak into every feature. So
-it's centralized once:
+Every request that reaches the backend now originates from the Next.js
+server — a Server Action or a Server Component render
+(`docs/MIGRATION_TO_FULL_SSR.md`) — but a build-time static-generation pass
+is still a third context that needs its own guard (there's no backend to
+call yet). If every API call site had to know which context it was in, that
+logic would leak into every feature. So it's centralized once:
 
 ```
 Feature code
@@ -150,9 +151,11 @@ itself is a singleton — that's what lets the `WeakSet` guard do its job, and
 it avoids reconstructing the client (and its typed methods) on every import.
 
 Every method returns the raw `Promise<AxiosResponse<TResponse>>` — callers
-(typically a feature's `hooks/query.ts`) unwrap it with
-`.then((response) => response.data)` to get to `TResponse` itself. See
-"Mutations: the auth feature" in `SETUP_REACT_QUERY.md` for why skipping
+unwrap it with `.then((response) => response.data)` to get to `TResponse`
+itself. Since the full-SSR migration (`docs/MIGRATION_TO_FULL_SSR.md`), that
+caller is a feature's `actions.ts` (a `"use server"` function), not
+`hooks/query.ts` directly — the hook calls the action instead of the client.
+See "Mutations: the auth feature" in `SETUP_REACT_QUERY.md` for why skipping
 that unwrap is a type error, not a runtime bug.
 
 Only pass a custom instance to the constructor when you deliberately need
@@ -172,7 +175,7 @@ this.instance.interceptors.request.use(async (config) => {
   }
 
   await this.addAuthorizationHeader(config);
-  this.addClientTimezoneHeader(config);
+  await this.addTimezoneHeader(config);
   return config;
 });
 ```
@@ -193,31 +196,38 @@ any other error propagate normally.
 
 ### 2. Authorization header
 
-The session token lives in a cookie, but *which* cookie API differs by
-context:
+Since the full-SSR migration (`docs/MIGRATION_TO_FULL_SSR.md`), every request
+that reaches `apiClient` originates from a Server Action or a Server
+Component — nothing in the browser calls a `feature/*/client.ts` method
+directly anymore — so `addAuthorizationHeader()` only has one path:
+`next/headers`' `cookies()`, which is async.
 
-- **Server** (RSC, route handlers): `next/headers`' `cookies()` is the only
-  way to read cookies, and it's async.
-- **Browser**: there's no `cookies()` API — the token is parsed out of
-  `document.cookie` with a regex.
+The `try/catch` around `cookies()` isn't for a real auth failure — it's
+because Next.js signals "this route can't be statically rendered" by
+*throwing* a special error (`digest === "DYNAMIC_SERVER_USAGE"`) the moment
+`cookies()` is called during static generation. That specific error is
+re-thrown so Next can correctly bail the route out of static rendering;
+anything else calling into `cookies()` unexpectedly failing is treated as "no
+token available" rather than crashing the request, since a logged-out
+request is a perfectly valid state (the backend will reject it with 401, not
+the interceptor).
 
-`isServer()` (`typeof window === "undefined"`) picks the right path. The
-`try/catch` around `cookies()` isn't for a real auth failure — it's because
-Next.js signals "this route can't be statically rendered" by *throwing* a
-special error (`digest === "DYNAMIC_SERVER_USAGE"`) the moment `cookies()` is
-called during static generation. That specific error is re-thrown so Next
-can correctly bail the route out of static rendering; anything else calling
-into `cookies()` unexpectedly failing is treated as "no token available"
-rather than crashing the request, since a logged-out request is a perfectly
-valid state (the backend will reject it with 401, not the interceptor).
+The session cookie itself is `httpOnly` (`feature/auth/session.ts`) — closing
+`docs/IMPROVEMENT_OPPORTUNITIES.md` §1.1 — precisely because nothing needs to
+read it from `document.cookie` anymore.
 
 ### 3. Timezone header
 
-`X-Timezone` is only set client-side (`Intl.DateTimeFormat()` needs the
-browser/runtime's local timezone, which is meaningless to compute on the
-server where the process' timezone isn't the *user's*). Server-rendered
-requests simply omit the header; the backend should treat a missing
-`X-Timezone` as "unknown" rather than assuming UTC or erroring.
+`X-Timezone` can't be read with `Intl.DateTimeFormat()` at request time
+anymore, since the request itself now runs on the server, where the
+process' timezone isn't the *user's*. Instead, `lib/timezone-sync.tsx` — a
+client component mounted once in `app/[locale]/layout.tsx` — writes the
+visitor's IANA timezone into a (non-sensitive, non-httpOnly) cookie on first
+render. `addTimezoneHeader()` reads that cookie server-side via
+`next/headers`' `cookies()`, the same way it reads the session token, and
+simply omits the header if the cookie hasn't been set yet (e.g. a request
+made before the client component has mounted); the backend should treat a
+missing `X-Timezone` as "unknown" rather than assuming UTC or erroring.
 
 ## Response interceptor
 

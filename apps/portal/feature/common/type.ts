@@ -1,5 +1,4 @@
-import type { AxiosResponse } from "axios";
-export type ApiMeta = {
+type CommonMeta = {
   page: number;
   limit: number;
   total: number;
@@ -7,24 +6,9 @@ export type ApiMeta = {
 
 export type CommonSuccessResponse<T = unknown> = {
   message?: string;
-  meta?: ApiMeta;
+  meta?: CommonMeta;
   data: T;
 };
-
-export interface ErrorDetail {
-  field: string;
-  message: string;
-}
-
-export interface ErrorResponse {
-  error: {
-    code: string;
-    details: ErrorDetail[];
-    message: string;
-  };
-}
-
-export type ApiResponse<T = unknown> = AxiosResponse<CommonSuccessResponse<T>>;
 
 export type Translate = (key: string) => string;
 

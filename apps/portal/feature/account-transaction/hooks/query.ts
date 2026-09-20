@@ -1,8 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { accountTransactionClient } from "@/feature/account-transaction/client";
-import { queryKeys as accountQueryKeys } from "@/feature/account/hooks/query";
-import type { PaginationParams } from "@/feature/common/type";
-import { DepositRequestBody } from "../type";
+import { queryKeys as accountQueryKeys } from "@/feature/account";
+import type { PaginationParams } from "@/feature/common";
+import { unwrapActionResult } from "@/lib/api/action-result";
+import type { AccountEntriesResponse, DepositRequestBody, DisplayLedgerEntry } from "../type";
+import { isIncomingEntry } from "../utils";
+import {
+  depositAction,
+  getAccountEntriesAction,
+  getRecentTransactionsAction,
+} from "../actions";
+
+function toDisplayLedgerEntry(
+  entry: AccountEntriesResponse,
+  accountId: number,
+): DisplayLedgerEntry {
+  return {
+    ...entry,
+    direction: isIncomingEntry(entry, accountId) ? "incoming" : "outgoing",
+  };
+}
 
 export const queryKeys = {
   entries: (
@@ -22,9 +38,13 @@ export function useAccountEntries(
   return useQuery({
     queryKey: queryKeys.entries(accountId, params),
     queryFn: () =>
-      accountTransactionClient
-        .getAccountEntries(accountId, params)
-        .then((res) => res.data),
+      getAccountEntriesAction(accountId, params).then(unwrapActionResult),
+    select: (response) => ({
+      ...response,
+      data: response.data.map((entry) =>
+        toDisplayLedgerEntry(entry, accountId),
+      ),
+    }),
   });
 }
 
@@ -35,9 +55,7 @@ export function useRecentTransactions(
   return useQuery({
     queryKey: queryKeys.recentTransactions(accountId, params),
     queryFn: () =>
-      accountTransactionClient
-        .getRecentTransactions(accountId, params)
-        .then((res) => res.data),
+      getRecentTransactionsAction(accountId, params).then(unwrapActionResult),
   });
 }
 
@@ -45,7 +63,7 @@ export function useDeposit(accountId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: DepositRequestBody) =>
-      accountTransactionClient.deposit(accountId, body),
+      depositAction(accountId, body).then(unwrapActionResult),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.entries(accountId, {

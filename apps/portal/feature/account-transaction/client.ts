@@ -2,7 +2,7 @@ import { BaseClient } from "../../lib/api/base-client";
 import type {
   CommonSuccessResponse,
   PaginationParams,
-} from "@/feature/common/type";
+} from "@/feature/common";
 import type {
   AccountEntriesResponse,
   DepositRequestBody,

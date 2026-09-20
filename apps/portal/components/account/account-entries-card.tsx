@@ -22,10 +22,12 @@ import {
   accountEntriesTableFeatures,
   getAccountEntriesColumns,
 } from "@/components/account/account-entries-columns";
-import { useAccountEntries } from "@/feature/account-transaction/hooks/query";
-import type { AccountEntriesResponse } from "@/feature/account-transaction/type";
+import {
+  useAccountEntries,
+  type DisplayLedgerEntry,
+} from "@/feature/account-transaction";
 
-const EMPTY_ENTRIES: AccountEntriesResponse[] = [];
+const EMPTY_ENTRIES: DisplayLedgerEntry[] = [];
 
 export function AccountEntriesCard({
   accountName,

@@ -33,6 +33,17 @@ const SENSITIVE_KEYS = new Set([
 
 const RECIPIENT_LIST_KEYS = new Set(["to", "cc", "bcc"]);
 
+// Catches credential-shaped keys not covered by the exact-match SENSITIVE_KEYS
+// set above (e.g. "accessToken", "refresh_token", "client_secret", "x-api-key")
+// so a new field doesn't slip through unredacted just because it wasn't
+// anticipated verbatim.
+const SENSITIVE_KEY_PATTERNS = [
+  /token/i,
+  /secret/i,
+  /api[-_]?key/i,
+  /credential/i,
+];
+
 const maskSensitiveField = (
   key: string,
   value: unknown,
@@ -40,7 +51,10 @@ const maskSensitiveField = (
 ): unknown => {
   const lowerKey = key.toLowerCase();
 
-  if (SENSITIVE_KEYS.has(lowerKey)) {
+  if (
+    SENSITIVE_KEYS.has(lowerKey) ||
+    SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(lowerKey))
+  ) {
     return "[REDACTED]";
   }
 
@@ -187,6 +201,11 @@ const stringifyMetaValues = format((info) => {
 
 const logger = createLogger({
   level: process.env.LOG_LEVEL ?? "info",
+  // Production intentionally logs nothing today — there's no log drain
+  // wired up, so writing JSON to stdout on every API call is pure cost with
+  // nobody watching. `silent` short-circuits before formatting/transport
+  // writes (winston's Logger#_transform), so this is cheap.
+  silent: process.env.NODE_ENV === "production",
   format:
     process.env.NODE_ENV === "production"
       ? format.combine(

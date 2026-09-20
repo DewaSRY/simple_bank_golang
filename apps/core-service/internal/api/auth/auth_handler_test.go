@@ -50,11 +50,10 @@ func newTestRouter(h *Handler) *gin.Engine {
 	router.Use(core.ErrorHandlerMiddleware(slog.New(slog.NewTextHandler(io.Discard, nil))))
 
 	v1 := router.Group("/api/v1")
-	h.RegisterPublicRoutes(v1)
 
 	authorized := v1.Group("/")
 	authorized.Use(core.AuthMiddleware(h.TokenMaker))
-	h.RegisterAuthorizedRoutes(authorized)
+	h.RegisterRoutes(v1, authorized)
 
 	return router
 }

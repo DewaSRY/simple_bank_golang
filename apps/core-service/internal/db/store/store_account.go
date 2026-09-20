@@ -41,6 +41,9 @@ func deleteAccountTx(ctx context.Context, q sqlc.Querier, arg DeleteAccountTxPar
 	if err != nil {
 		return result, err
 	}
+	if account.UserID.Int64 != arg.UserID {
+		return result, ErrAccountOwnershipMismatch
+	}
 	if account.IsMain {
 		return result, ErrCannotDeleteMainAccount
 	}
@@ -86,7 +89,7 @@ func deleteAccountTx(ctx context.Context, q sqlc.Querier, arg DeleteAccountTxPar
 			return result, err
 		}
 
-		negativeAmount := "-" + lockedAccount.Balance
+		negativeAmount := balance.Neg().String()
 		if _, err := q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 			AccountID:   arg.AccountID,
 			Type:        constant.ENTRY_TYPE_SEND,

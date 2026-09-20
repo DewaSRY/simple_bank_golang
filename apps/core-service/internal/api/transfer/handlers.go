@@ -62,12 +62,12 @@ type depositRequest struct {
 // @Security     BearerAuth
 // @Param        id       path      int             true  "Account ID"
 // @Param        request  body      depositRequest  true  "Deposit payload"
-// @Success      200      {object}  successResponse{data=accountEntriesViewResponse}
-// @Failure      400      {object}  errorResponse
-// @Failure      401      {object}  errorResponse
-// @Failure      403      {object}  errorResponse
-// @Failure      404      {object}  errorResponse
-// @Failure      500      {object}  errorResponse
+// @Success      200      {object}  core.successResponse{data=accountEntriesViewResponse}
+// @Failure      400      {object}  core.errorResponse
+// @Failure      401      {object}  core.errorResponse
+// @Failure      403      {object}  core.errorResponse
+// @Failure      404      {object}  core.errorResponse
+// @Failure      500      {object}  core.errorResponse
 // @Router       /accounts/{id}/deposit [post]
 func (h *Handler) deposit(ctx *gin.Context) {
 	var params idPathParam
@@ -127,12 +127,12 @@ type listAccountEntriesQuery struct {
 // @Param        year   query     int  false  "Year, defaults to the current year"
 // @Param        page   query     int  false  "Page number"     default(1)
 // @Param        limit  query     int  false  "Items per page"  default(10)
-// @Success      200    {object}  successResponse{data=[]accountEntriesViewResponse,meta=Meta}
-// @Failure      400    {object}  errorResponse
-// @Failure      401    {object}  errorResponse
-// @Failure      403    {object}  errorResponse
-// @Failure      404    {object}  errorResponse
-// @Failure      500    {object}  errorResponse
+// @Success      200    {object}  core.successResponse{data=[]accountEntriesViewResponse,meta=core.Meta}
+// @Failure      400    {object}  core.errorResponse
+// @Failure      401    {object}  core.errorResponse
+// @Failure      403    {object}  core.errorResponse
+// @Failure      404    {object}  core.errorResponse
+// @Failure      500    {object}  core.errorResponse
 // @Router       /accounts/{id}/entries [get]
 func (h *Handler) listAccountEntriesByAccountId(ctx *gin.Context) {
 	var params idPathParam
@@ -144,6 +144,10 @@ func (h *Handler) listAccountEntriesByAccountId(ctx *gin.Context) {
 	var query listAccountEntriesQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
+		return
+	}
+
+	if _, ok := h.requireOwnedAccount(ctx, params.ID); !ok {
 		return
 	}
 
@@ -192,11 +196,11 @@ func (h *Handler) listAccountEntriesByAccountId(ctx *gin.Context) {
 // @Param        id   path      int  true  "Source account ID"
 // @Param        page   query     int  false  "Page number"     default(1)
 // @Param        limit  query     int  false  "Items per page"  default(10)
-// @Success      200  {object}  successResponse{data=[]publicAccountResponse}
-// @Failure      401  {object}  errorResponse
-// @Failure      403  {object}  errorResponse
-// @Failure      404  {object}  errorResponse
-// @Failure      500  {object}  errorResponse
+// @Success      200  {object}  core.successResponse{data=[]publicAccountResponse}
+// @Failure      401  {object}  core.errorResponse
+// @Failure      403  {object}  core.errorResponse
+// @Failure      404  {object}  core.errorResponse
+// @Failure      500  {object}  core.errorResponse
 // @Router       /accounts/{id}/recent-destinations [get]
 func (h *Handler) listRecentTransferDestinations(ctx *gin.Context) {
 	var params idPathParam
@@ -246,12 +250,12 @@ type listAccountTransactionHistoryQuery struct {
 // @Param        year   query     int  false  "Year, defaults to the current year"
 // @Param        page   query     int  false  "Page number"     default(1)
 // @Param        limit  query     int  false  "Items per page"  default(10)
-// @Success      200    {object}  successResponse{data=[]transactionHistoryItem,meta=Meta}
-// @Failure      400    {object}  errorResponse
-// @Failure      401    {object}  errorResponse
-// @Failure      403    {object}  errorResponse
-// @Failure      404    {object}  errorResponse
-// @Failure      500    {object}  errorResponse
+// @Success      200    {object}  core.successResponse{data=[]transactionHistoryItem,meta=core.Meta}
+// @Failure      400    {object}  core.errorResponse
+// @Failure      401    {object}  core.errorResponse
+// @Failure      403    {object}  core.errorResponse
+// @Failure      404    {object}  core.errorResponse
+// @Failure      500    {object}  core.errorResponse
 // @Router       /accounts/{id}/transactions [get]
 func (h *Handler) listAccountTransactionHistory(ctx *gin.Context) {
 	var params idPathParam

@@ -5,8 +5,7 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useRouter } from "@/i18n/navigation";
 
-import { useAccountDetail } from "@/feature/account-manage/hooks/query";
-import { useAccountEntries } from "@/feature/account-transaction/hooks/query";
+import { useAccountDetail } from "@/feature/account-manage";
 
 import { AccountStateMessage } from "@/components/account/account-state-message";
 import { AccountSummaryCard } from "@/components/account/account-summary-card";
@@ -41,7 +40,7 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
 
   return (
     <main className="flex flex-1 flex-col bg-background px-4 py-6 sm:px-6">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+      <div className="mx-auto w-full max-w-[84rem] space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/dashboard"

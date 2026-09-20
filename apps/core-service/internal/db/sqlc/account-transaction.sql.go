@@ -152,7 +152,7 @@ func (q *Queries) GetAccountViewById(ctx context.Context, id int64) (GetAccountV
 const incrementAccountBalance = `-- name: IncrementAccountBalance :one
 UPDATE accounts
 SET balance =  balance + $2, updated_at = now()
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 RETURNING id, balance, currency, created_at, updated_at, user_id, number, name, description, is_main, deleted_at
 `
 

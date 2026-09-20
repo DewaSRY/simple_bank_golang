@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:3c5c8892d184f738f4fe282d14ddaa613a38f00f4189d2d94725ebe6f2909ddb
+    container_name: core-service-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-simple_bank}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-simple_bank}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-simple_bank} -d ${POSTGRES_DB:-simple_bank}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # `make db-up` runs this once with `docker compose run --rm migrate` to
+  # apply pending migrations against the postgres service above. It talks to
+  # postgres over the docker network (service name + its container port),
+  # not the host-mapped 5433 that app.env's DB_SOURCE uses.
+  migrate:
+    image: migrate/migrate:v4.19.1@sha256:cc4ad8e19d66791e3689405d9a028ce6e9614f32032db14acda1469f7201d6e4
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./internal/db/migrations:/migrations:ro
+    command:
+      - "-path"
+      - "/migrations"
+      - "-database"
+      - "postgres://${POSTGRES_USER:-simple_bank}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-simple_bank}?sslmode=disable"
+      - "up"
+
+volumes:
+  postgres_data:
