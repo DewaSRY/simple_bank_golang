@@ -20,10 +20,18 @@ import {
 } from "@/components/ui/dialog";
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
+import { MoneyInputField } from "@/components/form/money-input-field";
 import { PreviewRow } from "@/components/common/preview-row";
 import { AccountSummaryCard } from "@/components/account/account-summary-card";
-import { createAccountSchema, type CreateAccountFormValues } from "@/feature/account";
-import { delay, toAccountWithUserName, useOnboardingStore, useOnboardingToastStore } from "@/feature/onboarding";
+import { formatAccountAmount } from "@/lib/number";
+import {
+  delay,
+  onboardingCreateAccountSchema,
+  toAccountWithUserName,
+  useOnboardingStore,
+  useOnboardingToastStore,
+  type OnboardingCreateAccountFormValues,
+} from "@/feature/onboarding";
 import { zodResolverTranslate, scrollToFirstError } from "@/lib/form";
 
 type Step = "form" | "preview";
@@ -38,12 +46,14 @@ export function CreateAccountFlow() {
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("form");
-  const [values, setValues] = useState<CreateAccountFormValues | null>(null);
+  const [values, setValues] = useState<OnboardingCreateAccountFormValues | null>(
+    null,
+  );
   const [isPending, setIsPending] = useState(false);
 
   const form = useForm({
-    resolver: zodResolverTranslate(createAccountSchema, t),
-    defaultValues: { name: "", description: "" },
+    resolver: zodResolverTranslate(onboardingCreateAccountSchema, t),
+    defaultValues: { name: "", description: "", currency: "IDR", openingBalance: "" },
   });
 
   function handleOpenChange(next: boolean) {
@@ -66,7 +76,12 @@ export function CreateAccountFlow() {
     if (!values) return;
     setIsPending(true);
     await delay(700);
-    const created = createAccount(values);
+    const created = createAccount({
+      name: values.name,
+      description: values.description,
+      currency: values.currency,
+      openingBalance: Number(values.openingBalance) || 0,
+    });
     setIsPending(false);
     setOpen(false);
     pushToast({
@@ -164,6 +179,14 @@ export function CreateAccountFlow() {
                   counterPosition="bottom"
                   placeholder={t("descriptionPlaceholder")}
                 />
+                <MoneyInputField
+                  name="openingBalance"
+                  currencyName="currency"
+                  label={t("openingBalance")}
+                  description={t("openingBalanceDescription")}
+                  control={form.control}
+                  placeholder={t("openingBalancePlaceholder")}
+                />
               </div>
               <DialogFooter>
                 <DialogClose render={<Button variant="outline">{tCommon("cancel")}</Button>} />
@@ -178,6 +201,13 @@ export function CreateAccountFlow() {
                 <CardContent className="space-y-3">
                   <PreviewRow label={t("name")} value={values.name} />
                   <PreviewRow label={t("description")} value={values.description} />
+                  <PreviewRow
+                    label={t("openingBalance")}
+                    value={formatAccountAmount(
+                      values.openingBalance || "0",
+                      values.currency,
+                    )}
+                  />
                 </CardContent>
               </Card>
               <DialogFooter>
