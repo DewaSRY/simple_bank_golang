@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portal
 
-## Getting Started
+The Next.js frontend for **Simple Bank**, a ledger-based core banking demo.
+It's a customer-facing portal for account management, deposits, and
+account-to-account transfers, talking to the Go backend in
+[`../core-service`](../core-service).
 
-First, run the development server:
+See the [monorepo README](../../README.md) for how the two apps fit together.
+
+## Stack
+
+- **Next.js 16** (App Router), React 19, TypeScript
+- **TanStack Query** for server state, **Zustand** for local multi-step
+  modal/wizard state
+- **Axios** with a single interceptor for auth headers, request logging, and
+  401 → logout handling
+- **shadcn/ui** (Base UI primitives) + **Tailwind v4** + `next-themes`
+  (light/dark/system)
+- **react-i18next** — `en` and `id` locales
+- **winston** for structured, PII-redacting server-side logging
+
+## Getting started
+
+1. Make sure `apps/core-service` (the backend) is running — see the
+   [monorepo README](../../README.md) for `docker compose up`.
+2. Set `NEXT_PUBLIC_API_URL` in `.env.local` (defaults to
+   `http://localhost:8080/api/v1` if unset).
+3. Install and run:
+
+   ```bash
+   yarn install
+   yarn dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000).
+
+Before committing, verify with:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn lint
+yarn tsc --noEmit
+yarn build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+There's no automated test suite or CI for this app yet — these three
+commands are the closest thing to a gate.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Path | What lives there |
+|---|---|
+| `app/` | Routes. `[locale]/(public)` = logged-out pages, `[locale]/(protected)` = logged-in pages. |
+| `feature/<name>/` | Domain logic per feature: API client, TanStack Query hooks, types, Zod schemas. |
+| `components/` | UI, organized by feature/domain (not by component type). |
+| `lib/api/` | Shared Axios instance + the one request/response interceptor. |
+| `lib/logger.ts` | Structured winston logger with secret redaction. |
+| `i18n/`, `messages/` | Locale config and translation JSON, one file per namespace per locale. |
+| `providers/` | App-wide client providers (theme, React Query). |
+| `docs/` | Deep-dive docs per subsystem — read before extending one. |
 
-## Learn More
+## Docs
 
-To learn more about Next.js, take a look at the following resources:
+Start with [`docs/README.md`](docs/README.md) for an index, or go straight
+to [`docs/IMPROVEMENT_OPPORTUNITIES.md`](docs/IMPROVEMENT_OPPORTUNITIES.md)
+for known gaps and tech debt.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For AI coding agents: project-specific conventions live in
+[`AGENTS.md`](AGENTS.md) (imported by `CLAUDE.md`).

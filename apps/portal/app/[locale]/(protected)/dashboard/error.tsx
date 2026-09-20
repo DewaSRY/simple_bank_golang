@@ -21,7 +21,7 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="flex my-2 flex-1 flex-col gap-4 bg-zinc-50 px-6 font-sans dark:bg-black">
+    <div className="flex my-2 flex-1 flex-col gap-4 bg-background px-6 font-sans">
       <AccountListMessage icon={AlertCircle} className="text-destructive">
         {t("error.dashboardDescription")}
       </AccountListMessage>

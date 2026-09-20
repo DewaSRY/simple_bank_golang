@@ -1,4 +1,4 @@
-import type { AccountResponse } from "@/feature/account/type";
+import type { AccountResponse } from "@/feature/account";
 
 export interface DeleteAccountResponse {
   account: AccountResponse;

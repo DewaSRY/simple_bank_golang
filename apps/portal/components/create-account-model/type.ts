@@ -1,4 +1,4 @@
-import type { CreateAccountFormValues } from "@/feature/account/schema";
+import type { CreateAccountFormValues } from "@/feature/account";
 
 export type CreateAccountStep = "form" | "preview";
 

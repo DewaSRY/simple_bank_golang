@@ -16,6 +16,29 @@ type Config struct {
 	JWTSecretKey           string        `mapstructure:"JWT_SECRET_KEY"`
 	JWTAccessTokenDuration time.Duration `mapstructure:"JWT_ACCESS_TOKEN_DURATION"`
 	CORSAllowedOrigins     []string      `mapstructure:"CORS_ALLOWED_ORIGINS"`
+
+	// LogLevel controls which log records are emitted: "debug", "info",
+	// "warn", or "error" (case-insensitive). Empty/unrecognized defaults to
+	// "info" — see internal/logger.New.
+	LogLevel string `mapstructure:"LOG_LEVEL"`
+	// LogFormat selects the log encoding: "json" (default, machine-parseable)
+	// or "text" (human-readable, handy for local dev).
+	LogFormat string `mapstructure:"LOG_FORMAT"`
+	// LogPrettyJSON indents every JSON log line for readability instead of
+	// emitting the usual one-line-per-record form. Only meaningful when
+	// LogFormat is "json" (the default); intended for local development,
+	// not a log aggregator, which expects one line per record. See
+	// internal/logger.New.
+	LogPrettyJSON bool `mapstructure:"LOG_PRETTY_JSON"`
+	// LogRequestBody/LogResponseBody enable capturing request/response
+	// bodies on the per-request access log line. See
+	// internal/api/logging_middleware.go.
+	LogRequestBody  bool `mapstructure:"LOG_REQUEST_BODY"`
+	LogResponseBody bool `mapstructure:"LOG_RESPONSE_BODY"`
+	// LogMaxBodySize caps how many bytes of a request/response body are
+	// captured for logging, in bytes. Zero/unset falls back to 1MiB — see
+	// internal/api/logging_middleware.go.
+	LogMaxBodySize int64 `mapstructure:"LOG_MAX_BODY_SIZE"`
 }
 
 // LoadConfig reads configuration from an optional app.env file

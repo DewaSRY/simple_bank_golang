@@ -1,4 +1,4 @@
-import type { PaginationParams } from "@/feature/common/type";
+import type { PaginationParams } from "@/feature/common";
 
 export type AccountResponse = {
   balance: string;
@@ -36,18 +36,4 @@ export interface SearchMeAccountsParams extends Partial<PaginationParams> {
 
 export interface SearchAccountsParams extends Partial<PaginationParams> {
   number: string;
-}
-
-export interface AccountEntriesResponse {
-  account_id: number;
-  account_name: string;
-  account_number: string;
-  amount: string;
-  id: number;
-  is_main: boolean;
-  to_account_id: number;
-  to_account_name: string;
-  to_account_number: string;
-  type: string;
-  user_id: number;
 }

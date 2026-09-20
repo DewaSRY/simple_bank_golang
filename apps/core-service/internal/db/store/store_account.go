@@ -22,9 +22,6 @@ type DeleteAccountTxResult struct {
 	SweepTransfer *sqlc.Transfer
 }
 
-// DeleteAccountTx soft-deletes an account, sweeping any remaining balance to
-// the user's main account first (recorded as an ordinary transfer) so no
-// money is ever silently lost.
 func (store *_store) DeleteAccountTx(ctx context.Context, arg DeleteAccountTxParams) (DeleteAccountTxResult, error) {
 	var result DeleteAccountTxResult
 
@@ -37,15 +34,15 @@ func (store *_store) DeleteAccountTx(ctx context.Context, arg DeleteAccountTxPar
 	return result, err
 }
 
-// deleteAccountTx contains the business logic and depends only on the
-// sqlc.Querier interface, so it can be unit tested with a gomock-generated
-// mock without a real database.
 func deleteAccountTx(ctx context.Context, q sqlc.Querier, arg DeleteAccountTxParams) (DeleteAccountTxResult, error) {
 	var result DeleteAccountTxResult
 
 	account, err := q.GetAccountById(ctx, arg.AccountID)
 	if err != nil {
 		return result, err
+	}
+	if account.UserID.Int64 != arg.UserID {
+		return result, ErrAccountOwnershipMismatch
 	}
 	if account.IsMain {
 		return result, ErrCannotDeleteMainAccount
@@ -56,12 +53,6 @@ func deleteAccountTx(ctx context.Context, q sqlc.Querier, arg DeleteAccountTxPar
 		return result, err
 	}
 
-	// Lock both accounts in a fixed ascending-ID order, same as transferTx,
-	// so a concurrent transfer touching this same pair of accounts can never
-	// deadlock against this delete. The balance is read from the locked row
-	// (not the unlocked account fetched above) so a concurrent change to the
-	// balance between that read and acquiring the lock can't cause a stale
-	// amount to be swept.
 	firstID, secondID := arg.AccountID, mainAccount.ID
 	if firstID > secondID {
 		firstID, secondID = secondID, firstID
@@ -98,7 +89,7 @@ func deleteAccountTx(ctx context.Context, q sqlc.Querier, arg DeleteAccountTxPar
 			return result, err
 		}
 
-		negativeAmount := "-" + lockedAccount.Balance
+		negativeAmount := balance.Neg().String()
 		if _, err := q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 			AccountID:   arg.AccountID,
 			Type:        constant.ENTRY_TYPE_SEND,

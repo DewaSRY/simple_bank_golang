@@ -96,7 +96,7 @@ func transferTx(ctx context.Context, q sqlc.Querier, arg sqlc.CreateTransferPara
 
 	transferID := sql.NullInt64{Int64: result.Transfer.ID, Valid: true}
 
-	negativeAmount := "-" + arg.Amount
+	negativeAmount := amount.Neg().String()
 	// Create entries for sending
 	fromEntry, err := q.CreateEntries(ctx, sqlc.CreateEntriesParams{
 		AccountID:   arg.FromAccountID,

@@ -32,10 +32,10 @@ binding (`react-i18next`) that exposes translations through **React context**
 Client Component — so `react-i18next`'s hook-based API cannot run inside a
 Server Component at all.
 
-| Approach | Where it runs | How you read a string | Typical use in this repo |
-|---|---|---|---|
-| `i18next` core instance, no React binding | Anywhere (Server Components, Server Actions, plain `.ts`) | `instance.getFixedT(locale, ns)("key")` — a plain function, no context | `i18n/server.ts`'s `getTranslation()` |
-| `react-i18next` hooks (`useTranslation`, `<Trans>`) | Client Components only, must be inside an `<I18nextProvider>` | `const { t } = useTranslation(ns)` | Any `"use client"` component (`components/locale-switcher.tsx:16`, `components/theme-toggle.tsx`, form components) |
+| Approach                                            | Where it runs                                                 | How you read a string                                                  | Typical use in this repo                                                                                           |
+| --------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `i18next` core instance, no React binding           | Anywhere (Server Components, Server Actions, plain `.ts`)     | `instance.getFixedT(locale, ns)("key")` — a plain function, no context | `i18n/server.ts`'s `getTranslation()`                                                                              |
+| `react-i18next` hooks (`useTranslation`, `<Trans>`) | Client Components only, must be inside an `<I18nextProvider>` | `const { t } = useTranslation(ns)`                                     | Any `"use client"` component (`components/locale-switcher.tsx:16`, `components/theme-toggle.tsx`, form components) |
 
 Gotchas that aren't obvious from the API surface:
 
@@ -45,7 +45,7 @@ Gotchas that aren't obvious from the API surface:
    calling `<Trans>` directly inside the (Server Component) home page — see
    Section 6.
 2. **Server-side translation reads don't share a singleton instance.** Every
-   call to `getTranslation()` (`i18n/server.ts:26`) creates a *brand new*
+   call to `getTranslation()` (`i18n/server.ts:26`) creates a _brand new_
    `i18next` instance via `createInstance()`. This looks wasteful coming from
    `next-intl`'s request-scoped cache, but it's cheap here: the "resources"
    being loaded are just already-parsed JSON, and the instance is thrown away
@@ -63,15 +63,15 @@ It validates the locale, loads that locale's messages, and hands them to
 `TranslationsProvider` — but it doesn't itself know how translation loading or
 the `i18next` instance lifecycle work; both are delegated.
 
-| Concern | Owner | Analogy |
-|---|---|---|
-| Locale/namespace config (source of truth for both) | `i18n/settings.ts` | The dictionary's table of contents |
-| Locale param validation | `isAppLocale()` in `i18n/settings.ts:6`, called from every page/layout | A type guard everyone repeats at the door |
-| Server-side translation reads | `i18n/server.ts` (`getTranslation`, `getMessages`) | A one-shot dictionary lookup, thrown away after the render |
-| Client-side translation runtime | `components/translations-provider.tsx` + `react-i18next`'s `useTranslation`/`<Trans>` | The live dictionary Client Components subscribe to |
-| Locale-aware navigation | `i18n/navigation.tsx` (`Link`, `usePathname`, `useRouter`), `i18n/redirect.ts` (`redirect`, `getPathname`) | `next/link`/`next/navigation`, but locale-prefix aware |
-| Locale detection + redirect | `proxy.ts` | The bouncer that rewrites `/` → `/en` before anything renders |
-| Translation content | `messages/{locale}/{common,auth,transfer}.json` | The actual dictionaries |
+| Concern                                            | Owner                                                                                                      | Analogy                                                       |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Locale/namespace config (source of truth for both) | `i18n/settings.ts`                                                                                         | The dictionary's table of contents                            |
+| Locale param validation                            | `isAppLocale()` in `i18n/settings.ts:6`, called from every page/layout                                     | A type guard everyone repeats at the door                     |
+| Server-side translation reads                      | `i18n/server.ts` (`getTranslation`, `getMessages`)                                                         | A one-shot dictionary lookup, thrown away after the render    |
+| Client-side translation runtime                    | `components/translations-provider.tsx` + `react-i18next`'s `useTranslation`/`<Trans>`                      | The live dictionary Client Components subscribe to            |
+| Locale-aware navigation                            | `i18n/navigation.tsx` (`Link`, `usePathname`, `useRouter`), `i18n/redirect.ts` (`redirect`, `getPathname`) | `next/link`/`next/navigation`, but locale-prefix aware        |
+| Locale detection + redirect                        | `proxy.ts`                                                                                                 | The bouncer that rewrites `/` → `/en` before anything renders |
+| Translation content                                | `messages/{locale}/{common,auth,transfer}.json`                                                            | The actual dictionaries                                       |
 
 The server/client split exists because, as covered in Section 0, RSC can't use
 the hook-based API at all — so server-side reads had to go around
@@ -113,7 +113,10 @@ resulting `t` compatible with `<Trans>` if the caller passes it through, see
 Section 6), and returns a **fixed** translator bound to that locale/namespace:
 
 ```ts
-export async function getTranslation(locale: AppLocale, ns: AppNamespace = "common") {
+export async function getTranslation(
+  locale: AppLocale,
+  ns: AppNamespace = "common",
+) {
   const instance = createInstance();
   const resources = await loadMessages(locale);
   await instance.use(initReactI18next).init({
@@ -135,7 +138,7 @@ Two calls, two namespaces — `getTranslation` is namespace-scoped, not
 multi-namespace, so a page reading strings from both `common` and `auth`
 (the home page does) makes two calls rather than one.
 
-**Rough edge worth flagging:** `getTranslation` still loads *all three*
+**Rough edge worth flagging:** `getTranslation` still loads _all three_
 namespaces into the instance's `resources` even though it only returns a `t`
 for one of them (`getI18nOptions(locale, namespaces)` at `i18n/server.ts:34`
 passes the full `namespaces` list, not just `ns`). It's harmless — the JSON is
@@ -158,7 +161,7 @@ const messages = await getMessages(locale);
 // ...
 <TranslationsProvider locale={locale} messages={messages}>
   <QueryProvider>{children}</QueryProvider>
-</TranslationsProvider>
+</TranslationsProvider>;
 ```
 
 `TranslationsProvider` (`components/translations-provider.tsx:23`) builds the
@@ -190,11 +193,11 @@ useEffect(() => {
 }, [i18n, locale, messages]);
 ```
 
-| Step | What actually happens |
-|---|---|
+| Step                      | What actually happens                                                                                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `hasResourceBundle` check | Skips re-adding a locale's messages if they're already loaded — matters because this effect re-runs on every render where `messages`'s reference changes, not just on an actual locale switch |
-| `addResourceBundle` | Grafts the newly-fetched locale's messages onto the *existing* instance rather than building a new one |
-| `changeLanguage` | Triggers `react-i18next`'s re-render of every subscribed `useTranslation()`/`<Trans>` consumer |
+| `addResourceBundle`       | Grafts the newly-fetched locale's messages onto the _existing_ instance rather than building a new one                                                                                        |
+| `changeLanguage`          | Triggers `react-i18next`'s re-render of every subscribed `useTranslation()`/`<Trans>` consumer                                                                                                |
 
 **Divergence from what you'd expect:** there's no loading state here — the
 effect assumes `messages` for the new locale already arrived by the time it
@@ -218,13 +221,13 @@ export const namespaces = ["common", "auth", "transfer"] as const;
 export type AppNamespace = (typeof namespaces)[number];
 ```
 
-| Export | Used by | Purpose |
-|---|---|---|
-| `locales` | `proxy.ts`, `generateStaticParams` in the root layout, `LocaleSwitcher` | Enumerate every supported locale |
-| `defaultLocale` | `proxy.ts`, `i18n/redirect.ts` | Fallback when no locale is known |
-| `isAppLocale()` | Every page/layout (`if (!isAppLocale(locale)) notFound()`) | Narrow the `string` route param to `AppLocale` before it's trusted |
-| `namespaces` | `i18n/server.ts`, `components/translations-provider.tsx` | Drive the `Promise.all` / `addResourceBundle` loops so a new namespace only has to be added here |
-| `getI18nOptions()` | Both `i18n/server.ts` and `translations-provider.tsx` | One shared `i18next.init()` options object, so server and client instances stay configured identically |
+| Export             | Used by                                                                 | Purpose                                                                                                |
+| ------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `locales`          | `proxy.ts`, `generateStaticParams` in the root layout, `LocaleSwitcher` | Enumerate every supported locale                                                                       |
+| `defaultLocale`    | `proxy.ts`, `i18n/redirect.ts`                                          | Fallback when no locale is known                                                                       |
+| `isAppLocale()`    | Every page/layout (`if (!isAppLocale(locale)) notFound()`)              | Narrow the `string` route param to `AppLocale` before it's trusted                                     |
+| `namespaces`       | `i18n/server.ts`, `components/translations-provider.tsx`                | Drive the `Promise.all` / `addResourceBundle` loops so a new namespace only has to be added here       |
+| `getI18nOptions()` | Both `i18n/server.ts` and `translations-provider.tsx`                   | One shared `i18next.init()` options object, so server and client instances stay configured identically |
 
 `interpolation: { escapeValue: false }` inside `getI18nOptions`
 (`i18n/settings.ts:26`) turns off `i18next`'s default HTML-escaping of
@@ -252,7 +255,13 @@ every locale-prefixed `href` it produces.
 
 ```ts
 // i18n/redirect.ts:15
-export function redirect({ href, locale = defaultLocale }: { href: string; locale?: AppLocale }): never {
+export function redirect({
+  href,
+  locale = defaultLocale,
+}: {
+  href: string;
+  locale?: AppLocale;
+}): never {
   return nextRedirect(getPathname({ href, locale }));
 }
 ```
@@ -277,7 +286,9 @@ return {
   push(href: string, options?: { locale?: AppLocale }) {
     router.push(getPathname({ href, locale: options?.locale ?? activeLocale }));
   },
-  replace(href, options) { /* same pattern */ },
+  replace(href, options) {
+    /* same pattern */
+  },
 };
 ```
 
@@ -292,13 +303,13 @@ function handleLocaleChange(nextLocale: AppLocale) {
 }
 ```
 
-| Export | Where | What it's for |
-|---|---|---|
-| `Link` | `i18n/navigation.tsx:19` | Drop-in `next/link` replacement; auto-prefixes `href` unless it looks like an absolute URL |
-| `usePathname` | `i18n/navigation.tsx:29` | Returns the **locale-stripped** pathname (`/en/dashboard` → `/dashboard`) |
-| `useRouter` | `i18n/navigation.tsx:39` | `push`/`replace` that accept `{ locale }` to switch locale while navigating |
-| `getPathname` | `i18n/redirect.ts:4` | Pure `{ href, locale } → "/locale/href"` — the one function everything else in this section is built on |
-| `redirect` | `i18n/redirect.ts:15` | Server-safe locale-prefixed redirect; throws (`never`), same contract as `next/navigation`'s `redirect` |
+| Export        | Where                    | What it's for                                                                                           |
+| ------------- | ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `Link`        | `i18n/navigation.tsx:19` | Drop-in `next/link` replacement; auto-prefixes `href` unless it looks like an absolute URL              |
+| `usePathname` | `i18n/navigation.tsx:29` | Returns the **locale-stripped** pathname (`/en/dashboard` → `/dashboard`)                               |
+| `useRouter`   | `i18n/navigation.tsx:39` | `push`/`replace` that accept `{ locale }` to switch locale while navigating                             |
+| `getPathname` | `i18n/redirect.ts:4`     | Pure `{ href, locale } → "/locale/href"` — the one function everything else in this section is built on |
+| `redirect`    | `i18n/redirect.ts:15`    | Server-safe locale-prefixed redirect; throws (`never`), same contract as `next/navigation`'s `redirect` |
 
 ## Section 6 — Rich text: why `<Trans>` needed its own component
 
@@ -330,7 +341,9 @@ export function Tagline() {
     <Trans
       i18nKey="tagline"
       ns="common"
-      components={{ brand: <span className="text-zinc-500 dark:text-zinc-400" /> }}
+      components={{
+        brand: <span className="text-zinc-500 dark:text-zinc-400" />,
+      }}
     />
   );
 }
@@ -355,7 +368,7 @@ yet; each one currently gets its own file like `Tagline`.
 - **`proxy.ts` does locale redirect and auth redirect in the same request
   pass**, in that order (`proxy.ts:29` locale check first, then the
   auth/`SESSION_COOKIE_NAME` checks at `proxy.ts:35` onward). A request with
-  no locale prefix redirects to add one *before* the auth check ever runs —
+  no locale prefix redirects to add one _before_ the auth check ever runs —
   so an unauthenticated hit on `/dashboard` (no locale) first becomes
   `/en/dashboard` via one redirect, then `/en/login` via a second one on the
   next request, not a single combined redirect.
@@ -388,7 +401,7 @@ GET /dashboard
   → TranslationsProvider builds one i18next instance, seeded with those messages
   → (protected)/layout.tsx: verifySession() — no session cookie → redirect({ href: "/login", locale: "en" })
   → /en/login renders: getTranslation("en", "auth") for the page title (Server Component),
-    LoginForm's useTranslation("auth") for the form (Client Component, same context)
+    LoginFormScreen's useTranslation("auth") for the form (Client Component, same context)
 ```
 
 **Switching locale via `LocaleSwitcher` while already on a page:**
@@ -424,16 +437,16 @@ was specific to the old `next-intl` setup and was dropped along with it).
 
 ## Final reference table
 
-| Symbol | File | Purpose |
-|---|---|---|
-| `locales`, `defaultLocale`, `isAppLocale`, `namespaces`, `getI18nOptions` | `i18n/settings.ts` | Shared locale/namespace config |
-| `getTranslation`, `getMessages` | `i18n/server.ts` | Server Component translation reads |
-| `TranslationsProvider` | `components/translations-provider.tsx` | Client-side `i18next` instance + `<I18nextProvider>` |
-| `Tagline` | `components/tagline.tsx` | `<Trans>`-based rich text, isolated as a Client Component |
-| `Link`, `usePathname`, `useRouter` | `i18n/navigation.tsx` | Locale-aware client navigation |
-| `redirect`, `getPathname` | `i18n/redirect.ts` | Locale-aware redirect/path building, server- and client-safe |
-| `proxy` (default export) | `proxy.ts` | Locale detection/redirect + auth-path redirect, runs before render |
-| `useTranslation`, `<Trans>` | `react-i18next` (library) | Client Component translation hooks |
+| Symbol                                                                    | File                                   | Purpose                                                            |
+| ------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
+| `locales`, `defaultLocale`, `isAppLocale`, `namespaces`, `getI18nOptions` | `i18n/settings.ts`                     | Shared locale/namespace config                                     |
+| `getTranslation`, `getMessages`                                           | `i18n/server.ts`                       | Server Component translation reads                                 |
+| `TranslationsProvider`                                                    | `components/translations-provider.tsx` | Client-side `i18next` instance + `<I18nextProvider>`               |
+| `Tagline`                                                                 | `components/tagline.tsx`               | `<Trans>`-based rich text, isolated as a Client Component          |
+| `Link`, `usePathname`, `useRouter`                                        | `i18n/navigation.tsx`                  | Locale-aware client navigation                                     |
+| `redirect`, `getPathname`                                                 | `i18n/redirect.ts`                     | Locale-aware redirect/path building, server- and client-safe       |
+| `proxy` (default export)                                                  | `proxy.ts`                             | Locale detection/redirect + auth-path redirect, runs before render |
+| `useTranslation`, `<Trans>`                                               | `react-i18next` (library)              | Client Component translation hooks                                 |
 
 ## Verification performed
 

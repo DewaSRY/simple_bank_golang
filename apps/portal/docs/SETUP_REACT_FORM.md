@@ -140,7 +140,7 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export type LoginFormValues = z.infer<typeof loginSchema>;
+export type LoginFormScreenValues = z.infer<typeof loginSchema>;
 ```
 
 ---
@@ -157,10 +157,10 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/shared/form/FormInput";
 
-import { loginSchema, LoginFormValues } from "../schemas/login.schema";
+import { loginSchema, LoginFormScreenValues } from "../schemas/login.schema";
 
-export function LoginForm() {
-  const form = useForm<LoginFormValues>({
+export function LoginFormScreen() {
+  const form = useForm<LoginFormScreenValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -168,7 +168,7 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(data: LoginFormValues) {
+  function onSubmit(data: LoginFormScreenValues) {
     console.log(data);
   }
 

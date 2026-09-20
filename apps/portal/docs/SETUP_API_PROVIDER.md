@@ -15,11 +15,12 @@ Files:
 
 ## Why this shape
 
-Next.js App Router code runs in three different contexts — the build step,
-the server (RSC / route handlers), and the browser — and each one has a
-different way of reading the session token. If every API call site had to
-know which context it was in, that logic would leak into every feature. So
-it's centralized once:
+Every request that reaches the backend now originates from the Next.js
+server — a Server Action or a Server Component render
+(`docs/MIGRATION_TO_FULL_SSR.md`) — but a build-time static-generation pass
+is still a third context that needs its own guard (there's no backend to
+call yet). If every API call site had to know which context it was in, that
+logic would leak into every feature. So it's centralized once:
 
 ```
 Feature code
@@ -35,7 +36,8 @@ apiClient (shared axios.create() instance)
    │  one instance, one interceptor attached
    ▼
 ApiInterceptor
-   │  injects Authorization + X-Timezone, blocks build-time requests
+   │  injects Authorization + X-Timezone, blocks build-time requests,
+   │  logs request/response (docs/SETUP_LOGGING.md), 401 → /logout
    ▼
 Backend
 ```
@@ -149,9 +151,11 @@ itself is a singleton — that's what lets the `WeakSet` guard do its job, and
 it avoids reconstructing the client (and its typed methods) on every import.
 
 Every method returns the raw `Promise<AxiosResponse<TResponse>>` — callers
-(typically a feature's `hooks/query.ts`) unwrap it with
-`.then((response) => response.data)` to get to `TResponse` itself. See
-"Mutations: the auth feature" in `SETUP_REACT_QUERY.md` for why skipping
+unwrap it with `.then((response) => response.data)` to get to `TResponse`
+itself. Since the full-SSR migration (`docs/MIGRATION_TO_FULL_SSR.md`), that
+caller is a feature's `actions.ts` (a `"use server"` function), not
+`hooks/query.ts` directly — the hook calls the action instead of the client.
+See "Mutations: the auth feature" in `SETUP_REACT_QUERY.md` for why skipping
 that unwrap is a type error, not a runtime bug.
 
 Only pass a custom instance to the constructor when you deliberately need
@@ -171,7 +175,7 @@ this.instance.interceptors.request.use(async (config) => {
   }
 
   await this.addAuthorizationHeader(config);
-  this.addClientTimezoneHeader(config);
+  await this.addTimezoneHeader(config);
   return config;
 });
 ```
@@ -192,42 +196,65 @@ any other error propagate normally.
 
 ### 2. Authorization header
 
-The session token lives in a cookie, but *which* cookie API differs by
-context:
+Since the full-SSR migration (`docs/MIGRATION_TO_FULL_SSR.md`), every request
+that reaches `apiClient` originates from a Server Action or a Server
+Component — nothing in the browser calls a `feature/*/client.ts` method
+directly anymore — so `addAuthorizationHeader()` only has one path:
+`next/headers`' `cookies()`, which is async.
 
-- **Server** (RSC, route handlers): `next/headers`' `cookies()` is the only
-  way to read cookies, and it's async.
-- **Browser**: there's no `cookies()` API — the token is parsed out of
-  `document.cookie` with a regex.
+The `try/catch` around `cookies()` isn't for a real auth failure — it's
+because Next.js signals "this route can't be statically rendered" by
+*throwing* a special error (`digest === "DYNAMIC_SERVER_USAGE"`) the moment
+`cookies()` is called during static generation. That specific error is
+re-thrown so Next can correctly bail the route out of static rendering;
+anything else calling into `cookies()` unexpectedly failing is treated as "no
+token available" rather than crashing the request, since a logged-out
+request is a perfectly valid state (the backend will reject it with 401, not
+the interceptor).
 
-`isServer()` (`typeof window === "undefined"`) picks the right path. The
-`try/catch` around `cookies()` isn't for a real auth failure — it's because
-Next.js signals "this route can't be statically rendered" by *throwing* a
-special error (`digest === "DYNAMIC_SERVER_USAGE"`) the moment `cookies()` is
-called during static generation. That specific error is re-thrown so Next
-can correctly bail the route out of static rendering; anything else calling
-into `cookies()` unexpectedly failing is treated as "no token available"
-rather than crashing the request, since a logged-out request is a perfectly
-valid state (the backend will reject it with 401, not the interceptor).
+The session cookie itself is `httpOnly` (`feature/auth/session.ts`) — closing
+`docs/IMPROVEMENT_OPPORTUNITIES.md` §1.1 — precisely because nothing needs to
+read it from `document.cookie` anymore.
 
 ### 3. Timezone header
 
-`X-Timezone` is only set client-side (`Intl.DateTimeFormat()` needs the
-browser/runtime's local timezone, which is meaningless to compute on the
-server where the process' timezone isn't the *user's*). Server-rendered
-requests simply omit the header; the backend should treat a missing
-`X-Timezone` as "unknown" rather than assuming UTC or erroring.
+`X-Timezone` can't be read with `Intl.DateTimeFormat()` at request time
+anymore, since the request itself now runs on the server, where the
+process' timezone isn't the *user's*. Instead, `lib/timezone-sync.tsx` — a
+client component mounted once in `app/[locale]/layout.tsx` — writes the
+visitor's IANA timezone into a (non-sensitive, non-httpOnly) cookie on first
+render. `addTimezoneHeader()` reads that cookie server-side via
+`next/headers`' `cookies()`, the same way it reads the session token, and
+simply omits the header if the cookie hasn't been set yet (e.g. a request
+made before the client component has mounted); the backend should treat a
+missing `X-Timezone` as "unknown" rather than assuming UTC or erroring.
+
+## Response interceptor
+
+`setupResponseInterceptors()` is registered in the constructor alongside
+`setupRequestInterceptors()` and handles two things on every response:
+
+1. **401 → logout.** On a `401`, `handleUnauthorized()` runs
+   `window.location.href = "/logout"` (client-side only — a no-op on the
+   server, since there's nowhere to redirect a static/RSC render to). This
+   closes the gap that used to exist here: a stale/expired session used to
+   fail silently per-screen with no recovery path. `feature/auth/components/session-guard.tsx`
+   pairs with this by calling `useProfileQuery()` on every protected page
+   purely to *trigger* a 401 early if the session is already invalid, rather
+   than waiting for the user's next real action to discover it.
+2. **Structured logging.** Every request/success/failure is logged via
+   `lib/logger.ts` (server-side only) with a `requestId` correlating the
+   three log lines for one call, plus timing and device info. See
+   `docs/SETUP_LOGGING.md` for the full shape and its PII-redaction rules.
+
+`BuildPhaseSkippedError` is passed through unlogged and unhandled by the
+401 check — it's a signal for build-time skips, not a real HTTP failure.
 
 ## Adding a new cross-cutting concern
 
-To add another interceptor behavior (e.g. request ID tracing, a
-retry-on-401-refresh flow), add a private method to `ApiInterceptor` and call
-it from `setupRequestInterceptors`, in the same style as
-`addAuthorizationHeader`/`addClientTimezoneHeader`. Keep it here rather than
-in a resource client — anything that should apply to *every* request belongs
-in the interceptor, not duplicated per client.
-
-For response-side concerns (e.g. centralized 401 → redirect-to-login, error
-normalization), add a `setupResponseInterceptors()` method following the
-same pattern and call it from the constructor alongside
-`setupRequestInterceptors()`.
+To add another interceptor behavior (e.g. a retry-on-401-refresh flow, or a
+new response-side check), add a private method to `ApiInterceptor` and call
+it from `setupRequestInterceptors`/`setupResponseInterceptors`, in the same
+style as `addAuthorizationHeader`/`addClientTimezoneHeader`/`handleUnauthorized`.
+Keep it here rather than in a resource client — anything that should apply
+to *every* request belongs in the interceptor, not duplicated per client.

@@ -14,10 +14,6 @@ type CreateAccountTxParams struct {
 	IsMain      bool
 }
 
-// CreateAccountTx creates an account and assigns it a globally-unique number
-// derived from its own id, which is only known after the insert. The insert
-// and the follow-up number update happen in one DB transaction so an account
-// can never be left with a permanently-NULL number.
 func (store *_store) CreateAccountTx(ctx context.Context, arg CreateAccountTxParams) (sqlc.Account, error) {
 	var result sqlc.Account
 

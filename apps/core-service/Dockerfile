@@ -14,7 +14,7 @@ WORKDIR /app
 COPY --from=builder /app/main .
 COPY internal/db/migrations ./internal/db/migrations
 
-# app.env holds secrets (JWT key, DB source) so it is not baked into the image;
-# mount it at runtime, e.g. `docker run -v $(pwd)/app.env:/app/app.env ...`
+
+
 EXPOSE 8080
 ENTRYPOINT ["/app/main"]

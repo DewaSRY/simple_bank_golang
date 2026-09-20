@@ -13,7 +13,7 @@ export function TransferSideModel() {
       <TransferDialog open={open} setOpen={setOpen} />
       <IconButton
         text={t("transferAction")}
-        icon={<Plus />}
+        icon={<Plus className="size-4" />}
         tooltip={t("transferTooltip")}
         onClick={() => setOpen(true)}
         iconPosition="right"

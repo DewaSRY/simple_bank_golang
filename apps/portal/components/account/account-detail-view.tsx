@@ -5,8 +5,7 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useRouter } from "@/i18n/navigation";
 
-import { useAccountDetail } from "@/feature/account-manage/hooks/query";
-import { useAccountEntries } from "@/feature/account-transaction/hooks/query";
+import { useAccountDetail } from "@/feature/account-manage";
 
 import { AccountStateMessage } from "@/components/account/account-state-message";
 import { AccountSummaryCard } from "@/components/account/account-summary-card";
@@ -23,36 +22,12 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const {
-    data: accountEntries,
-    isLoading: accountEntriesLoading,
-    isError: accountEntriesError,
-  } = useAccountEntries(accountId, { page: 1, limit: 25 });
-
-  const {
     data: accountDetail,
     isLoading: accountDetailLoading,
     isError: accountDetailError,
   } = useAccountDetail(accountId);
 
   const account = accountDetail?.data;
-
-  if (accountEntriesLoading || accountDetailLoading) {
-    return (
-      <AccountStateMessage
-        title={t("loadingTitle")}
-        description={t("loadingDescription")}
-      />
-    );
-  }
-
-  if (accountEntriesError || accountDetailError) {
-    return (
-      <AccountStateMessage
-        title={t("loadErrorTitle")}
-        description={t("loadErrorDescription")}
-      />
-    );
-  }
 
   if (!account) {
     return (
@@ -64,8 +39,8 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
   }
 
   return (
-    <main className="flex flex-1 flex-col bg-zinc-50 px-4 py-6 dark:bg-black sm:px-6">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+    <main className="flex flex-1 flex-col bg-background px-4 py-6 sm:px-6">
+      <div className="mx-auto w-full max-w-[84rem] space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/dashboard"
@@ -108,7 +83,6 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
           accountName={account.name}
           accountId={accountId}
           currency={account.currency}
-          entries={accountEntries?.data ?? []}
         />
       </div>
     </main>

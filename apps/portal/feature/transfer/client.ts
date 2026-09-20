@@ -1,5 +1,5 @@
 import { BaseClient } from "../../lib/api/base-client";
-import type { CommonSuccessResponse } from "@/feature/common/type";
+import type { CommonSuccessResponse } from "@/feature/common";
 import type { CreateTransferBody, TransferResponse } from "./type";
 
 export class TransferClient extends BaseClient {

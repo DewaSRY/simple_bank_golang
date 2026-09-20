@@ -20,7 +20,9 @@ function isNavigableClick(event: MouseEvent) {
   if (anchor.hasAttribute("download")) return false;
 
   const url = new URL(anchor.href, window.location.href);
+
   if (url.origin !== window.location.origin) return false;
+  if (url.hash) return false;
   if (
     url.pathname === window.location.pathname &&
     url.search === window.location.search
@@ -49,11 +51,16 @@ function useIsNavigating() {
       if (isNavigableClick(event)) start();
     };
 
+    const onPopState = () => {
+      if (window.location.hash) return;
+      start();
+    };
+
     document.addEventListener("click", onClick, true);
-    window.addEventListener("popstate", start);
+    window.addEventListener("popstate", onPopState);
     return () => {
       document.removeEventListener("click", onClick, true);
-      window.removeEventListener("popstate", start);
+      window.removeEventListener("popstate", onPopState);
     };
   }, []);
 
@@ -82,7 +89,6 @@ function ProgressBarInner() {
 
     if (trickleRef.current) clearInterval(trickleRef.current);
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-
     if (active) {
       setBar(Math.max(widthRef.current, 8), 1);
       trickleRef.current = setInterval(() => {

@@ -8,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { AccountWithUserName } from "@/feature/account/type";
-import { formatAccountAmount } from "@/feature/account-transaction/utils";
+import type { AccountWithUserName } from "@/feature/account";
+import { formatAccountAmount } from "@/lib/number";
 
 export function AccountSummaryCard({
   account,
@@ -24,7 +24,7 @@ export function AccountSummaryCard({
       <CardHeader className="gap-6 p-6 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-primary-foreground/15">
+            <span className="flex size-11 items-center justify-center rounded-sm bg-primary-foreground/15">
               <Wallet className="size-5" aria-hidden />
             </span>
             <div>

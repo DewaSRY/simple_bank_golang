@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { SearchInput } from "@/components/common/search-input";
-import { useAccounts } from "@/feature/account/hooks/query";
+import { useAccounts } from "@/feature/account";
 
 import { AccountCard } from "./account-card";
 import { useTransferStore } from "./store";

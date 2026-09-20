@@ -21,7 +21,6 @@ type DepositTxResult struct {
 	Entry   sqlc.Entry
 }
 
-// DepositTx increases an account's balance and records a DEPOSIT entry.
 func (store *_store) DepositTx(ctx context.Context, arg DepositTxParams) (DepositTxResult, error) {
 	var result DepositTxResult
 
@@ -34,9 +33,6 @@ func (store *_store) DepositTx(ctx context.Context, arg DepositTxParams) (Deposi
 	return result, err
 }
 
-// depositTx contains the business logic and depends only on the sqlc.Querier
-// interface, so it can be unit tested with a gomock-generated mock without a
-// real database.
 func depositTx(ctx context.Context, q sqlc.Querier, arg DepositTxParams) (DepositTxResult, error) {
 	var result DepositTxResult
 

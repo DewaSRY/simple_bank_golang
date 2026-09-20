@@ -13,7 +13,7 @@ export function DepositeSideModel() {
       <DepositeDialog open={open} setOpen={setOpen} />
       <IconButton
         text={t("depositAction")}
-        icon={<Plus />}
+        icon={<Plus className="size-4" />}
         tooltip={t("depositTooltip")}
         onClick={() => setOpen(true)}
         iconPosition="right"

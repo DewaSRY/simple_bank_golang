@@ -1,14 +1,24 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
-import { QueryClient } from "@tanstack/react-query";
+import {
+  QueryClient,
+  HydrationBoundary,
+  dehydrate,
+} from "@tanstack/react-query";
 import { verifySession } from "@/feature/auth/dal";
+import { SessionGuard } from "@/feature/auth";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
 import { SiteHeader } from "@/components/navigation/site-header";
 
-import { queryKeys } from "@/feature/account/hooks/query";
-import { accountClient } from "@/feature/account/client";
+import { queryKeys, listMeAccountsAction } from "@/feature/account";
+import { unwrapActionResult } from "@/lib/api/action-result";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function ProtectedLayout({
   children,
@@ -27,10 +37,11 @@ export default async function ProtectedLayout({
   const query = {
     page: 1,
     limit: 10,
+    name: "",
   };
   await queryClient.prefetchQuery({
     queryKey: queryKeys.list(query),
-    queryFn: () => accountClient.listMeAccounts(query).then((res) => res.data),
+    queryFn: () => listMeAccountsAction(query).then(unwrapActionResult),
   });
 
   return (
@@ -42,12 +53,15 @@ export default async function ProtectedLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader locale={locale} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <SessionGuard />
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader locale={locale} />
 
-        {children}
-      </SidebarInset>
+          {children}
+        </SidebarInset>
+      </HydrationBoundary>
     </SidebarProvider>
   );
 }

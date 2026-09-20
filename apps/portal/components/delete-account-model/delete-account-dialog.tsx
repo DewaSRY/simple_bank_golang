@@ -12,9 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useDeleteAccount } from "@/feature/account-manage/hooks/query";
+import { useDeleteAccount } from "@/feature/account-manage";
 import { getApiErrorMessage } from "@/lib/api/error";
-import type { AccountWithUserName } from "@/feature/account/type";
+import type { AccountWithUserName } from "@/feature/account";
 
 interface Props {
   account: AccountWithUserName;

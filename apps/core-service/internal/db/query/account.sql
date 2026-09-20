@@ -46,7 +46,7 @@ WHERE user_id = $1 AND is_main = true AND deleted_at IS NULL;
 -- name: ListAccountsSearchByUserNumber :many
 SELECT sqlc.embed(v)
 FROM account_user_details_view v
-WHERE v.number LIKE '%' || sqlc.arg(number) || '%'
+WHERE v.number LIKE '%' || sqlc.arg(number) || '%' ESCAPE '\'
 ORDER BY v.created_at DESC
 LIMIT sqlc.arg(limit_count)
 OFFSET sqlc.arg(offset_count);
@@ -55,4 +55,4 @@ OFFSET sqlc.arg(offset_count);
 -- name: CountAccountsSearchByUserNumber :one
 SELECT COUNT(*)
 FROM account_user_details_view
-WHERE number LIKE '%' || sqlc.arg(number) || '%';
+WHERE number LIKE '%' || sqlc.arg(number) || '%' ESCAPE '\';

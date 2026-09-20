@@ -1,6 +1,86 @@
 basePath: /api/v1
 definitions:
-  api.AuthResponse:
+  api_account.accountResponse:
+    properties:
+      balance:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      is_main:
+        type: boolean
+      name:
+        type: string
+      number:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  api_account.accountSearchResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      number:
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  api_account.accountuserResponse:
+    properties:
+      balance:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      is_main:
+        type: boolean
+      name:
+        type: string
+      number:
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  api_account.createAccountRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  api_account.deleteAccountResponse:
+    properties:
+      account:
+        $ref: '#/definitions/api_account.accountResponse'
+      balance_swept_to_account_id:
+        type: integer
+    type: object
+  api_account.updateAccountRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  api_auth.AuthResponse:
     properties:
       access_token:
         type: string
@@ -9,23 +89,45 @@ definitions:
       token_type:
         type: string
     type: object
-  api.FieldError:
+  api_auth.loginUserRequest:
     properties:
-      field:
+      email:
         type: string
-      message:
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  api_auth.profileResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      username:
         type: string
     type: object
-  api.Meta:
+  api_auth.registerUserRequest:
     properties:
-      limit:
-        type: integer
-      page:
-        type: integer
-      total:
-        type: integer
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      password_confirm:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - password_confirm
+    - username
     type: object
-  api.accountEntriesViewResponse:
+  api_transfer.accountEntriesViewResponse:
     properties:
       account_id:
         type: integer
@@ -52,60 +154,7 @@ definitions:
       user_id:
         type: integer
     type: object
-  api.accountResponse:
-    properties:
-      balance:
-        type: string
-      created_at:
-        type: string
-      currency:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-      is_main:
-        type: boolean
-      name:
-        type: string
-      number:
-        type: string
-      user_id:
-        type: integer
-    type: object
-  api.accountuserResponse:
-    properties:
-      balance:
-        type: string
-      created_at:
-        type: string
-      currency:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-      is_main:
-        type: boolean
-      name:
-        type: string
-      number:
-        type: string
-      user_id:
-        type: integer
-      username:
-        type: string
-    type: object
-  api.createAccountRequest:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
-    required:
-    - name
-    type: object
-  api.createTransactionTransferRequest:
+  api_transfer.createTransactionTransferRequest:
     properties:
       amount:
         type: number
@@ -121,58 +170,14 @@ definitions:
     - from_account_id
     - to_account_id
     type: object
-  api.deleteAccountResponse:
-    properties:
-      account:
-        $ref: '#/definitions/api.accountResponse'
-      balance_swept_to_account_id:
-        type: integer
-    type: object
-  api.depositRequest:
+  api_transfer.depositRequest:
     properties:
       amount:
         type: number
       description:
         type: string
     type: object
-  api.errorBody:
-    properties:
-      code:
-        type: string
-      details:
-        items:
-          $ref: '#/definitions/api.FieldError'
-        type: array
-      message:
-        type: string
-    type: object
-  api.errorResponse:
-    properties:
-      error:
-        $ref: '#/definitions/api.errorBody'
-    type: object
-  api.loginUserRequest:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  api.profileResponse:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      username:
-        type: string
-    type: object
-  api.publicAccountResponse:
+  api_transfer.publicAccountResponse:
     properties:
       id:
         type: integer
@@ -185,36 +190,70 @@ definitions:
       username:
         type: string
     type: object
-  api.registerUserRequest:
+  api_transfer.transactionHistoryCounterparty:
     properties:
-      email:
+      id:
+        type: integer
+      name:
         type: string
-      password:
-        minLength: 8
+      number:
         type: string
-      password_confirm:
-        type: string
-      username:
-        type: string
-    required:
-    - email
-    - password
-    - password_confirm
-    - username
     type: object
-  api.successResponse:
+  api_transfer.transactionHistoryItem:
+    properties:
+      amount:
+        type: string
+      counterparty:
+        $ref: '#/definitions/api_transfer.transactionHistoryCounterparty'
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      label:
+        type: string
+    type: object
+  github_com_DewaSRY_core-service_internal_api_core.FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  github_com_DewaSRY_core-service_internal_api_core.Meta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  github_com_DewaSRY_core-service_internal_api_core.errorBody:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.FieldError'
+        type: array
+      message:
+        type: string
+    type: object
+  github_com_DewaSRY_core-service_internal_api_core.errorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorBody'
+    type: object
+  github_com_DewaSRY_core-service_internal_api_core.successResponse:
     properties:
       data: {}
       message:
         type: string
       meta: {}
-    type: object
-  api.updateAccountRequest:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
     type: object
 info:
   contact: {}
@@ -233,7 +272,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.createAccountRequest'
+          $ref: '#/definitions/api_account.createAccountRequest'
       produces:
       - application/json
       responses:
@@ -241,23 +280,23 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.accountResponse'
+                  $ref: '#/definitions/api_account.accountResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Create a new account
@@ -280,31 +319,31 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.deleteAccountResponse'
+                  $ref: '#/definitions/api_account.deleteAccountResponse'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Delete an account
@@ -325,31 +364,31 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.accountuserResponse'
+                  $ref: '#/definitions/api_account.accountuserResponse'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Get account details
@@ -371,7 +410,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.updateAccountRequest'
+          $ref: '#/definitions/api_account.updateAccountRequest'
       produces:
       - application/json
       responses:
@@ -379,31 +418,31 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.accountResponse'
+                  $ref: '#/definitions/api_account.accountResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Update an account
@@ -425,7 +464,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.depositRequest'
+          $ref: '#/definitions/api_transfer.depositRequest'
       produces:
       - application/json
       responses:
@@ -433,31 +472,31 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.accountEntriesViewResponse'
+                  $ref: '#/definitions/api_transfer.accountEntriesViewResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Deposit into an account
@@ -498,35 +537,35 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/api.accountEntriesViewResponse'
+                    $ref: '#/definitions/api_transfer.accountEntriesViewResponse'
                   type: array
                 meta:
-                  $ref: '#/definitions/api.Meta'
+                  $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: List account entries
@@ -559,32 +598,101 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/api.publicAccountResponse'
+                    $ref: '#/definitions/api_transfer.publicAccountResponse'
                   type: array
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: List recent transfer destinations
+      tags:
+      - accounts-transaction
+  /accounts/{id}/transactions:
+    get:
+      description: List labeled transaction history for an account owned by the authenticated
+        user, paginated
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Month (1-12), defaults to the current month
+        in: query
+        name: month
+        type: integer
+      - description: Year, defaults to the current year
+        in: query
+        name: year
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/api_transfer.transactionHistoryItem'
+                  type: array
+                meta:
+                  $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: List account transaction history
       tags:
       - accounts-transaction
   /accounts/me:
@@ -612,27 +720,27 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/api.accountuserResponse'
+                    $ref: '#/definitions/api_account.accountuserResponse'
                   type: array
                 meta:
-                  $ref: '#/definitions/api.Meta'
+                  $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: List accounts
@@ -665,31 +773,31 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/api.accountuserResponse'
+                    $ref: '#/definitions/api_account.accountSearchResponse'
                   type: array
                 meta:
-                  $ref: '#/definitions/api.Meta'
+                  $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.Meta'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Search an account by number
@@ -706,7 +814,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.loginUserRequest'
+          $ref: '#/definitions/api_auth.loginUserRequest'
       produces:
       - application/json
       responses:
@@ -714,23 +822,23 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.AuthResponse'
+                  $ref: '#/definitions/api_auth.AuthResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       summary: Login
       tags:
       - auth
@@ -744,23 +852,23 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.profileResponse'
+                  $ref: '#/definitions/api_auth.profileResponse'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Get profile
@@ -777,7 +885,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.registerUserRequest'
+          $ref: '#/definitions/api_auth.registerUserRequest'
       produces:
       - application/json
       responses:
@@ -785,23 +893,23 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.AuthResponse'
+                  $ref: '#/definitions/api_auth.AuthResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       summary: Register
       tags:
       - auth
@@ -814,7 +922,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.successResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
       summary: Health check
       tags:
       - health
@@ -830,7 +938,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.createTransactionTransferRequest'
+          $ref: '#/definitions/api_transfer.createTransactionTransferRequest'
       produces:
       - application/json
       responses:
@@ -838,35 +946,35 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/api.successResponse'
+            - $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.successResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/api.accountEntriesViewResponse'
+                  $ref: '#/definitions/api_transfer.accountEntriesViewResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.errorResponse'
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
       security:
       - BearerAuth: []
       summary: Transfer funds

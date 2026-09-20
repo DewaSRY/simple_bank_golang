@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { SearchInput } from "@/components/common/search-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSearchAccountByNumber } from "@/feature/account/hooks/query";
-import { useRecentTransactions } from "@/feature/account-transaction/hooks/query";
+import { useSearchAccountByNumber } from "@/feature/account";
+import { useRecentTransactions } from "@/feature/account-transaction";
 
 import { AccountCard } from "./account-card";
 import { useTransferStore } from "./store";
