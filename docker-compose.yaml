@@ -3,32 +3,28 @@ services:
     image: postgres:16
     restart: always
     environment:
-      POSTGRES_USER: simple_bank
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: simple_bank
+      POSTGRES_USER: ${POSTGRES_USER:-simple_bank}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-simple_bank}
     ports:
       - "5433:5432"
     volumes:
       - simple_bank_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U simple_bank -d simple_bank"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-simple_bank} -d ${POSTGRES_DB:-simple_bank}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   # Not published on the host — only reachable through nginx below, same as
-  # the production EC2 deploy (see infra/terraform).
+  # the production EC2 deploy (see infra/terraform). Runtime config comes
+  # entirely from .env (copy .env.example -> .env) so nothing here is
+  # hardcoded and nothing gets baked into the image.
   core-services:
-    image: core-service:latest
-    environment:
-      DB_DRIVER: postgres
-      DB_SOURCE: "postgresql://simple_bank:password@postgres:5432/simple_bank?sslmode=disable"
-      SERVER_ADDRESS: "0.0.0.0:8080"
-      JWT_SECRET_KEY: "46cb893a8ab20cb9042f3bdb49747c4fc813fb04a370aa2b16d7feaf30367fad"
-      JWT_ACCESS_TOKEN_DURATION: "600m"
-      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,https://simplebankportal.vercel.app"
-      LOG_LEVEL: "info"
-      LOG_FORMAT: "json"
+    image: ${CORE_SERVICE_IMAGE:-sdewa/core-service-dep:latest}
+    restart: unless-stopped
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
