@@ -16,6 +16,8 @@ export function CreateNewAccount() {
         icon={<Plus className="size-4" />}
         tooltip={t("createNewAccount")}
         onClick={() => setIsDialogOpen(true)}
+        layout="tile"
+        className="wrap-break-word!"
         iconPosition="right"
       />
     </div>

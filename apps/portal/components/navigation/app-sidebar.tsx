@@ -30,7 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:px-1.5!"
+              className="data-[slot=sidebar-menu-button]:p-4! p-2!"
               render={<Link href={`/${i18n.language}/dashboard`} />}
             >
               <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">

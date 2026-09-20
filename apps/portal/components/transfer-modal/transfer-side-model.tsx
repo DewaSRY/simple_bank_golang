@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TransferDialog } from "./transfer-dialog";
 import { IconButton } from "@/components/common/icon-button";
-import { Plus } from "lucide-react";
+import { ArrowLeftRight } from "lucide-react";
 
 export function TransferSideModel() {
   const { t } = useTranslation("transfer");
@@ -13,9 +13,11 @@ export function TransferSideModel() {
       <TransferDialog open={open} setOpen={setOpen} />
       <IconButton
         text={t("transferAction")}
-        icon={<Plus className="size-4" />}
+        icon={<ArrowLeftRight className="size-4" />}
         tooltip={t("transferTooltip")}
         onClick={() => setOpen(true)}
+        layout="tile"
+        className="wrap-break-word!"
         iconPosition="right"
       />
     </div>

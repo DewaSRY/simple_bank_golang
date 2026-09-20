@@ -37,7 +37,8 @@ export function DestinationStep() {
   const recentResults = (recent?.data ?? []).filter(
     (account) => account.id !== sourceAccount?.id,
   );
-  const numberResults = (searchResults ?? []).filter(
+
+  const numberResults = (searchResults?.data ?? []).filter(
     (account) => account.id !== sourceAccount?.id,
   );
 

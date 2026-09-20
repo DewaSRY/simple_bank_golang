@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RequestAccountbody } from "@/feature/account";
+import { queryKeys as accountQueryKeys } from "@/feature/account/hooks/query";
 import { unwrapActionResult } from "@/lib/api/action-result";
 import {
   deleteAccountAction,
@@ -8,7 +9,8 @@ import {
 } from "../actions";
 
 export const queryKeys = {
-  manageAccount: (number: number) => ["manage-account", number] as const,
+  manageAccount: (number: number) =>
+    ["accounts", "list", "manage-account", number] as const,
 };
 
 export function useAccountDetail(number: number) {
@@ -27,6 +29,7 @@ export function useUpdateAccount(number: number) {
       queryClient.invalidateQueries({
         queryKey: queryKeys.manageAccount(number),
       });
+      queryClient.invalidateQueries({ queryKey: accountQueryKeys.all });
     },
   });
 }
@@ -39,6 +42,7 @@ export const useDeleteAccount = (number: number) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.manageAccount(number),
       });
+      queryClient.invalidateQueries({ queryKey: accountQueryKeys.all });
     },
   });
 };
