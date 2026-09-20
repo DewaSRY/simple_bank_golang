@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useInView } from "motion/react";
 import { cn } from "@/lib/utils";
+
+const AUTO_ADVANCE_INTERVAL_MS = 2400;
 
 export interface InteractiveFlowStep {
   title: string;
@@ -19,13 +21,26 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const active = steps[activeIndex];
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { amount: 0.4 });
+
+  useEffect(() => {
+    if (!isInView || steps.length < 2) return;
+
+    const id = setInterval(() => {
+      setActiveIndex((current) => (current + 1) % steps.length);
+    }, AUTO_ADVANCE_INTERVAL_MS);
+
+    return () => clearInterval(id);
+  }, [isInView, steps.length]);
+
   return (
-    <div className={cn("w-full", className)}>
-      <div className="flex flex-col gap-2 overflow-x-auto md:flex-row md:items-center md:gap-0 md:pb-2">
+    <div ref={containerRef} className={cn("w-full", className)}>
+      <div className=" flex flex-col gap-2 overflow-x-auto md:flex-row md:items-center md:gap-0 md:pb-2">
         {steps.map((step, index) => (
           <div
             key={step.title}
-            className="flex flex-col md:flex-row md:flex-none md:items-center"
+            className="flex flex-col md:flex-row md:flex-none md:items-center p-2 "
           >
             <motion.button
               type="button"
@@ -34,7 +49,7 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
               transition={{ duration: 0.15 }}
               aria-pressed={index === activeIndex}
               className={cn(
-                "flex w-full flex-col items-center gap-1.5 rounded-2xl p-4 text-center ring-1 transition-colors md:w-36",
+                "flex h-40 w-50 flex-col items-center justify-center gap-1.5 rounded-2xl p-4 text-center ring-1 transition-colors md:h-36 md:w-36",
                 index === activeIndex
                   ? "bg-primary/10 ring-primary/40"
                   : "bg-card ring-foreground/10 hover:bg-muted/60",
@@ -42,7 +57,7 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
             >
               <span
                 className={cn(
-                  "flex size-7 items-center justify-center rounded-full font-mono text-[11px] font-semibold transition-colors",
+                  "flex size-7 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-semibold transition-colors",
                   index === activeIndex
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground",
@@ -50,10 +65,10 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
               >
                 {index + 1}
               </span>
-              <p className="text-sm font-semibold text-balance">
+              <p className="line-clamp-2 text-sm font-semibold text-balance whitespace-break-spaces">
                 {step.title}
               </p>
-              <p className="text-xs text-muted-foreground text-balance">
+              <p className="line-clamp-4 text-xs text-muted-foreground text-balance whitespace-break-spaces">
                 {step.summary}
               </p>
             </motion.button>
