@@ -16,7 +16,6 @@ export function TransferSideModel() {
         icon={<ArrowLeftRight className="size-4" />}
         tooltip={t("transferTooltip")}
         onClick={() => setOpen(true)}
-        layout="tile"
         className="wrap-break-word!"
         iconPosition="right"
       />

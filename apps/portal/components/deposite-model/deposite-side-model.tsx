@@ -16,7 +16,6 @@ export function DepositeSideModel() {
         icon={<ArrowDownToLine className="size-4" />}
         tooltip={t("depositTooltip")}
         onClick={() => setOpen(true)}
-        layout="tile"
         className="wrap-break-word!"
         iconPosition="right"
       />
