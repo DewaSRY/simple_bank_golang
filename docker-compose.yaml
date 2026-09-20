@@ -11,7 +11,11 @@ services:
     volumes:
       - simple_bank_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-simple_bank} -d ${POSTGRES_DB:-simple_bank}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-simple_bank} -d ${POSTGRES_DB:-simple_bank}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,7 +25,7 @@ services:
   # entirely from .env (copy .env.example -> .env) so nothing here is
   # hardcoded and nothing gets baked into the image.
   core-services:
-    image: ${CORE_SERVICE_IMAGE:-sdewa/core-service-dep:latest}
+    image: ${CORE_SERVICE_IMAGE}
     restart: unless-stopped
     env_file:
       - .env
