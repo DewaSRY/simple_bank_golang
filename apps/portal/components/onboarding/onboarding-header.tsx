@@ -21,7 +21,7 @@ export function OnboardingHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-3 sm:px-6 space-y-2">
         <div className="flex items-center justify-between gap-3">
           <Link
             href="/onboarding"

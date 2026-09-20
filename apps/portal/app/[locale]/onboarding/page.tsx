@@ -70,15 +70,15 @@ export default async function OnboardingStartPage({
   ];
 
   return (
-    <div className="space-y-10 py-6 text-center">
+    <div className="space-y-10 pb-6 pt-10 text-center">
       <div className="space-y-4">
         <span className="inline-block rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-foreground/10">
           {t("badge")}
         </span>
-        <h1 className="mx-auto max-w-xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+        <h1 className="mx-auto  text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
           {t("start.title")}
         </h1>
-        <p className="mx-auto max-w-lg text-muted-foreground text-balance">
+        <p className="mx-auto  text-muted-foreground text-balance">
           {t("start.description")}
         </p>
         <Button
@@ -92,7 +92,7 @@ export default async function OnboardingStartPage({
         </Button>
       </div>
 
-      <div className="grid gap-4 text-left sm:grid-cols-2">
+      <div className="grid gap-4 text-left sm:grid-cols-2 py-4">
         {steps.map((step, index) => (
           <Card key={step.title}>
             <CardContent className="flex items-start gap-3">
