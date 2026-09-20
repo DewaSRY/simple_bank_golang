@@ -32,9 +32,9 @@ export function AccountList() {
       />
 
       <div className="space-y-2 py-2">
-        {accounts &&
-          accounts.length > 0 &&
-          accounts.map((account, idx) => (
+        {accounts?.data &&
+          accounts?.data.length > 0 &&
+          accounts.data.map((account, idx) => (
             <AccountCard
               key={`account-${account.id}-${idx}`}
               name={account.name}

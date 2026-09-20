@@ -32,9 +32,9 @@ export function SourceStep() {
       />
 
       <div className="max-h-80 space-y-2 overflow-y-auto py-2">
-        {accounts &&
-          accounts.length > 0 &&
-          accounts.map((account, idx) => (
+        {accounts?.data &&
+          accounts.data.length > 0 &&
+          accounts.data.map((account, idx) => (
             <AccountCard
               key={`source-${account.id}-${idx}`}
               name={account.name}

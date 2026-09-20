@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useTransition } from "react";
 import { useQueryStates, parseAsString, parseAsInteger } from "nuqs";
 import Pagination from "../ui/pagination";
+import { SearchInput } from "../common/search-input";
 
 export function NavAccountList() {
   const { t } = useTranslation("common");
@@ -47,12 +48,24 @@ export function NavAccountList() {
 
   const hasAccounts = !isLoading && !!accountsResponse?.data?.length;
 
+  function handleSearch(value: string) {
+    setQuery({ search_account: value });
+  }
+
   return (
     <SidebarGroup className="flex min-h-0 flex-1 flex-col">
       <SidebarGroupLabel className="text-lg">
         {t("yourAccounts")}
       </SidebarGroupLabel>
       <SidebarGroupContent className="flex min-h-0 min-w-0 flex-1 flex-col gap-0.5">
+        <div className="py-2">
+          <SearchInput
+            search={search_account}
+            onSearch={handleSearch}
+            placeholder={t("searchAccountsPlaceholder")}
+          />
+        </div>
+
         <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
           {isLoading ? (
             <div className="flex flex-col gap-3 px-3 py-2">
