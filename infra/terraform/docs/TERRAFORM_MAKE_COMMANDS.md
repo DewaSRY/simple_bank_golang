@@ -118,24 +118,25 @@ Both are bare `terraform` calls with **no `-auto-approve`** — this is delibera
 **`tf-redeploy`** ([Makefile:27-36](../../../Makefile#L27-L36)):
 
 ```make
-# Re-runs the exact first-boot script (docker network + core-service + nginx
-# setup) against the already-running instance over SSH. EC2 only executes
-# user_data automatically on an instance's first boot, so this is how an
-# existing instance picks up a new image, a new nginx rate limit, a new CORS
-# origin, etc. Idempotent (docker pull + docker rm -f + docker run each
-# time) — safe to re-run. See infra/terraform/outputs.tf's rendered_user_data
-# and apps/core-service/docs/TERRAFORM_EC2_DEPLOY.md Section 7.
+# Re-runs the exact first-boot script (docker compose stack: core-service +
+# nginx, see infra/terraform/docker-compose.prod.yaml) against the
+# already-running instance over SSH. EC2 only executes user_data
+# automatically on an instance's first boot, so this is how an existing
+# instance picks up a new image, a new nginx rate limit, a new CORS origin,
+# etc. Idempotent (docker compose pull + up -d each time) — safe to re-run.
+# See infra/terraform/outputs.tf's rendered_user_data and
+# apps/core-service/docs/TERRAFORM_EC2_DEPLOY.md Section 7.
 tf-redeploy:
 	$(eval EC2_IP := $(shell terraform -chdir=$(TF_DIR) output -raw public_ip))
 	terraform -chdir=$(TF_DIR) output -raw rendered_user_data | ssh -i $(TF_KEY) ec2-user@$(EC2_IP) 'sudo bash -s'
 ```
 
-Two steps: first, `$(eval EC2_IP := $(shell terraform -chdir=$(TF_DIR) output -raw public_ip))` shells out to read the instance's current public IP straight from state (the same value `tf-output` would print, just captured into a make variable instead of printed). Second, `terraform -chdir=$(TF_DIR) output -raw rendered_user_data` prints the *exact* rendered boot script — the same `local.user_data` value `aws_instance.core_service` was given on first boot (see [TERRAFORM_EC2_DEPLOY.md Section 6](TERRAFORM_EC2_DEPLOY.md#section-6--maintf107-156--rendering-the-boot-script-and-the-ec2-instance)) — and pipes it directly into `ssh -i $(TF_KEY) ec2-user@$(EC2_IP) 'sudo bash -s'`.
+Two steps: first, `$(eval EC2_IP := $(shell terraform -chdir=$(TF_DIR) output -raw public_ip))` shells out to read the instance's current public IP straight from state (the same value `tf-output` would print, just captured into a make variable instead of printed). Second, `terraform -chdir=$(TF_DIR) output -raw rendered_user_data` prints the *exact* rendered boot script — the same `local.user_data` value `aws_instance.core_service` was given on first boot (see [TERRAFORM_EC2_DEPLOY.md Section 6](TERRAFORM_EC2_DEPLOY.md#section-6--maintf107-166--rendering-the-boot-script-and-the-ec2-instance)) — and pipes it directly into `ssh -i $(TF_KEY) ec2-user@$(EC2_IP) 'sudo bash -s'`.
 
 Three details in that pipeline are load-bearing, not incidental:
 
 - **`-raw`**, not the default `terraform output` formatting. Without it, Terraform would print the value quoted and JSON-escaped (fine for a human to read, not fine to hand straight to `bash`). `rendered_user_data` is also marked `sensitive = true` — `-raw` is also what lets you retrieve the real value at all here; the bare `terraform output`/`make tf-output` command masks sensitive outputs as `(sensitive value)`.
-- **`sudo bash -s`**, not a hand-written second script. `bash -s` reads the script from stdin; piping the *actual* `rendered_user_data` output into it means the instance re-runs the identical script EC2 would have run on a fresh first boot — same `docker network create` idempotency, same `docker rm -f ... || true`, same `docker run` invocations. There's no second, hand-maintained "redeploy script" to keep in sync with `user_data.sh.tpl` — see [TERRAFORM_EC2_DEPLOY.md Section 6](TERRAFORM_EC2_DEPLOY.md#section-6--maintf107-156--rendering-the-boot-script-and-the-ec2-instance) for why `local.user_data` was refactored into its own named local specifically to make this possible.
+- **`sudo bash -s`**, not a hand-written second script. `bash -s` reads the script from stdin; piping the *actual* `rendered_user_data` output into it means the instance re-runs the identical script EC2 would have run on a fresh first boot — same rendered `docker-compose.yml` written to disk, same `docker compose pull`, same `docker compose up -d`. There's no second, hand-maintained "redeploy script" to keep in sync with `user_data.sh.tpl` — see [TERRAFORM_EC2_DEPLOY.md Section 6](TERRAFORM_EC2_DEPLOY.md#section-6--maintf107-166--rendering-the-boot-script-and-the-ec2-instance) for why `local.user_data` was refactored into its own named local specifically to make this possible.
 - **It's safe to run repeatedly**, by construction of the script itself, not because of anything in the Makefile — `tf-redeploy` has no idempotency logic of its own; it relies entirely on `user_data.sh.tpl` being written to tolerate re-running (Section 7 of the other doc).
 
 **Rough edge worth flagging — `tf-redeploy` requires an instance that already exists.** It calls `terraform output -raw public_ip`, which fails if `tf-apply` has never successfully created `aws_instance.core_service`. It also requires the same SSH reachability `ssh_command`/`tf-output` depend on — if you've locked `ssh_cidr_blocks` down to your own IP (recommended in [TERRAFORM_EC2_DEPLOY.md Section 5](TERRAFORM_EC2_DEPLOY.md#section-5--maintf78-105--security-group-firewall)) and your IP has since changed, `tf-redeploy` will hang or fail the same way a manual `ssh` would.
@@ -170,7 +171,7 @@ Reads straight from the last-known state file (`infra/terraform/terraform.tfstat
 
 ## Cross-Feature Coupling
 
-- **`tf-apply` depends on the core-service image already existing on Docker Hub.** The instance's boot script `docker pull`s whatever `docker_image` is set to in `terraform.tfvars` — that image has to already be pushed via `make -C apps/core-service docker-dep-build docker-dep-push` ([apps/core-service/Makefile:60-64](../../../apps/core-service/Makefile#L60-L64)) *before* you run `make tf-apply`, or the new instance's first boot will fail its `docker pull` step with nothing else in this Makefile catching that error. The nginx image doesn't have this dependency — `nginx_image` defaults to the public `nginx:1.27-alpine`, which nothing in this repo builds or pushes.
+- **`tf-apply` depends on the core-service image already existing on Docker Hub.** The instance's boot script ends with `docker compose pull`, which pulls whatever `docker_image` is baked into the rendered `docker-compose.yml` (from `terraform.tfvars`) — that image has to already be pushed via `make -C apps/core-service docker-dep-build docker-dep-push` ([apps/core-service/Makefile:60-64](../../../apps/core-service/Makefile#L60-L64)) *before* you run `make tf-apply`, or the new instance's first boot will fail its `docker compose pull` step with nothing else in this Makefile catching that error. The nginx image doesn't have this dependency — `nginx_image` defaults to the public `nginx:1.27-alpine`, which nothing in this repo builds or pushes.
 - **`tf-redeploy` and `deploy` depend on an instance `tf-apply` already created**, and on SSH reachability to it — see Section 4's rough edge above.
 - **None of the `tf-*` targets touch AWS credentials.** They rely entirely on whatever `aws configure` set up outside this repo (`~/.aws/credentials`) — there's no target here that checks credentials are present or valid before calling `terraform`; a missing/expired credential surfaces as a raw AWS SDK error from inside `terraform apply` (or, for `tf-redeploy`, from the `terraform output` calls it depends on), not from `make`.
 - **`tf-destroy` does not touch Supabase or Docker Hub.** It only removes what `infra/terraform/main.tf` created (the EC2 instance, security group, key pair). Your Supabase database and the pushed Docker image both persist after `make tf-destroy` — worth knowing if you expect a clean slate.

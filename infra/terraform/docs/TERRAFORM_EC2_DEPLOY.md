@@ -25,7 +25,7 @@ Terraform's job in one sentence: you declare the *end state* you want in `.tf` f
 
 1. The state file, not your `.tf` files and not the AWS Console, is what Terraform treats as ground truth. If you change something by hand in the AWS Console, Terraform doesn't know — it'll either silently ignore the drift or try to "fix" it back on the next `apply`. See [Section 1](#section-1--architecture-at-a-glance).
 2. Marking a variable `sensitive = true` (used for `db_source` and `jwt_secret_key` here, and now for the `rendered_user_data` output too) hides it from **terminal output** — it does **not** encrypt it in the state file. The plaintext Supabase URL and JWT secret both land in `terraform.tfstate` regardless. See [Section 8 — Variables & Secrets](#section-8--variablestf--input-schema-and-secrets).
-3. `user_data` (the boot script) only runs **once**, on an instance's first boot. Editing [user_data.sh.tpl](../user_data.sh.tpl) after the instance already exists does nothing until you destroy and recreate it — Terraform won't rerun it in place. This is also why `main.tf` now pulls the rendered script into `local.user_data` and exposes it as the `rendered_user_data` output: `make tf-redeploy` uses that output to rerun the exact same script over SSH against an already-running instance, since Terraform itself has no built-in way to do that. See [Section 6](#section-6--maintf107-156--rendering-the-boot-script-and-the-ec2-instance), [Section 7](#section-7--user_datash-tpl--the-boot-script), and [TERRAFORM_MAKE_COMMANDS.md](TERRAFORM_MAKE_COMMANDS.md).
+3. `user_data` (the boot script) only runs **once**, on an instance's first boot. Editing [user_data.sh.tpl](../user_data.sh.tpl) after the instance already exists does nothing until you destroy and recreate it — Terraform won't rerun it in place. This is also why `main.tf` now pulls the rendered script into `local.user_data` and exposes it as the `rendered_user_data` output: `make tf-redeploy` uses that output to rerun the exact same script over SSH against an already-running instance, since Terraform itself has no built-in way to do that. See [Section 6](#section-6--maintf107-166--rendering-the-boot-script-and-the-ec2-instance), [Section 7](#section-7--user_datash-tpl--the-boot-script), and [TERRAFORM_MAKE_COMMANDS.md](TERRAFORM_MAKE_COMMANDS.md).
 
 ## Section 1 — Architecture at a Glance
 
@@ -38,9 +38,9 @@ The composition root is [main.tf](../main.tf). It doesn't implement any business
 | "What do I already have?" lookups | [main.tf:26-52](../main.tf#L26-L52) (default VPC/subnet, latest AMI) | Surveying the lot before building |
 | SSH access | [main.tf:56-70](../main.tf#L56-L70) | Cutting a spare key before the door has a lock |
 | Firewall | [main.tf:78-105](../main.tf#L78-L105) | The guest list at the door — now it's nginx's door, not core-service's |
-| Rendering nginx's config + the boot script | [main.tf:107-140](../main.tf#L107-L140) | The printer filling in the move-in checklist and the gate attendant's rulebook before either is handed over |
-| The instance itself | [main.tf:144-156](../main.tf#L144-L156) | The house being built |
-| First-boot script | [user_data.sh.tpl](../user_data.sh.tpl) | The move-in checklist taped to the counter — now it also unpacks a gate attendant |
+| Rendering nginx's config, the compose stack, and the boot script | [main.tf:107-150](../main.tf#L107-L150) | The printer filling in the move-in checklist, the docker-compose manifest, and the gate attendant's rulebook before any of them is handed over |
+| The instance itself | [main.tf:152-166](../main.tf#L152-L166) | The house being built |
+| First-boot script | [user_data.sh.tpl](../user_data.sh.tpl) | The move-in checklist taped to the counter — now it writes a docker-compose manifest and hands off to `docker compose up -d` instead of running each container by hand |
 | Reverse-proxy config | [nginx.conf.tpl](../nginx.conf.tpl) | The gate attendant's rulebook: one rate-limit rule, one proxy rule |
 | Result surface | [outputs.tf](../outputs.tf) | The postcard telling you the new address |
 | Real secret values | `terraform.tfvars` (gitignored, not in this repo) | The sealed envelope that fills in the order form |
@@ -223,11 +223,11 @@ Worth flagging for accuracy: before this revision, `user_data.sh.tpl` never set 
 
 **Rough edge worth flagging on purpose — SSH is open to the entire internet by default.** `ssh_cidr_blocks` defaults to `["0.0.0.0/0"]`, meaning *anyone on the internet* can attempt to SSH in (they'd still need your private key to succeed, but the port is reachable and will show up in scans/logs). [terraform.tfvars.example:13-14](../terraform.tfvars.example#L13-L14) already flags this with a comment — narrowing it to your own IP (`["1.2.3.4/32"]`) is a one-line change in `terraform.tfvars` and worth doing before you leave this running unattended.
 
-## Section 6 — `main.tf:107-156` — Rendering the Boot Script, and the EC2 Instance
+## Section 6 — `main.tf:107-166` — Rendering the Boot Script, and the EC2 Instance
 
-**The problem it solves.** Two things need to happen before the instance boots: nginx needs a concrete config file, with real port numbers and rate-limit values filled in instead of hardcoded, and the instance needs a first-boot script that installs and wires together *two* containers instead of one. Both are assembled here, in a `locals` block, ahead of the `aws_instance` resource that actually consumes them.
+**The problem it solves.** Three things need to exist before the instance boots: a concrete nginx config, with real port numbers and rate-limit values filled in instead of hardcoded; a concrete `docker-compose.yml` describing core-service and nginx as a single stack instead of two hand-rolled `docker run` invocations; and a first-boot script that installs Docker (plus the `docker compose` CLI plugin), writes both rendered files to disk, and runs `docker compose up -d`. All three are assembled here, in a `locals` block, ahead of the `aws_instance` resource that actually consumes the rendered boot script.
 
-**How it's implemented** ([main.tf:107-140](../main.tf#L107-L140)):
+**How it's implemented** ([main.tf:107-150](../main.tf#L107-L150)):
 
 ```hcl
 # --- nginx config: rendered here so main.tf/variables.tf stay the single
@@ -242,6 +242,18 @@ locals {
     rate_limit_burst = var.nginx_rate_limit_burst
   })
 
+  # core-service + nginx as a compose stack, so the instance (and CI's SSH
+  # redeploy step) manage both containers with `docker compose` instead of
+  # hand-rolled `docker run`/`docker network create` calls. Fully resolved at
+  # render time (like nginx_conf above) — no env-var substitution happens on
+  # the instance itself.
+  docker_compose_yml = templatefile("${path.module}/docker-compose.prod.yaml", {
+    docker_image = var.docker_image
+    app_port     = var.app_port
+    nginx_image  = var.nginx_image
+    nginx_port   = var.nginx_port
+  })
+
   # Pulled into its own local (rather than inlined in aws_instance below) so
   # it can also be exposed via outputs.tf's rendered_user_data — EC2 only
   # runs this script on an instance's first boot, so re-running it by hand
@@ -249,7 +261,6 @@ locals {
   # (see docs/TERRAFORM_EC2_DEPLOY.md Section 7). Reusing this exact value
   # for both means there's no separate, driftable "redeploy script."
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    docker_image              = var.docker_image
     app_port                  = var.app_port
     db_driver                 = var.db_driver
     db_source                 = var.db_source
@@ -259,18 +270,17 @@ locals {
     rate_limit_enabled        = var.app_rate_limit_enabled
     rate_limit_rps            = var.app_rate_limit_rps
     rate_limit_burst          = var.app_rate_limit_burst
-    nginx_image               = var.nginx_image
-    nginx_port                = var.nginx_port
     nginx_conf_base64         = base64encode(local.nginx_conf)
+    docker_compose_yml_base64 = base64encode(local.docker_compose_yml)
   })
 }
 ```
 
-`local.nginx_conf` renders [nginx.conf.tpl](../nginx.conf.tpl) (covered line-by-line in Section 7) with the four values that actually vary: the port nginx listens on, the port it proxies to, and its rate-limit rate/burst. `local.user_data` renders [user_data.sh.tpl](../user_data.sh.tpl) with thirteen substituted values — the original six app-config values from before this revision, the three new `app_rate_limit_*` values, and three nginx-related values, one of which (`nginx_conf_base64`) is `base64encode(local.nginx_conf)`: the rendered nginx config gets embedded as a base64 blob *inside* the rendered boot script, which then decodes it back into a real file once it's running on the instance (Section 7). Terraform resolves the dependency between the two locals automatically; the file just orders them the same way for readability.
+`local.nginx_conf` renders [nginx.conf.tpl](../nginx.conf.tpl) (covered line-by-line in Section 7) with the four values that actually vary: the port nginx listens on, the port it proxies to, and its rate-limit rate/burst. `local.docker_compose_yml` renders [docker-compose.prod.yaml](../docker-compose.prod.yaml) with the four values that vary the compose stack itself: `docker_image`, `app_port`, `nginx_image`, `nginx_port` — the same three image/port variables that used to be passed straight into `user_data.sh.tpl` for its `docker run`/`docker pull` calls before this revision now go here instead. `local.user_data` renders [user_data.sh.tpl](../user_data.sh.tpl) with eleven substituted values — down from thirteen before this revision, since `docker_image`, `nginx_image`, and `nginx_port` no longer need to reach the boot script directly (the script never runs `docker run`/`docker pull <image>` itself anymore). Two of those eleven are themselves base64-encoded renders of the other two locals — `nginx_conf_base64` (`base64encode(local.nginx_conf)`) and `docker_compose_yml_base64` (`base64encode(local.docker_compose_yml)`) — embedded as base64 blobs *inside* the rendered boot script, which decodes each one back into a real file once it's running on the instance (Section 7). Terraform resolves the dependency between the three locals automatically; the file just orders them the same way for readability.
 
 **Why `user_data` is pulled into a named `local` instead of being inlined directly into `aws_instance.core_service`'s `user_data` argument (which is how the pre-nginx version of this config did it):** so the exact same rendered value can also be exposed as the `rendered_user_data` output (Section 9). EC2 only ever runs `user_data` automatically on an instance's first boot (Section 0's third gotcha) — Terraform has no built-in "re-run this on the existing instance" primitive. Because `aws_instance.core_service.user_data` and `output.rendered_user_data` are now both drawn from the identical `local.user_data`, there's exactly one source of truth for "what should currently be running on this instance." `make tf-redeploy` (see [TERRAFORM_MAKE_COMMANDS.md](TERRAFORM_MAKE_COMMANDS.md)) uses that output to re-run the current script over SSH against the already-running instance, instead of a second, hand-maintained redeploy script that could silently drift out of sync with what a freshly created instance actually boots with.
 
-**The instance itself** ([main.tf:142-156](../main.tf#L142-L156)):
+**The instance itself** ([main.tf:152-166](../main.tf#L152-L166)):
 
 ```hcl
 # --- EC2 instance running core-service behind an nginx reverse proxy ---
@@ -294,7 +304,7 @@ Every argument here is a reference to something built in an earlier section — 
 
 ## Section 7 — `user_data.sh.tpl` — The Boot Script
 
-**The problem it solves.** A bare Amazon Linux 2023 AMI has no Docker installed and knows nothing about this project. Something has to install Docker, start core-service, start nginx in front of it, and wire the two together on a private network — the first time the instance boots, with no human present to type commands.
+**The problem it solves.** A bare Amazon Linux 2023 AMI has no Docker — or the `docker compose` CLI plugin, which Amazon Linux 2023's `docker` package doesn't bundle — installed, and knows nothing about this project. Something has to install both, write the rendered app config and both containers' definitions to disk, and bring the core-service + nginx stack up — the first time the instance boots, with no human present to type commands.
 
 **How it's implemented**, in full, quoted verbatim from [user_data.sh.tpl](../user_data.sh.tpl):
 
@@ -307,17 +317,16 @@ dnf install -y docker
 systemctl enable --now docker
 usermod -aG docker ec2-user
 
-# Shared network so nginx can reach core-service by container name; neither
-# container needs to publish app_port on the host for that to work.
-docker network inspect core-service-net >/dev/null 2>&1 || docker network create core-service-net
-
-docker pull ${docker_image}
-docker pull ${nginx_image}
-
-docker rm -f nginx || true
-docker rm -f core-service || true
+# docker compose plugin — Amazon Linux 2023's `docker` package doesn't bundle
+# it. Fetches whatever is currently latest rather than a pinned version,
+# since this only runs at instance boot / redeploy time, not in CI.
+mkdir -p /usr/local/lib/docker/cli-plugins
+COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | grep -m1 '"tag_name"' | cut -d '"' -f4)
+curl -fsSL "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
 mkdir -p /opt/core-service
+
 cat > /opt/core-service/app.env <<EOF
 DB_DRIVER=${db_driver}
 DB_SOURCE=${db_source}
@@ -331,35 +340,26 @@ RATE_LIMIT_BURST=${rate_limit_burst}
 EOF
 chmod 600 /opt/core-service/app.env
 
-# Bound to 127.0.0.1 only, for SSH-side debugging (curl from the instance
-# itself) — not reachable from outside since it's not in the security group.
-# The public entrypoint is nginx below.
-docker run -d \
-  --name core-service \
-  --restart unless-stopped \
-  --network core-service-net \
-  -p 127.0.0.1:${app_port}:${app_port} \
-  -v /opt/core-service/app.env:/app/app.env:ro \
-  ${docker_image}
+echo '${nginx_conf_base64}' | base64 -d > /opt/core-service/nginx.conf
+chmod 644 /opt/core-service/nginx.conf
 
-mkdir -p /opt/nginx
-echo '${nginx_conf_base64}' | base64 -d > /opt/nginx/default.conf
-chmod 644 /opt/nginx/default.conf
+echo '${docker_compose_yml_base64}' | base64 -d > /opt/core-service/docker-compose.yml
+chmod 644 /opt/core-service/docker-compose.yml
 
-docker run -d \
-  --name nginx \
-  --restart unless-stopped \
-  --network core-service-net \
-  -p ${nginx_port}:${nginx_port} \
-  -v /opt/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro \
-  ${nginx_image}
+# Idempotent: pull + up -d each time, safe to rerun over SSH on an
+# already-running instance (see docs/TERRAFORM_EC2_DEPLOY.md Section 7).
+cd /opt/core-service
+docker compose pull
+docker compose up -d
 ```
 
-Step by step: the Docker install/enable/`usermod` lines are unchanged from before this revision. `docker network inspect core-service-net >/dev/null 2>&1 || docker network create core-service-net` creates the private bridge network both containers join — written idempotently (inspect first, create only if missing) so re-running this exact script, e.g. via `make tf-redeploy`, doesn't fail just because the network already exists. This network is what lets nginx reach core-service by the hostname `core-service` without either container publishing `app_port` to the host. Both images are pulled up front; both old containers are removed by name with `|| true` so a first run with nothing to remove doesn't fail the script.
+Step by step: the Docker install/enable/`usermod` lines are unchanged from before this revision. The new block right after it installs the `docker compose` CLI plugin by hand — Amazon Linux 2023's packaged `docker` doesn't ship it — by asking GitHub's API for the compose project's current release tag and downloading that release's Linux/x86_64 binary straight into Docker's CLI-plugins directory. It deliberately doesn't pin a version (unlike the Terraform provider versions in Section 2): this script only runs at instance-boot/redeploy time, never in CI, so "whatever is current when you next boot/redeploy" is an acceptable tradeoff for a learning project.
 
-**core-service now gets a real `app.env` file, not just `-e` flags.** Previously this script passed every config value as a `docker run -e` flag; now it writes `/opt/core-service/app.env` (mode `0600`, so only root can read the plaintext DB/JWT secrets in it) and bind-mounts it read-only into the container at `/app/app.env`, using the same `config.LoadConfig(".")` file-loading path documented in [CONFIG_ENV_VARIABLE.md](../../../apps/core-service/docs/CONFIG_ENV_VARIABLE.md). This mount matters for a reason specific to this project: [Dockerfile.prod](../../../apps/core-service/Dockerfile.prod) (the image `docker_image` actually builds from — see Cross-Feature Coupling below) already bakes `app.prod.env` into the image as `/app/app.env` at build time. Without the `-v` mount here, the container would boot on whatever was baked in at image-build time, silently ignoring every Terraform variable below. The mount overrides that baked-in file with the one rendered from `terraform.tfvars`.
+`mkdir -p /opt/core-service` now happens once, up front, since all three rendered files (`app.env`, `nginx.conf`, `docker-compose.yml`) live in the same directory rather than being split across `/opt/core-service` and `/opt/nginx` the way the pre-compose version of this script did. `app.env` is written exactly as before (nine keys, `chmod 600`). `nginx.conf` and `docker-compose.yml` are each written by base64-decoding the corresponding `${..._base64}` template variable — the pre-rendered `local.nginx_conf` and `local.docker_compose_yml` from Section 6 — into a real file (`chmod 644`, since neither holds secrets). There is no `docker network create`, no `docker pull <image>`, no `docker rm -f`, and no `docker run` anywhere in this script anymore: `docker-compose.yml` ([docker-compose.prod.yaml](../docker-compose.prod.yaml)) already declares the `core-service-net` network, both images, both port mappings, and the `app.env` env file — `cd /opt/core-service && docker compose pull && docker compose up -d` is the entire mechanism, and it's what both a first boot and a `make tf-redeploy` run.
 
-The nine keys written to `app.env` are a 1:1 match to the `mapstructure` tags on `Config` in [internal/config/config.go:13-53](../../../apps/core-service/internal/config/config.go#L13-L53) — six from before this revision, three new:
+**core-service gets its config via `env_file`, not a bind-mounted file.** The script still writes `/opt/core-service/app.env` (mode `0600`, so only root can read the plaintext DB/JWT secrets in it), but `docker-compose.yml`'s `core-service` service references it with `env_file: [app.env]`, not a volume mount. `docker compose` reads that file itself and injects each line as a real environment variable into the container process — the container never sees a file at `/app/app.env` the way it did under the old `-v /opt/core-service/app.env:/app/app.env:ro` bind mount. `config.LoadConfig(".")` ([internal/config/config.go](../../../apps/core-service/internal/config/config.go)) still tries to read an `app.env` file first via viper, but when none exists inside the container it falls back to `viper.AutomaticEnv()` plus an explicit `viper.BindEnv()` for every `mapstructure`-tagged field — the code comment right above that fallback calls out exactly this case ("plain environment variables (e.g. from docker-compose) work even without an app.env file"). So the nine keys below reach the running process as ordinary environment variables, not as a mounted config file, and [Dockerfile.prod](../../../apps/core-service/Dockerfile.prod)'s own baked-in `ENV` defaults (see Cross-Feature Coupling below) are overridden by whatever `docker compose` injects from `app.env`.
+
+The nine keys written to `app.env` are a 1:1 match to the `mapstructure` tags on `Config` in [internal/config/config.go](../../../apps/core-service/internal/config/config.go) — six from before the nginx/rate-limit revision, three added then:
 
 | Key in app.env | Config field | Note |
 |---|---|---|
@@ -373,11 +373,11 @@ The nine keys written to `app.env` are a 1:1 match to the `mapstructure` tags on
 | `RATE_LIMIT_REQUESTS_PER_SECOND` | `RateLimitRequestsPerSecond` | New — defaults to `5` via `var.app_rate_limit_rps` |
 | `RATE_LIMIT_BURST` | `RateLimitBurst` | New — defaults to `20` via `var.app_rate_limit_burst` |
 
-core-service is started with `--network core-service-net -p 127.0.0.1:${app_port}:${app_port}` — joined to the private network (so nginx can reach it by name) but published only to the loopback interface, not the instance's public one. That publish is purely a debugging convenience (SSH in, `curl 127.0.0.1:8080/...`); it isn't how real traffic reaches core-service.
+Per [docker-compose.prod.yaml](../docker-compose.prod.yaml), core-service is defined with `restart: unless-stopped`, joined to the `core-service-net` network (so nginx can reach it by name), and published only as `127.0.0.1:${app_port}:${app_port}` — the loopback interface, not the instance's public one. That publish is purely a debugging convenience (SSH in, `curl 127.0.0.1:8080/...`); it isn't how real traffic reaches core-service.
 
-**Then nginx.** `/opt/nginx/default.conf` is written by base64-decoding `${nginx_conf_base64}` — the pre-rendered `local.nginx_conf` from Section 6, decoded back into a real file (`0644`, since it holds no secrets) and bind-mounted read-only over the stock `nginx:1.27-alpine` image's default vhost config. nginx joins the same `core-service-net` network and is the only one of the two containers that publishes its port to the instance's *public* interface (`-p ${nginx_port}:${nginx_port}`) — matching the security group from Section 5, which opens exactly `nginx_port` and nothing else for public traffic.
+**Then nginx.** `/opt/core-service/nginx.conf` is written by base64-decoding `${nginx_conf_base64}` — the pre-rendered `local.nginx_conf` from Section 6, decoded back into a real file (`0644`, since it holds no secrets). The compose file's `nginx` service bind-mounts it read-only as `./nginx.conf:/etc/nginx/conf.d/default.conf:ro`, replacing the stock `nginx:1.27-alpine` image's default vhost config, and declares `depends_on: [core-service]` so compose starts core-service first. nginx joins the same `core-service-net` network and is the only one of the two services that publishes its port to the instance's *public* interface (`"${nginx_port}:${nginx_port}"`) — matching the security group from Section 5, which opens exactly `nginx_port` and nothing else for public traffic.
 
-**Rough edge worth flagging — this script only runs automatically once.** Per the Section 0 gotcha, EC2 `user_data` executes on first boot only. Section 6 above covers how this revision addresses that at the Terraform level: the exact same rendered script is available as the `rendered_user_data` output, and `make tf-redeploy` (see [TERRAFORM_MAKE_COMMANDS.md](TERRAFORM_MAKE_COMMANDS.md)) pipes it over SSH to rerun on the existing instance. The script is written to be safe to rerun that way — the idempotent `docker network inspect ... ||`, the `docker rm -f ... || true` pair, and unconditional `docker run` each time — so a redeploy is an expected, ordinary use of this exact file, not a workaround bolted on separately.
+**Rough edge worth flagging — this script only runs automatically once.** Per the Section 0 gotcha, EC2 `user_data` executes on first boot only. Section 6 above covers how this revision addresses that at the Terraform level: the exact same rendered script is available as the `rendered_user_data` output, and `make tf-redeploy` (see [TERRAFORM_MAKE_COMMANDS.md](TERRAFORM_MAKE_COMMANDS.md)) pipes it over SSH to rerun on the existing instance. The script is written to be safe to rerun that way — `docker compose pull && docker compose up -d` is idempotent by construction (compose only recreates a container whose config or image actually changed) — so a redeploy is an expected, ordinary use of this exact file, not a workaround bolted on separately.
 
 **Rough edge worth flagging — secrets are visible in plain text on the instance and in the `rendered_user_data` output.** `DB_SOURCE` and `JWT_SECRET_KEY` land in `/opt/core-service/app.env` (`chmod 600`, root-readable only) and, separately, in the rendered `user_data` itself, which AWS stores as instance metadata (readable from inside the instance via `curl http://169.254.169.254/latest/user-data`) and which the `rendered_user_data` output also carries verbatim. That's exactly why that output is marked `sensitive = true` (Section 9) — the same display-only-redaction caveat from Section 0's second gotcha applies to it too: `sensitive = true` hides it from your terminal, it doesn't encrypt it in `terraform.tfstate`.
 
@@ -389,12 +389,12 @@ core-service is started with `--network core-service-net -p 127.0.0.1:${app_port
 |---|---|---|---|
 | `aws_region` | `ap-southeast-1` | No | `provider "aws"` ([main.tf:20-22](../main.tf#L20-L22)) |
 | `instance_type` | `t3.micro` | No | `aws_instance.core_service` |
-| `docker_image` | `sdewa/core-service-dep:latest` | No | `user_data`, matches `DEP_IMAGE_NAME` in [apps/core-service/Makefile:56](../../../apps/core-service/Makefile#L56) |
+| `docker_image` | `sdewa/core-service-dep:latest` | No | `local.docker_compose_yml` (no longer `user_data` directly — see Section 6), matches `DEP_IMAGE_NAME` in [apps/core-service/Makefile:56](../../../apps/core-service/Makefile#L56) |
 | `app_port` | `8080` | No | `user_data` only — no longer the security group (Section 5); internal-only, not reachable from the internet |
 | `ssh_cidr_blocks` | `["0.0.0.0/0"]` | No | security group's SSH rule (see Section 5's callout) |
 | `app_cidr_blocks` | `["0.0.0.0/0"]` | No | security group's nginx-port rule — gates `nginx_port`, not `app_port` |
-| `nginx_image` | `nginx:1.27-alpine` | No | `user_data`'s nginx container |
-| `nginx_port` | `80` | No | security group, `user_data`, `nginx.conf.tpl`, `outputs.tf`'s `app_url`/`app_swagger_url` |
+| `nginx_image` | `nginx:1.27-alpine` | No | `local.docker_compose_yml`'s nginx service (no longer `user_data` directly) |
+| `nginx_port` | `80` | No | security group, `local.docker_compose_yml`, `nginx.conf.tpl`, `outputs.tf`'s `app_url`/`app_swagger_url` |
 | `nginx_rate_limit_rps` | `10` | No | `nginx.conf.tpl`'s `limit_req_zone` rate |
 | `nginx_rate_limit_burst` | `20` | No | `nginx.conf.tpl`'s `limit_req` burst |
 | `db_driver` | `postgres` | No | `user_data`'s `DB_DRIVER` |
@@ -445,11 +445,11 @@ Files that exist alongside the `.tf` files but aren't themselves executed logic:
 - [terraform.tfvars.example](../terraform.tfvars.example) — a template for the real `terraform.tfvars`, with placeholder values and inline comments (e.g. "use the pooler host for EC2" for Supabase, and which nginx/rate-limit variables have working defaults). Terraform never reads the `.example` file directly; you copy it.
 - `.terraform.lock.hcl` (created by `terraform init`, not committed by hand but meant to be committed) — pins the exact provider builds resolved during this doc's verification (`aws` 6.64.0, `tls` 4.4.1, `local` 2.9.1).
 
-[nginx.conf.tpl](../nginx.conf.tpl) is *not* in this list — unlike the two files above, it **is** read by Terraform itself, via `templatefile()` in the `locals` block covered in Section 6. Treat it the same way you'd treat `user_data.sh.tpl`: a template Terraform renders, not a static supporting file.
+[nginx.conf.tpl](../nginx.conf.tpl) and [docker-compose.prod.yaml](../docker-compose.prod.yaml) are *not* in this list — unlike the two files above, both **are** read by Terraform itself, via `templatefile()` in the `locals` block covered in Section 6. Treat them the same way you'd treat `user_data.sh.tpl`: templates Terraform renders, not static supporting files.
 
 ## Cross-Feature Coupling
 
-- **This config never builds or pushes the core-service Docker image.** That happens entirely outside Terraform, via `make docker-dep-build` and `make docker-dep-push` ([apps/core-service/Makefile:60-64](../../../apps/core-service/Makefile#L60-L64)), which build from [Dockerfile.prod](../../../apps/core-service/Dockerfile.prod) and push to the `sdewa/core-service-dep` Docker Hub repo. The nginx image, by contrast, is a public, unmodified image (`nginx:1.27-alpine` by default) — nothing in this repo builds or pushes it; `user_data.sh.tpl` just `docker pull`s it straight from Docker Hub. If you change core-service's application code, you must rebuild and push its image *and* deal with the Section 7 "runs once automatically" gotcha (via `make tf-redeploy`, or destroy/recreate) to get the new image onto a running instance — `terraform apply` alone does not pick up new app code.
+- **This config never builds or pushes the core-service Docker image.** That happens entirely outside Terraform, via `make docker-dep-build` and `make docker-dep-push` ([apps/core-service/Makefile:60-64](../../../apps/core-service/Makefile#L60-L64)), which build from [Dockerfile.prod](../../../apps/core-service/Dockerfile.prod) and push to the `sdewa/core-service-dep` Docker Hub repo. The nginx image, by contrast, is a public, unmodified image (`nginx:1.27-alpine` by default) — nothing in this repo builds or pushes it; both images are just named in `docker-compose.yml` and fetched by `docker compose pull` on the instance. If you change core-service's application code, you must rebuild and push its image *and* deal with the Section 7 "runs once automatically" gotcha (via `make tf-redeploy`, or destroy/recreate) to get the new image onto a running instance — `terraform apply` alone does not pick up new app code.
 - **This config never runs database migrations.** The image built by [Dockerfile.prod:1-19](../../../apps/core-service/Dockerfile.prod#L1-L19) only contains the compiled server binary (`ENTRYPOINT ["/app/main"]`) plus the migration SQL files for reference — the separate migration CLI (`cmd/migration`, invoked via `make migrate-up` in [apps/core-service/Makefile](../../../apps/core-service/Makefile)) is not part of the image and is never invoked by `user_data`. Before the API on the instance can serve any request that touches the database, you need to run `go run ./cmd/migration/main.go up` from your own machine with `DB_SOURCE` pointed at the same Supabase URL you put in `terraform.tfvars`. This is easy to miss because the containers will start and look healthy — requests just fail at the query layer.
 - **There are now three independent, unsynchronized places app config can live**, not two: [apps/core-service/app.env](../../../apps/core-service/app.env) (your local `docker-compose` Postgres, used by `make server`/`make docker-run`), `terraform.tfvars` (points at Supabase, feeds the render in Section 6), and `/opt/core-service/app.env` *on the instance itself*, written fresh by `user_data.sh.tpl`/`tf-redeploy` every time it runs from whatever `terraform.tfvars` currently says. Editing one never affects the others — worth knowing so you don't go looking for a shared config file that doesn't exist, and so you don't assume an SSH edit to the instance's `app.env` will survive the next `tf-redeploy` (it won't; that file gets fully overwritten).
 
@@ -464,7 +464,8 @@ terraform apply
   → aws_key_pair registers the public half with AWS; local_file writes the private half to core-service-key.pem
   → aws_security_group opens ports 22 (SSH) and nginx_port (80) — app_port is not opened
   → local.nginx_conf renders nginx.conf.tpl with nginx_port/app_port/rate-limit values
-  → local.user_data renders user_data.sh.tpl with 13 substituted values, embedding base64encode(local.nginx_conf)
+  → local.docker_compose_yml renders docker-compose.prod.yaml with docker_image/app_port/nginx_image/nginx_port
+  → local.user_data renders user_data.sh.tpl with 11 substituted values, embedding base64encode(local.nginx_conf) and base64encode(local.docker_compose_yml)
   → aws_instance.core_service is created with local.user_data as its user_data
   → outputs.tf prints instance_id, public_ip, app_url, app_swagger_url, ssh_command (rendered_user_data is sensitive, so it's hidden unless you ask for it explicitly)
 ```
@@ -473,14 +474,14 @@ terraform apply
 ```
 instance boots
   → cloud-init runs user_data as root
-  → dnf installs and starts Docker; docker network create core-service-net
-  → docker pull <docker_image> and <nginx_image> from Docker Hub
+  → dnf installs and starts Docker; the docker compose CLI plugin is downloaded and installed
   → /opt/core-service/app.env written (9 keys), chmod 600
-  → core-service container started on core-service-net, bound to 127.0.0.1:app_port only
-  → main binary starts, calls config.LoadConfig(".") → finds the mounted app.env → binds those values
+  → /opt/core-service/nginx.conf written by base64-decoding the rendered nginx config, chmod 644
+  → /opt/core-service/docker-compose.yml written by base64-decoding the rendered compose stack, chmod 644
+  → cd /opt/core-service && docker compose pull fetches <docker_image> and <nginx_image> from Docker Hub
+  → docker compose up -d starts both services on core-service-net: core-service bound to 127.0.0.1:app_port only, nginx publishing nginx_port to the instance's public interface
+  → main binary starts, calls config.LoadConfig(".") → no app.env file inside the container, so viper.AutomaticEnv()/BindEnv picks up the env_file-injected values instead
   → connectDB(cfg) opens a connection to your Supabase Postgres using DB_SOURCE
-  → /opt/nginx/default.conf written by base64-decoding the rendered nginx config
-  → nginx container started on core-service-net, publishing nginx_port to the instance's public interface
 ```
 
 **Request path (after boot):**
@@ -505,8 +506,9 @@ client → http://<public_ip>:<nginx_port>/...
 | `aws_key_pair.this` | resource | Register the public key with AWS as `core-service-key` |
 | `local_file.private_key` | resource | Write the private key to `infra/terraform/core-service-key.pem` |
 | `aws_security_group.core_service` | resource | Firewall: open 22 (SSH) and `nginx_port` (nginx), allow all egress — `app_port` is not opened |
-| `aws_instance.core_service` | resource | The EC2 instance itself, running core-service and nginx as two Docker containers via `user_data` |
+| `aws_instance.core_service` | resource | The EC2 instance itself, running core-service and nginx as a `docker compose` stack via `user_data` |
 | `local.nginx_conf` | local value | Rendered [nginx.conf.tpl](../nginx.conf.tpl) |
+| `local.docker_compose_yml` | local value | Rendered [docker-compose.prod.yaml](../docker-compose.prod.yaml); embedded into `local.user_data` as `docker_compose_yml_base64` |
 | `local.user_data` | local value | Rendered [user_data.sh.tpl](../user_data.sh.tpl); also exposed as the `rendered_user_data` output |
 
 **Commands you'll actually run:** these now exist as `make tf-*` targets at the repo root — see [TERRAFORM_MAKE_COMMANDS.md](TERRAFORM_MAKE_COMMANDS.md) for the day-to-day reference. For direct `terraform` invocations (e.g. flags the Makefile wrappers don't expose), run them from `infra/terraform/` or with `-chdir=infra/terraform` from the repo root:

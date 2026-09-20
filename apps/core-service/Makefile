@@ -14,7 +14,6 @@ test-failed:
 test-coverage:
 	go test -v -coverprofile=coverage.out -covermode=atomic ./internal/api/...
 
-
 server:
 	go run ./cmd/server
 
@@ -80,7 +79,6 @@ BUILD_ARGS := \
 
 docker-build:
 	docker build $(BUILD_ARGS) -t $(IMAGE_NAME):latest .
-
 
 docker-run:
 	docker run --name $(CONTAINER_NAME) -p 8080:8080 --env-file app.env $(IMAGE_NAME):latest

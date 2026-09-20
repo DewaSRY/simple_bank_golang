@@ -36,7 +36,7 @@ That one fact is what actually decides which options are realistic:
 
 This mirrors what `make deploy` already does, just running on `push` to `main` instead of on your laptop, and skipping the Terraform-state dependency by SSHing straight in with a fixed, idempotent script instead of asking Terraform for one.
 
-**Why this first, not C:** you already have a working, idempotent redeploy path (`user_data.sh.tpl`'s `docker pull` → `docker rm -f` → `docker run`, safe to rerun — see [TERRAFORM_EC2_DEPLOY.md](TERRAFORM_EC2_DEPLOY.md) Section 7). Option A just triggers that same shape of command from CI instead of from your terminal. It adds zero new infrastructure. Option C is the "more correct" long-term answer but is a separate, bigger project (remote state) that's worth doing once you outgrow A, not before.
+**Why this first, not C:** you already have a working, idempotent redeploy path (`docker compose pull` → `docker compose up -d` against `/opt/core-service`'s compose stack, safe to rerun — see [TERRAFORM_EC2_DEPLOY.md](TERRAFORM_EC2_DEPLOY.md) Section 7). Option A just triggers that same shape of command from CI instead of from your terminal. It adds zero new infrastructure. Option C is the "more correct" long-term answer but is a separate, bigger project (remote state) that's worth doing once you outgrow A, not before.
 
 **What it looks like — a new job appended to `core-service-ci.yml`, gated on the existing `build-test` job passing and on the `main` branch:**
 
@@ -71,15 +71,9 @@ This mirrors what `make deploy` already does, just running on `push` to `main` i
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/core-service-dep:latest
-            docker rm -f core-service || true
-            docker run -d \
-              --name core-service \
-              --restart unless-stopped \
-              --network core-service-net \
-              -p 127.0.0.1:8080:8080 \
-              -v /opt/core-service/app.env:/app/app.env:ro \
-              ${{ secrets.DOCKERHUB_USERNAME }}/core-service-dep:latest
+            cd /opt/core-service
+            docker compose pull core-service
+            docker compose up -d core-service
 ```
 
 This deliberately only touches the `core-service` container — `/opt/core-service/app.env` and the `nginx` container are left alone, since those only change when you edit `terraform.tfvars` or `nginx.conf.tpl`, not on every code push. When you do change those, you'd still run `make tf-redeploy` by hand once (it re-renders and re-pushes everything, including `app.env` and nginx's config) — this CI job only replaces the "I changed Go code and want it live" loop.
@@ -125,5 +119,5 @@ This is the more "correct" long-term setup (it's also how you'd eventually suppo
 ## Cross-Feature Coupling
 
 - Depends on [core-service-ci.yml](../../../.github/workflows/core-service-ci.yml) already passing `build-test` — the deploy job in Option A is written to run only `needs: build-test`, so a broken build/test never reaches the redeploy step.
-- Depends on the exact container-run shape in [user_data.sh.tpl](../user_data.sh.tpl) staying in sync — if you change how `core-service` is started there (a new volume mount, a new network, a new port), the fixed `docker run` in Option A's SSH step needs the same edit by hand, since it's a separate, hand-maintained copy of that command for the reasons explained above (no Terraform state in CI).
+- Depends on the `core-service` service definition in [docker-compose.prod.yaml](../docker-compose.prod.yaml) staying in sync — Option A's SSH step only runs `docker compose pull core-service && docker compose up -d core-service` against whatever `/opt/core-service/docker-compose.yml` already says, so a change to that service (a new volume mount, a new network, a new port) is picked up automatically the next time `make tf-redeploy` re-renders and re-writes the compose file — Option A's fixed two-line script itself never needs editing for that kind of change.
 - Doesn't change anything in [TERRAFORM_EC2_DEPLOY.md](TERRAFORM_EC2_DEPLOY.md) or [TERRAFORM_MAKE_COMMANDS.md](TERRAFORM_MAKE_COMMANDS.md) — `make deploy`/`make tf-redeploy` remain valid and are still how you'd push an infra-level change (nginx, rate limits, new env vars).

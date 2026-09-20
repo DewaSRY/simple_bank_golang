@@ -116,6 +116,18 @@ locals {
     rate_limit_burst = var.nginx_rate_limit_burst
   })
 
+  # core-service + nginx as a compose stack, so the instance (and CI's SSH
+  # redeploy step) manage both containers with `docker compose` instead of
+  # hand-rolled `docker run`/`docker network create` calls. Fully resolved at
+  # render time (like nginx_conf above) — no env-var substitution happens on
+  # the instance itself.
+  docker_compose_yml = templatefile("${path.module}/docker-compose.prod.yaml", {
+    docker_image = var.docker_image
+    app_port     = var.app_port
+    nginx_image  = var.nginx_image
+    nginx_port   = var.nginx_port
+  })
+
   # Pulled into its own local (rather than inlined in aws_instance below) so
   # it can also be exposed via outputs.tf's rendered_user_data — EC2 only
   # runs this script on an instance's first boot, so re-running it by hand
@@ -123,7 +135,6 @@ locals {
   # (see docs/TERRAFORM_EC2_DEPLOY.md Section 7). Reusing this exact value
   # for both means there's no separate, driftable "redeploy script."
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    docker_image              = var.docker_image
     app_port                  = var.app_port
     db_driver                 = var.db_driver
     db_source                 = var.db_source
@@ -133,9 +144,8 @@ locals {
     rate_limit_enabled        = var.app_rate_limit_enabled
     rate_limit_rps            = var.app_rate_limit_rps
     rate_limit_burst          = var.app_rate_limit_burst
-    nginx_image               = var.nginx_image
-    nginx_port                = var.nginx_port
     nginx_conf_base64         = base64encode(local.nginx_conf)
+    docker_compose_yml_base64 = base64encode(local.docker_compose_yml)
   })
 }
 
