@@ -4,6 +4,7 @@ export type SourceAccount = {
   id: number;
   name: string;
   number: string;
+  currency: string;
 };
 
 export type DestinationAccount = {
