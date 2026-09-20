@@ -23,6 +23,7 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { amount: 0.4 });
+  const stepRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     if (!isInView || steps.length < 2) return;
@@ -34,22 +35,33 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
     return () => clearInterval(id);
   }, [isInView, steps.length]);
 
+  useEffect(() => {
+    stepRefs.current[activeIndex]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activeIndex]);
+
   return (
     <div ref={containerRef} className={cn("w-full", className)}>
-      <div className=" flex flex-col gap-2 overflow-x-auto md:flex-row md:items-center md:gap-0 md:pb-2">
+      <div className="flex scroll-smooth flex-col gap-2 overflow-x-auto md:flex-row md:items-center md:gap-0 md:pb-2">
         {steps.map((step, index) => (
           <div
             key={step.title}
             className="flex flex-col md:flex-row md:flex-none md:items-center p-2 "
           >
             <motion.button
+              ref={(el) => {
+                stepRefs.current[index] = el;
+              }}
               type="button"
               onClick={() => setActiveIndex(index)}
               whileHover={{ y: -2 }}
               transition={{ duration: 0.15 }}
               aria-pressed={index === activeIndex}
               className={cn(
-                "flex h-40 w-50 flex-col items-center justify-center gap-1.5 rounded-2xl p-4 text-center ring-1 transition-colors md:h-36 md:w-36",
+                "flex h-40 min-w-50 flex-col items-center justify-center gap-1.5 rounded-2xl p-4 text-center ring-1 transition-colors md:h-36 md:w-36",
                 index === activeIndex
                   ? "bg-primary/10 ring-primary/40"
                   : "bg-card ring-foreground/10 hover:bg-muted/60",
@@ -65,10 +77,10 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
               >
                 {index + 1}
               </span>
-              <p className="line-clamp-2 text-sm font-semibold text-balance whitespace-break-spaces">
+              <p className="text-sm font-semibold text-balance whitespace-break-spaces">
                 {step.title}
               </p>
-              <p className="line-clamp-4 text-xs text-muted-foreground text-balance whitespace-break-spaces">
+              <p className="text-xs text-muted-foreground text-balance whitespace-break-spaces">
                 {step.summary}
               </p>
             </motion.button>
@@ -81,21 +93,23 @@ export function InteractiveFlow({ steps, className }: InteractiveFlowProps) {
       </div>
 
       {active?.detail && (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active.title}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="mt-5 rounded-2xl bg-muted/40 p-5 text-sm leading-relaxed text-muted-foreground ring-1 ring-foreground/5"
-          >
-            <p className="mb-1 text-xs font-semibold tracking-wide text-foreground uppercase">
-              {active.title}
-            </p>
-            {active.detail}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div layout className="mt-5 grid">
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={active.title}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="col-start-1 row-start-1 rounded-2xl bg-muted/90 p-5 text-sm leading-relaxed  text-muted-foreground ring-1 ring-foreground/5"
+            >
+              <p className="mb-1 text-lg font-semibold tracking-wide text-foreground uppercase">
+                {active.title}
+              </p>
+              {active.detail}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );
