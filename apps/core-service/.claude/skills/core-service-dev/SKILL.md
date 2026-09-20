@@ -154,7 +154,7 @@ speculatively:
 | `CORS.md` | a CORS error shows up — read before reaching for `AllowOrigins: []string{"*"}`, which is a no-op here |
 | `RATE_LIMITING.md` | changing limiter behavior, keying, or adding a per-route/per-role tier |
 | `LOGGING.md` | changing what gets logged or how request_id propagates |
-| `TERRAFORM_EC2_DEPLOY.md` / `TERRAFORM_MAKE_COMMANDS.md` | touching `terraform/` or the `tf-*` Makefile targets |
+| `../../../../infra/terraform/docs/TERRAFORM_EC2_DEPLOY.md` / `TERRAFORM_MAKE_COMMANDS.md` | touching `infra/terraform/` (repo root — provisions the EC2 host, nginx, and core-service together) or the root `Makefile`'s `tf-*`/`deploy` targets |
 | `VSCODE_DEBUGGING.md` | setting up step-through debugging, not code changes |
 | `DOC_STRUCTURE.md` | writing a new doc in this `docs/` style, not a code task |
 

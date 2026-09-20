@@ -66,38 +66,8 @@ docker-dep-push:
 swag-gen:
 	swag init -g server/main.go -d cmd,internal -o internal/docs --parseDependency --parseInternal
 
-TF_DIR := terraform
+# Infra (Terraform, EC2, nginx) lives at the repo root now — see
+# ../../Makefile and ../../infra/terraform. `make deploy` there builds and
+# pushes this image, then redeploys the EC2 instance against it.
 
-tf-init:
-	terraform -chdir=$(TF_DIR) init
-
-tf-fmt:
-	terraform -chdir=$(TF_DIR) fmt
-
-tf-validate:
-	terraform -chdir=$(TF_DIR) validate
-
-tf-plan:
-	terraform -chdir=$(TF_DIR) plan
-
-tf-apply:
-	terraform -chdir=$(TF_DIR) apply
-
-tf-output:
-	terraform -chdir=$(TF_DIR) output
-
-tf-destroy:
-	terraform -chdir=$(TF_DIR) destroy
-
-TF_KEY := $(TF_DIR)/core-service-key.pem
-
-# Pulls the latest DEP_IMAGE_NAME on the running EC2 instance and recreates the
-# container against it. Does NOT touch /opt/core-service/app.env, so this only
-# picks up a new image, not a config change (edit that file over SSH instead).
-tf-deploy:
-	$(eval EC2_IP := $(shell terraform -chdir=$(TF_DIR) output -raw public_ip))
-	ssh -i $(TF_KEY) ec2-user@$(EC2_IP) 'docker pull $(DEP_IMAGE_NAME):latest && docker rm -f $(CONTAINER_NAME) || true && docker run -d --name $(CONTAINER_NAME) --restart unless-stopped -p 8080:8080 -v /opt/core-service/app.env:/app/app.env:ro $(DEP_IMAGE_NAME):latest'
-
-deploy: docker-dep-build docker-dep-push tf-deploy
-
-.PHONY: db-up db-down test test-failed test-router-coverage server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop docker-dep-build docker-dep-push swag-gen tf-init tf-fmt tf-validate tf-plan tf-apply tf-output tf-destroy tf-deploy deploy
+.PHONY: db-up db-down test test-failed test-router-coverage server migrate-create migrate-up migrate-down migrate-force migrate-goto sqlc generate-mock docker-build docker-run docker-stop docker-dep-build docker-dep-push swag-gen

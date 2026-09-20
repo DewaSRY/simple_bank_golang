@@ -69,11 +69,15 @@ resource "local_file" "private_key" {
   file_permission = "0600"
 }
 
-# --- Security group: SSH + app port ---
+# --- Security group: SSH + nginx (the only public entrypoint) ---
+#
+# app_port is deliberately not opened here — core-service is only reachable
+# from nginx over the internal docker network (see user_data.sh.tpl), and
+# from the instance itself via the 127.0.0.1-bound debug port.
 
 resource "aws_security_group" "core_service" {
   name        = "core-service-sg"
-  description = "Allow SSH and app traffic to core-service"
+  description = "Allow SSH and nginx traffic to the core-service host"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
@@ -85,9 +89,9 @@ resource "aws_security_group" "core_service" {
   }
 
   ingress {
-    description = "core-service app port"
-    from_port   = var.app_port
-    to_port     = var.app_port
+    description = "nginx (reverse proxy + rate limiter in front of core-service)"
+    from_port   = var.nginx_port
+    to_port     = var.nginx_port
     protocol    = "tcp"
     cidr_blocks = var.app_cidr_blocks
   }
@@ -100,15 +104,24 @@ resource "aws_security_group" "core_service" {
   }
 }
 
-# --- EC2 instance running the core-service container ---
+# --- nginx config: rendered here so main.tf/variables.tf stay the single
+#     source of truth for ports and rate-limit knobs, then shipped to the
+#     instance base64-encoded inside user_data (see Section on user_data.sh.tpl) ---
 
-resource "aws_instance" "core_service" {
-  ami                    = data.aws_ami.al2023.id
-  instance_type          = var.instance_type
-  subnet_id              = data.aws_subnets.default.ids[0]
-  key_name               = aws_key_pair.this.key_name
-  vpc_security_group_ids = [aws_security_group.core_service.id]
+locals {
+  nginx_conf = templatefile("${path.module}/nginx.conf.tpl", {
+    nginx_port       = var.nginx_port
+    app_port         = var.app_port
+    rate_limit_rps   = var.nginx_rate_limit_rps
+    rate_limit_burst = var.nginx_rate_limit_burst
+  })
 
+  # Pulled into its own local (rather than inlined in aws_instance below) so
+  # it can also be exposed via outputs.tf's rendered_user_data — EC2 only
+  # runs this script on an instance's first boot, so re-running it by hand
+  # over SSH is how an already-running instance picks up config changes
+  # (see docs/TERRAFORM_EC2_DEPLOY.md Section 7). Reusing this exact value
+  # for both means there's no separate, driftable "redeploy script."
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     docker_image              = var.docker_image
     app_port                  = var.app_port
@@ -117,7 +130,25 @@ resource "aws_instance" "core_service" {
     jwt_secret_key            = var.jwt_secret_key
     jwt_access_token_duration = var.jwt_access_token_duration
     cors_allowed_origins      = var.cors_allowed_origins
+    rate_limit_enabled        = var.app_rate_limit_enabled
+    rate_limit_rps            = var.app_rate_limit_rps
+    rate_limit_burst          = var.app_rate_limit_burst
+    nginx_image               = var.nginx_image
+    nginx_port                = var.nginx_port
+    nginx_conf_base64         = base64encode(local.nginx_conf)
   })
+}
+
+# --- EC2 instance running core-service behind an nginx reverse proxy ---
+
+resource "aws_instance" "core_service" {
+  ami                    = data.aws_ami.al2023.id
+  instance_type          = var.instance_type
+  subnet_id              = data.aws_subnets.default.ids[0]
+  key_name               = aws_key_pair.this.key_name
+  vpc_security_group_ids = [aws_security_group.core_service.id]
+
+  user_data = local.user_data
 
   tags = {
     Name = "core-service"

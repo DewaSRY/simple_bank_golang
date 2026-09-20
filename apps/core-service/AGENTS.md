@@ -15,7 +15,9 @@ JWT auth bound to a device fingerprint (`golang-jwt/jwt/v5`), an in-process
 per-IP rate limiter, `shopspring/decimal` for money math, `viper` for config,
 `slog` for structured logging, `gomock` for store/handler unit tests, Swagger
 (`swaggo`) for API docs, `golang-migrate` for schema migrations, Terraform +
-Docker for deployment to EC2.
+Docker for deployment to EC2 behind an nginx reverse proxy that rate-limits
+at the edge (infra now lives at the repo root, `infra/terraform/` — not
+under this app).
 
 ## Where to Look First (read this before exploring)
 
@@ -176,7 +178,7 @@ other way. `internal/db/store` depends only on `internal/db/sqlc`, never on
 | API docs | `swaggo/swag` + `gin-swagger`, generated into `internal/docs` |
 | CORS | `gin-contrib/cors`, origin-list based (never `*`) |
 | Containerization | Docker (`Dockerfile`, `Dockerfile.prod`) |
-| Infra | Terraform, targeting a single EC2 instance (see `docs/TERRAFORM_*.md`) |
+| Infra | Terraform, targeting a single EC2 instance behind an nginx reverse proxy/rate limiter — lives at the repo root now (`infra/terraform/`, not under this app; see `infra/terraform/docs/TERRAFORM_*.md`) |
 
 ## How the Code Is Organized
 
