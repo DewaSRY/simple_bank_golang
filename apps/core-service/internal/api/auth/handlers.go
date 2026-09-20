@@ -17,8 +17,7 @@ import (
 )
 
 type loginUserRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Email string `json:"email" binding:"required,email"`
 }
 
 type AuthResponse struct {
@@ -29,7 +28,10 @@ type AuthResponse struct {
 
 // loginUser godoc
 // @Summary      Login
-// @Description  Authenticate a user and return an access token
+// @Description  Authenticate by email. There is no password: the caller's
+// @Description  browser/device fingerprint (derived from request headers)
+// @Description  must match the one this account was registered/last bound
+// @Description  with, or the request is rejected with 403.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -37,6 +39,7 @@ type AuthResponse struct {
 // @Success      200      {object}  core.successResponse{data=AuthResponse}
 // @Failure      400      {object}  core.errorResponse
 // @Failure      401      {object}  core.errorResponse
+// @Failure      403      {object}  core.errorResponse
 // @Failure      500      {object}  core.errorResponse
 // @Router       /auth/login [post]
 func (h *Handler) loginUser(ctx *gin.Context) {
@@ -49,15 +52,31 @@ func (h *Handler) loginUser(ctx *gin.Context) {
 	user, err := h.Store.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			core.Fail(ctx, core.UnauthorizedErr("invalid username or password"))
+			core.Fail(ctx, core.UnauthorizedErr("invalid credentials"))
 			return
 		}
 		core.Fail(ctx, core.InternalErr(err))
 		return
 	}
 
-	if err := util.CheckPassword(req.Password, user.HashedPassword); err != nil {
-		core.Fail(ctx, core.UnauthorizedErr("invalid username or password"))
+	fingerprint := requestDeviceFingerprint(ctx)
+
+	switch user.DeviceFingerprintHash {
+	case fingerprint:
+		// already bound to this device, nothing to do
+	case "":
+		// legacy/unbound row (pre-dates device binding) — bind it now
+		bound, err := h.Store.BindUserDeviceFingerprint(ctx, db.BindUserDeviceFingerprintParams{
+			ID:                    user.ID,
+			DeviceFingerprintHash: fingerprint,
+		})
+		if err != nil {
+			core.Fail(ctx, core.InternalErr(err))
+			return
+		}
+		user.ID, user.Username, user.Email = bound.ID, bound.Username, bound.Email
+	default:
+		core.Fail(ctx, core.ForbiddenErr("this account is bound to a different device"))
 		return
 	}
 
@@ -75,15 +94,27 @@ func (h *Handler) loginUser(ctx *gin.Context) {
 }
 
 type registerUserRequest struct {
-	Username        string `json:"username" binding:"required"`
-	Email           string `json:"email" binding:"required,email"`
-	Password        string `json:"password" binding:"required,min=8"`
-	PasswordConfirm string `json:"password_confirm" binding:"required,eqfield=Password"`
+	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+}
+
+// requestDeviceFingerprint derives a stable identifier for the caller's
+// browser/device from request headers. This is the one and only credential
+// an account is checked against — see util.ComputeDeviceFingerprint.
+func requestDeviceFingerprint(ctx *gin.Context) string {
+	return util.ComputeDeviceFingerprint(
+		ctx.GetHeader("User-Agent"),
+		ctx.GetHeader("Accept-Language"),
+		ctx.GetHeader("Accept-Encoding"),
+	)
 }
 
 // registerUser godoc
 // @Summary      Register
-// @Description  Register a new user and return an access token
+// @Description  Register a new user and return an access token. There is no
+// @Description  password: the account is bound to the caller's current
+// @Description  browser/device fingerprint, and future logins are only
+// @Description  accepted from that same device.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -97,12 +128,6 @@ func (h *Handler) registerUser(ctx *gin.Context) {
 	var req registerUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		core.Fail(ctx, core.ValidationErr(core.FieldErrorsFromBindErr(err)...))
-		return
-	}
-
-	// Check if the password and password confirmation match
-	if req.Password != req.PasswordConfirm {
-		core.Fail(ctx, core.BadRequestErr("password_mismatch", "password and password confirmation do not match"))
 		return
 	}
 
@@ -128,18 +153,11 @@ func (h *Handler) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// Hash the password
-	hashedPassword, err := util.HashPassword(req.Password)
-	if err != nil {
-		core.Fail(ctx, core.InternalErr(err))
-		return
-	}
-
-	// Create the user in the database
+	// Create the user in the database, bound to the device that registered it
 	arg := db.CreateUserParams{
-		Username:       req.Username,
-		Email:          req.Email,
-		HashedPassword: hashedPassword,
+		Username:              req.Username,
+		Email:                 req.Email,
+		DeviceFingerprintHash: requestDeviceFingerprint(ctx),
 	}
 
 	user, err := h.Store.CreateUser(ctx, arg)

@@ -65,11 +65,18 @@ func NewServer(store store.Storer, cfg config.Config, log *slog.Logger) (*Server
 	// the chain (registered first) to still run once recovery's recover()
 	// hands control back to it; the other way around, a panic recovers into
 	// a response that's never written and the client sees an empty 200.
+	//
+	// rateLimitMiddleware (when enabled) is registered for the same reason,
+	// after errorHandlerMiddleware and before recoveryMiddleware: it reports
+	// failures via core.Fail, which only errorHandlerMiddleware renders.
 	router := gin.New()
 	router.Use(core.RequestIDMiddleware())
 	router.Use(core.LoggingMiddleware(log, cfg))
 	router.Use(corsMiddleware(cfg.CORSAllowedOrigins))
 	router.Use(core.ErrorHandlerMiddleware(log))
+	if cfg.RateLimitEnabled {
+		router.Use(core.RateLimitMiddleware(cfg, nil))
+	}
 	router.Use(core.RecoveryMiddleware(log))
 
 	// An unset CORS_ALLOWED_ORIGINS is indistinguishable from deliberately

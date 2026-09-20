@@ -39,6 +39,18 @@ type Config struct {
 	// captured for logging, in bytes. Zero/unset falls back to 1MiB — see
 	// internal/api/logging_middleware.go.
 	LogMaxBodySize int64 `mapstructure:"LOG_MAX_BODY_SIZE"`
+
+	// RateLimitEnabled turns the global per-IP rate limiter on/off without a
+	// code change (e.g. disable it for load tests). See
+	// internal/api/core/rate_limit_middleware.go.
+	RateLimitEnabled bool `mapstructure:"RATE_LIMIT_ENABLED"`
+	// RateLimitRequestsPerSecond is the sustained per-IP request rate the
+	// token bucket refills at.
+	RateLimitRequestsPerSecond float64 `mapstructure:"RATE_LIMIT_REQUESTS_PER_SECOND"`
+	// RateLimitBurst is the token bucket's capacity: how many requests a
+	// single IP can make in a burst before being throttled to
+	// RateLimitRequestsPerSecond.
+	RateLimitBurst int `mapstructure:"RATE_LIMIT_BURST"`
 }
 
 // LoadConfig reads configuration from an optional app.env file

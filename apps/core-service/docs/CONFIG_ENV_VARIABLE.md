@@ -68,6 +68,9 @@ type Config struct {
 	LogRequestBody         bool          `mapstructure:"LOG_REQUEST_BODY"`
 	LogResponseBody        bool          `mapstructure:"LOG_RESPONSE_BODY"`
 	LogMaxBodySize         int64         `mapstructure:"LOG_MAX_BODY_SIZE"`
+	RateLimitEnabled           bool    `mapstructure:"RATE_LIMIT_ENABLED"`
+	RateLimitRequestsPerSecond float64 `mapstructure:"RATE_LIMIT_REQUESTS_PER_SECOND"`
+	RateLimitBurst             int     `mapstructure:"RATE_LIMIT_BURST"`
 }
 ```
 
@@ -85,6 +88,9 @@ type Config struct {
 | `LogRequestBody` | `LOG_REQUEST_BODY` | `bool` | `true` |
 | `LogResponseBody` | `LOG_RESPONSE_BODY` | `bool` | `true` |
 | `LogMaxBodySize` | `LOG_MAX_BODY_SIZE` | `int64` (bytes) | `1048576` |
+| `RateLimitEnabled` | `RATE_LIMIT_ENABLED` | `bool` | `true` |
+| `RateLimitRequestsPerSecond` | `RATE_LIMIT_REQUESTS_PER_SECOND` | `float64` | `5` |
+| `RateLimitBurst` | `RATE_LIMIT_BURST` | `int` | `20` |
 
 `LogLevel`/`LogFormat`/`LogPrettyJSON`/`LogRequestBody`/`LogResponseBody`/`LogMaxBodySize` are all exceptions to "the struct itself does zero validation" below — [internal/logger/logger.go](../internal/logger/logger.go) and [internal/api/core/logging_middleware.go](../internal/api/core/logging_middleware.go) (not this package) treat an empty, unrecognized, or zero value as a safe default rather than erroring, so a typo'd `LOG_LEVEL` or an unset `LOG_MAX_BODY_SIZE` silently falls back to a default instead of failing config load.
 
@@ -298,3 +304,6 @@ Both flows end at the same `Config{...}` value and the same call sites — the o
 | `LOG_REQUEST_BODY` | `LogRequestBody` | `bool` | `true` | No — false/unset disables request body capture | [internal/api/core/logging_middleware.go:88,111](../internal/api/core/logging_middleware.go#L88) |
 | `LOG_RESPONSE_BODY` | `LogResponseBody` | `bool` | `true` | No — false/unset disables response body capture | [internal/api/core/logging_middleware.go:93,120](../internal/api/core/logging_middleware.go#L93) |
 | `LOG_MAX_BODY_SIZE` | `LogMaxBodySize` | `int64` (bytes) | `1048576` | No — zero/unset falls back to 1MiB | [internal/api/core/logging_middleware.go:26,160-165](../internal/api/core/logging_middleware.go#L26) |
+| `RATE_LIMIT_ENABLED` | `RateLimitEnabled` | `bool` | `true` | No — false/unset skips registering the middleware entirely | [internal/api/server.go](../internal/api/server.go) |
+| `RATE_LIMIT_REQUESTS_PER_SECOND` | `RateLimitRequestsPerSecond` | `float64` | `5` | Only matters when enabled — zero/unset means every request is rejected once the burst is spent | [internal/api/core/rate_limit_middleware.go](../internal/api/core/rate_limit_middleware.go) |
+| `RATE_LIMIT_BURST` | `RateLimitBurst` | `int` | `20` | Only matters when enabled — zero/unset means no requests are ever allowed | [internal/api/core/rate_limit_middleware.go](../internal/api/core/rate_limit_middleware.go) |
