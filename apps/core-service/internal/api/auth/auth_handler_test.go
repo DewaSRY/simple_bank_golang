@@ -41,6 +41,12 @@ func newTestHandler(t *testing.T, storer store.Storer) *Handler {
 	return &Handler{Store: storer, TokenMaker: tokenMaker, AccessTokenDuration: time.Minute}
 }
 
+func newTestHandlerWithTrustedIPs(t *testing.T, storer store.Storer, trustedIPs []string) *Handler {
+	h := newTestHandler(t, storer)
+	h.TrustedIPs = trustedIPs
+	return h
+}
+
 // newTestRouter wires the same route groups NewServer does (public "/api/v1"
 // routes, then an authorized group behind core.AuthMiddleware), so these
 // tests exercise auth's Handler exactly as it runs in production.
@@ -404,6 +410,34 @@ func TestLoginUser(t *testing.T) {
 			tc.checkResponse(t, recorder)
 		})
 	}
+}
+
+// TestLoginUser_TrustedIPBypassesDeviceFingerprint covers Handler.TrustedIPs:
+// a request from a configured trusted IP must log in even with a device
+// fingerprint that doesn't match the bound one, since it gets the fixed mock
+// fingerprint instead of one derived from headers.
+func TestLoginUser_TrustedIPBypassesDeviceFingerprint(t *testing.T) {
+	const (
+		email          = "dewa@example.com"
+		trustedIP      = "192.0.2.1" // httptest.NewRequest's default RemoteAddr
+		boundUserAgent = "bound-agent/1.0"
+	)
+
+	boundUser := db.GetUserByEmailRow{
+		ID: 1, Username: "dewa", Email: email, DeviceFingerprintHash: trustedIPMockFingerprint, CreatedAt: time.Now(),
+	}
+
+	ctrl := gomock.NewController(t)
+	q := mockdb.NewMockStorer(ctrl)
+	q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(boundUser, nil)
+
+	h := newTestHandlerWithTrustedIPs(t, q, []string{trustedIP})
+	router := newTestRouter(h)
+
+	// A user agent that would normally mismatch the bound fingerprint and be
+	// rejected with 403 — the trusted IP bypass must still let it through.
+	recorder := doLoginRequest(t, router, loginUserRequest{Email: email}, boundUserAgent+"-different")
+	require.Equal(t, http.StatusOK, recorder.Code)
 }
 
 func doGetProfileRequest(t *testing.T, router *gin.Engine, authHeader string) *httptest.ResponseRecorder {

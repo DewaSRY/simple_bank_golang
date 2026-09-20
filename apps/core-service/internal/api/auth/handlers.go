@@ -10,7 +10,6 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/DewaSRY/core-service/internal/api/core"
-	"github.com/DewaSRY/core-service/internal/util"
 
 	db "github.com/DewaSRY/core-service/internal/db/sqlc"
 	"github.com/DewaSRY/core-service/internal/db/store"
@@ -59,7 +58,7 @@ func (h *Handler) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	fingerprint := requestDeviceFingerprint(ctx)
+	fingerprint := h.requestDeviceFingerprint(ctx)
 
 	switch user.DeviceFingerprintHash {
 	case fingerprint:
@@ -98,17 +97,6 @@ type registerUserRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 }
 
-// requestDeviceFingerprint derives a stable identifier for the caller's
-// browser/device from request headers. This is the one and only credential
-// an account is checked against — see util.ComputeDeviceFingerprint.
-func requestDeviceFingerprint(ctx *gin.Context) string {
-	return util.ComputeDeviceFingerprint(
-		ctx.GetHeader("User-Agent"),
-		ctx.GetHeader("Accept-Language"),
-		ctx.GetHeader("Accept-Encoding"),
-	)
-}
-
 // registerUser godoc
 // @Summary      Register
 // @Description  Register a new user and return an access token. There is no
@@ -131,7 +119,6 @@ func (h *Handler) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// Check if the email already exists
 	_, err := h.Store.GetUserByEmail(ctx, req.Email)
 	if err == nil {
 		core.Fail(ctx, core.BadRequestErr("email_exists", "email already exists"))
@@ -142,7 +129,6 @@ func (h *Handler) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// Check if the username already exists
 	usernameExists, err := h.Store.CheckIsUsernameExist(ctx, req.Username)
 	if err != nil {
 		core.Fail(ctx, core.InternalErr(err))
@@ -153,11 +139,10 @@ func (h *Handler) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// Create the user in the database, bound to the device that registered it
 	arg := db.CreateUserParams{
 		Username:              req.Username,
 		Email:                 req.Email,
-		DeviceFingerprintHash: requestDeviceFingerprint(ctx),
+		DeviceFingerprintHash: h.requestDeviceFingerprint(ctx),
 	}
 
 	user, err := h.Store.CreateUser(ctx, arg)
@@ -171,9 +156,6 @@ func (h *Handler) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// Create the user's Main Account. This is the only account flagged
-	// IsMain: true — it can never be deleted, and receives the remaining
-	// balance whenever another of the user's accounts is deleted.
 	_, err = h.Store.CreateAccountTx(ctx, store.CreateAccountTxParams{
 		UserID: sql.NullInt64{Int64: user.ID, Valid: true},
 		Name:   "Main Account",
@@ -184,7 +166,6 @@ func (h *Handler) registerUser(ctx *gin.Context) {
 		return
 	}
 
-	// create access token for the new user
 	accessToken, _, err := h.TokenMaker.CreateToken(user.ID, user.Username, user.Email, h.AccessTokenDuration)
 	if err != nil {
 		core.Fail(ctx, core.InternalErr(err))

@@ -51,6 +51,17 @@ type Config struct {
 	// single IP can make in a burst before being throttled to
 	// RateLimitRequestsPerSecond.
 	RateLimitBurst int `mapstructure:"RATE_LIMIT_BURST"`
+
+	// DeviceFingerprintTrustedIPs is a comma-separated list of client IPs
+	// (matched against gin's ctx.ClientIP()) that are exempt from the
+	// device-fingerprint binding check in internal/api/auth: a request from
+	// one of these IPs always gets a fixed, well-known fingerprint instead
+	// of one derived from headers. This exists purely so local tooling
+	// (Swagger UI, curl) can register/login repeatedly without being
+	// rejected as "bound to a different device" every time headers change.
+	// Empty/unset (the default) disables the bypass entirely — never set
+	// this in a production environment.
+	DeviceFingerprintTrustedIPs []string `mapstructure:"DEVICE_FINGERPRINT_TRUSTED_IPS"`
 }
 
 // LoadConfig reads configuration from an optional app.env file
