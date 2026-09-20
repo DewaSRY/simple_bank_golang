@@ -226,7 +226,7 @@ export function DepositFlow() {
         )}
       </AnimatePresence>
 
-      <RecentActivity entries={entries} accountId={account.id} />
+      <RecentActivity entries={entries} />
 
       {justDeposited && (
         <motion.div

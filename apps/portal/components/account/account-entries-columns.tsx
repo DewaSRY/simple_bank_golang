@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import {
   createColumnHelper,
   metaHelper,
@@ -9,6 +8,7 @@ import {
 import type { DisplayLedgerEntry } from "@/feature/account-transaction";
 import { getEntryLabel } from "@/feature/account-transaction";
 import { formatAccountAmount } from "@/lib/number";
+import { getEntryVisual } from "@/components/account/entry-visual";
 
 type AccountEntryColumnMeta = {
   align?: "left" | "right";
@@ -24,11 +24,9 @@ const columnHelper = createColumnHelper<
 >();
 
 export function getAccountEntriesColumns({
-  accountId,
   currency,
   t,
 }: {
-  accountId: number;
   currency: string;
   t: (key: string, params?: Record<string, unknown>) => string;
 }) {
@@ -44,24 +42,17 @@ export function getAccountEntriesColumns({
       header: t("transactionType"),
       cell: ({ row }) => {
         const entry = row.original;
-        const isIncoming = entry.direction === "incoming";
-        const Icon = isIncoming ? ArrowDownLeft : ArrowUpRight;
+        const { Icon, iconWrapperClassName } = getEntryVisual(entry.type);
 
         return (
           <div className="flex items-center gap-3">
             <span
-              className={
-                isIncoming
-                  ? "flex size-8 items-center justify-center rounded-full bg-success/10 text-success"
-                  : "flex size-8 items-center justify-center rounded-full bg-destructive/10 text-destructive"
-              }
+              className={`flex size-8 items-center justify-center rounded-full ${iconWrapperClassName}`}
             >
               <Icon className="size-4" aria-hidden />
             </span>
             <div>
-              <p className="font-medium">
-                {getEntryLabel(entry, accountId, t)}
-              </p>
+              <p className="font-medium">{getEntryLabel(entry, t)}</p>
               <p className="text-xs capitalize text-muted-foreground">
                 {entry.type}
               </p>
@@ -79,9 +70,7 @@ export function getAccountEntriesColumns({
         const isTransfer = !["deposit", "withdraw"].includes(
           entry.type.toLowerCase(),
         );
-        const counterpartyNumber = isIncoming
-          ? entry.account_number
-          : entry.to_account_number;
+        const counterpartyNumber = entry.to_account_number;
 
         if (!isTransfer && !entry.description) {
           return <span className="text-xs text-muted-foreground">—</span>;
@@ -90,16 +79,14 @@ export function getAccountEntriesColumns({
         return (
           <div className="space-y-0.5">
             {isTransfer && counterpartyNumber ? (
-              <p className="font-mono text-xs font-semibold text-muted-foreground">
+              <p className="font-mono  font-semibold text-muted-foreground">
                 {t(isIncoming ? "fromAccountNumber" : "toAccountNumber", {
                   number: counterpartyNumber,
                 })}
               </p>
             ) : null}
             {entry.description ? (
-              <p className="text-xs text-muted-foreground">
-                {entry.description}
-              </p>
+              <p className=" text-muted-foreground">{entry.description}</p>
             ) : null}
           </div>
         );
@@ -112,15 +99,10 @@ export function getAccountEntriesColumns({
       cell: ({ row }) => {
         const entry = row.original;
         const isIncoming = entry.direction === "incoming";
+        const { amountClassName } = getEntryVisual(entry.type);
 
         return (
-          <span
-            className={
-              isIncoming
-                ? "font-mono font-medium text-green-500"
-                : "font-mono font-medium text-red-500"
-            }
-          >
+          <span className={`font-mono font-medium ${amountClassName}`}>
             {formatAccountAmount(entry.amount, currency, isIncoming)}
           </span>
         );

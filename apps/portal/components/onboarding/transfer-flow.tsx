@@ -334,7 +334,7 @@ export function TransferFlow() {
         )}
       </AnimatePresence>
 
-      <RecentActivity entries={entries} accountId={account.id} />
+      <RecentActivity entries={entries} />
 
       {justTransferred && (
         <motion.div

@@ -78,7 +78,7 @@ const Pagination: React.FC<PaginationProps> = ({
   return (
     <div
       className={cn(
-        "flex flex-col sm:flex-row items-center justify-between w-full sticky bottom-0 bg-background rounded-b-lg p-3 gap-2",
+        "flex flex-col sm:flex-row items-center justify-between w-full sticky bottom-0  py-2 px-1 gap-2",
         className,
       )}
     >
@@ -88,7 +88,7 @@ const Pagination: React.FC<PaginationProps> = ({
             data-testid={`select_${pageName}_rows_per_page`}
             value={rowsPerPage}
             onChange={(e) => onRowsPerPageChange?.(Number(e.target.value))}
-            className="h-8 rounded-md border border-brand-500 bg-background pl-3 pr-8 py-1 text-sm text-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent appearance-none"
+            className="h-8 rounded-xs border border-brand-500  pl-3 pr-8 py-1 text-sm text-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent appearance-none"
           >
             {rowsPerPageOptions.map((option) => (
               <option
@@ -111,7 +111,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => handlePageClick(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-8 w-8 shrink-0 rounded-md flex items-center justify-center border border-brand-500 bg-background text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-brand-500  text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           aria-label={t("previousPage")}
           data-testid={pageName ? `btn_${pageName}_previous_page` : undefined}
         >
@@ -134,10 +134,10 @@ const Pagination: React.FC<PaginationProps> = ({
             <button
               key={page}
               onClick={() => handlePageClick(page)}
-              className={`h-8 min-w-2 px-3 shrink-0 rounded-md flex items-center justify-center text-sm font-medium transition-colors ${
+              className={`h-8 min-w-2 px-3 shrink-0 rounded-xs flex items-center justify-center text-sm font-medium transition-colors ${
                 currentPage === page
                   ? "bg-brand-500 text-white hover:bg-brand"
-                  : "bg-background text-gray-700 hover:bg-gray-50"
+                  : " text-gray-700 hover:bg-gray-50"
               }`}
               aria-label={t("pageNumber", { page })}
               aria-current={currentPage === page ? "page" : undefined}
@@ -153,7 +153,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => handlePageClick(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-8 w-8 shrink-0 rounded-md flex items-center justify-center border border-brand-500 bg-background text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-brand-500  text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           aria-label={t("nextPage")}
           data-testid={pageName ? `btn_${pageName}_next_page` : undefined}
         >

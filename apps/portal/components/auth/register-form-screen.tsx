@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { InputField } from "@/components/form/input-field";
-import { PasswordField } from "@/components/form/password-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { GuardedLink } from "@/components/common/navigation-guard/guarded-link";
@@ -35,8 +34,6 @@ export function RegisterFormScreen() {
     defaultValues: {
       username: "",
       email: "",
-      password: "",
-      confirmPassword: "",
     },
   });
 
@@ -64,8 +61,6 @@ export function RegisterFormScreen() {
         {
           username: values.username,
           email: values.email,
-          password: values.password,
-          password_confirm: values.confirmPassword,
         },
         {
           onSuccess: () => {
@@ -130,22 +125,6 @@ export function RegisterFormScreen() {
                   label={t("email")}
                   autoComplete="email"
                   placeholder={t("email")}
-                />
-
-                <PasswordField
-                  control={form.control}
-                  name="password"
-                  label={t("password")}
-                  autoComplete="new-password"
-                  placeholder={t("password")}
-                />
-
-                <PasswordField
-                  control={form.control}
-                  name="confirmPassword"
-                  label={t("confirmPassword")}
-                  autoComplete="new-password"
-                  placeholder={t("confirmPassword")}
                 />
               </div>
 

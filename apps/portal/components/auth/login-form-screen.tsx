@@ -24,7 +24,7 @@ export function LoginFormScreen() {
 
   const form = useForm<LoginFormScreenValues>({
     resolver: zodResolverTranslate(createLoginSchema(t), t),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "" },
   });
 
   const onSubmit = form.handleSubmit((values) => {
@@ -75,14 +75,6 @@ export function LoginFormScreen() {
                 label={t("email")}
                 autoComplete="email"
                 placeholder={t("email")}
-              />
-
-              <PasswordField
-                control={form.control}
-                name="password"
-                label={t("password")}
-                autoComplete="current-password"
-                placeholder={t("password")}
               />
             </div>
             <div className="flex flex-col gap-4">

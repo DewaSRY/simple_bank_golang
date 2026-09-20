@@ -2,21 +2,20 @@
 
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { getEntryLabel } from "@/feature/account-transaction";
 import {
   toDisplayLedgerEntry,
   type OnboardingEntry,
 } from "@/feature/onboarding";
 import { formatAccountAmount } from "@/lib/number";
+import { getEntryVisual } from "@/components/account/entry-visual";
 
 interface Props {
   entries: OnboardingEntry[];
-  accountId: number;
   limit?: number;
 }
 
-export function RecentActivity({ entries, accountId, limit = 4 }: Props) {
+export function RecentActivity({ entries, limit = 4 }: Props) {
   const { t } = useTranslation("account");
 
   if (entries.length === 0) return null;
@@ -33,7 +32,8 @@ export function RecentActivity({ entries, accountId, limit = 4 }: Props) {
           {shown.map((entry) => {
             const display = toDisplayLedgerEntry(entry);
             const isIncoming = display.direction === "incoming";
-            const Icon = isIncoming ? ArrowDownLeft : ArrowUpRight;
+            const { Icon, iconWrapperClassName, amountClassName } =
+              getEntryVisual(display.type);
 
             return (
               <motion.div
@@ -45,28 +45,20 @@ export function RecentActivity({ entries, accountId, limit = 4 }: Props) {
                 className="flex items-center gap-3 rounded-xs border px-3 py-2.5"
               >
                 <span
-                  className={
-                    isIncoming
-                      ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"
-                      : "flex size-8 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive"
-                  }
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-full ${iconWrapperClassName}`}
                 >
                   <Icon className="size-4" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
-                    {getEntryLabel(display, accountId, t)}
+                    {getEntryLabel(display, t)}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {entry.description}
                   </p>
                 </div>
                 <span
-                  className={
-                    isIncoming
-                      ? "shrink-0 font-mono text-sm font-medium text-green-500"
-                      : "shrink-0 font-mono text-sm font-medium text-red-500"
-                  }
+                  className={`shrink-0 font-mono text-sm font-medium ${amountClassName}`}
                 >
                   {formatAccountAmount(display.amount, "IDR", isIncoming)}
                 </span>

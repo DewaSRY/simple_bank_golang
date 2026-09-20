@@ -292,7 +292,7 @@ function TableCell({
       className={cn("px-3.5 py-3 align-middle whitespace-nowrap", className)}
       {...props}
     >
-      {isLoading ? <Skeleton className="w-full h-5 rounded-md" /> : children}
+      {isLoading ? <Skeleton className="w-full h-5 rounded-xs" /> : children}
     </td>
   );
 }

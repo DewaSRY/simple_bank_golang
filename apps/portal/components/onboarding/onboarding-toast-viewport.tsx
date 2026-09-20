@@ -46,7 +46,7 @@ export function OnboardingToastViewport() {
             <button
               type="button"
               onClick={() => dismiss(toast.id)}
-              className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="shrink-0 rounded-xs p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <X className="size-3.5" aria-hidden />
               <span className="sr-only">Dismiss</span>

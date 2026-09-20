@@ -55,8 +55,8 @@ export function AccountEntriesCard({
   });
 
   const columns = useMemo(
-    () => getAccountEntriesColumns({ accountId, currency, t }),
-    [accountId, currency, t],
+    () => getAccountEntriesColumns({ currency, t }),
+    [currency, t],
   );
 
   const table = useTable({
