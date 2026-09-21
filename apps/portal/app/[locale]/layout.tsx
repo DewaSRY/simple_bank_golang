@@ -14,7 +14,7 @@ import { SITE_URL } from "@/lib/seo/metadata";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "../globals.css";
 
-const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"system";var d=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;if(d==="dark"){e.classList.add("dark")}else{e.classList.remove("dark")}e.style.colorScheme=d}catch(e){}})()`;
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"light";var d=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;if(d==="dark"){e.classList.add("dark")}else{e.classList.remove("dark")}e.style.colorScheme=d}catch(e){}})()`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

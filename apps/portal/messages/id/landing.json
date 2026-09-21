@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Simple Bank — Perbankan yang Sederhana",
-    "description": "Buka rekening, tambah saldo, dan kirim uang ke siapa saja dalam hitungan detik. Aplikasi bank demo gratis yang menunjukkan betapa sederhana dan akuratnya perbankan bisa terasa."
+    "description": "Buka account, tambah saldo, dan kirim uang ke siapa saja dalam hitungan detik. Aplikasi bank demo gratis yang menunjukkan betapa sederhana dan akuratnya perbankan bisa terasa."
   },
   "nav": {
     "explore": "Cara kerjanya",
@@ -9,13 +9,13 @@
     "links": {
       "overview": "Ringkasan",
       "architecture": "Cara kerjanya",
-      "backend": "Menjaga uang Anda",
+      "backend": "Menjaga account Anda",
       "database": "Data Anda",
       "security": "Keamanan",
       "deployment": "Selalu siap"
     },
     "tryDemo": "Demo Simulasi",
-    "getStarted": "Buka rekening",
+    "getStarted": "Buka account",
     "viewSource": "Lihat kode sumber",
     "menuToggle": "Menu"
   },
@@ -372,61 +372,61 @@
             "method": "POST",
             "path": "/accounts",
             "auth": true,
-            "description": "Buka rekening baru."
+            "description": "Buka account baru."
           },
           {
             "method": "GET",
             "path": "/accounts/me",
             "auth": true,
-            "description": "Lihat semua rekening Anda."
+            "description": "Lihat semua account Anda."
           },
           {
             "method": "GET",
             "path": "/accounts/search-by-number",
             "auth": true,
-            "description": "Cari rekening lewat nomornya, agar Anda bisa mengirim uang ke sana."
+            "description": "Cari account lewat nomornya, agar Anda bisa mengirim uang ke sana."
           },
           {
             "method": "GET",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Lihat salah satu rekening Anda."
+            "description": "Lihat salah satu account Anda."
           },
           {
             "method": "PUT",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Ubah nama atau perbarui sebuah rekening."
+            "description": "Ubah nama atau perbarui sebuah account."
           },
           {
             "method": "DELETE",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Tutup sebuah rekening. Sisa saldonya dipindahkan ke rekening utama Anda terlebih dahulu."
+            "description": "Tutup sebuah account. Sisa saldonya dipindahkan ke account utama Anda terlebih dahulu."
           },
           {
             "method": "POST",
             "path": "/accounts/:id/deposit",
             "auth": true,
-            "description": "Tambah saldo ke sebuah rekening."
+            "description": "Tambah saldo ke sebuah account."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/entries",
             "auth": true,
-            "description": "Lihat setiap perubahan pada saldo sebuah rekening."
+            "description": "Lihat setiap perubahan pada saldo sebuah account."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/transactions",
             "auth": true,
-            "description": "Lihat riwayat transaksi Anda, diberi label dan mudah dibaca."
+            "description": "Lihat riwayat transaksi account Anda, diberi label dan mudah dibaca."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/recent-destinations",
             "auth": true,
-            "description": "Lihat siapa saja yang baru-baru ini Anda kirimi uang."
+            "description": "Lihat siapa saja yang baru-baru ini Anda kirimi uang dari account Anda."
           }
         ]
       },

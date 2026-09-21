@@ -12,39 +12,83 @@ import { SparkleIconLink } from "@/components/landing/sparkle-icon-link";
 export function HeroSection() {
   const { t } = useTranslation("landing");
 
-  const pipeline = t("hero.pipeline", { returnObjects: true }) as string[];
+  const pipeline = t("hero.pipeline", {
+    returnObjects: true,
+  }) as string[];
 
   return (
-    <section className="relative overflow-hidden px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28">
-      <div className="mx-auto flex w-full max-w-[70vw] flex-col items-center gap-6 text-center">
+    <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden py-8 ">
+      <div
+        className="
+          mx-auto flex w-full max-w-5xl flex-col items-center
+          gap-5 text-center
+          sm:gap-6
+          lg:gap-7
+        "
+      >
+        {/* Eyebrow */}
         <motion.span
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-foreground/10"
+          transition={{
+            duration: 0.5,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="
+            rounded-full bg-muted px-3 py-1
+            text-[11px] font-medium
+            text-muted-foreground
+            ring-1 ring-foreground/10
+            sm:px-3.5 sm:py-1.5 sm:text-xs
+          "
         >
           {t("hero.eyebrow")}
         </motion.span>
 
+        {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-          className=" text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl sm:leading-tight"
+          transition={{
+            duration: 0.6,
+            delay: 0.05,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="
+            max-w-4xl
+            text-xl
+            md:text-3xl md:leading-[1.1]
+            font-semibold tracking-tight
+            text-balance
+            sm:text-5xl sm:leading-[1.08]
+            lg:text-6xl
+          "
         >
-          <span className="mr-0.5">{t("hero.titleBefore")} </span>
+          <span>{t("hero.titleBefore")} </span>
           <span className="text-primary">{t("hero.titleBrand")}</span>
         </motion.h1>
 
+        {/* Description */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className=" text-lg leading-8 text-muted-foreground text-balance"
+          transition={{
+            duration: 0.6,
+            delay: 0.1,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="
+            max-w-2xl
+            md:text-base md:leading-7
+            text-muted-foreground
+            text-balance
+            sm:text-lg sm:leading-8
+          "
         >
           {t("hero.description")}
         </motion.p>
 
+        {/* Pipeline */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -57,7 +101,12 @@ export function HeroSection() {
               },
             },
           }}
-          className="mt-2 flex w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2"
+          className=" hidden sm:flex
+            mt-2  w-full max-w-3xl
+            flex-wrap items-center justify-center
+            gap-x-1.5 gap-y-2
+            sm:gap-x-2 sm:gap-y-2.5
+          "
         >
           {pipeline.map((step, index) => (
             <motion.span
@@ -80,7 +129,16 @@ export function HeroSection() {
               }}
               className="flex items-center gap-1.5 sm:gap-2"
             >
-              <span className="rounded-full bg-card px-3 py-1.5 text-xs font-medium ring-1 ring-foreground/10 sm:text-sm">
+              <span
+                className="
+                  rounded-full bg-card
+                  px-2.5 py-1.5
+                  text-[11px] font-medium
+                  whitespace-nowrap
+                  ring-1 ring-foreground/10
+                  sm:px-3 sm:text-sm
+                "
+              >
                 {step}
               </span>
 
@@ -94,7 +152,11 @@ export function HeroSection() {
                   }}
                 >
                   <ArrowRight
-                    className="size-3.5 shrink-0 text-muted-foreground/50"
+                    className="
+                      size-3 shrink-0
+                      text-muted-foreground/40
+                      sm:size-3.5
+                    "
                     aria-hidden
                   />
                 </motion.span>
@@ -103,24 +165,42 @@ export function HeroSection() {
           ))}
         </motion.div>
 
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-4 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"
+          transition={{
+            duration: 0.6,
+            delay: 0.3,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="
+            mt-3 flex w-full
+            flex-col gap-2.5
+            sm:mt-4 sm:w-auto sm:flex-row sm:gap-3
+          "
         >
           <Button
             size="lg"
-            className="h-12 px-6 text-base"
+            className="
+              h-11 w-full px-6
+              text-sm
+              sm:h-12 sm:w-auto sm:text-base
+            "
             nativeButton={false}
             render={<a href="#journey" />}
           >
             {t("hero.ctaPrimary")}
           </Button>
+
           <Button
             size="lg"
             variant="outline"
-            className="h-12 px-6 text-base"
+            className="
+              h-11 w-full px-6
+              text-sm
+              sm:h-12 sm:w-auto sm:text-base
+            "
             nativeButton={false}
             render={<Link href="/onboarding" />}
           >
@@ -128,50 +208,80 @@ export function HeroSection() {
           </Button>
         </motion.div>
 
+        {/* Note */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.45 }}
-          className="text-sm text-muted-foreground"
+          transition={{
+            duration: 0.5,
+            delay: 0.45,
+          }}
+          className="
+            max-w-md
+            text-xs text-muted-foreground
+            sm:text-sm
+          "
         >
           {t("hero.note")}
         </motion.p>
 
+        {/* Socials */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="flex items-center gap-4"
+          transition={{
+            duration: 0.5,
+            delay: 0.5,
+          }}
+          className="flex items-center gap-3 sm:gap-4"
         >
           <SparkleIconLink
             href={AUTHOR.githubUrl}
             ariaLabel={t("hero.social.github")}
-            icon={<GithubIcon className="size-5" />}
+            icon={<GithubIcon className="size-4.5 sm:size-5" />}
             hoverRotate="left"
           />
+
           <SparkleIconLink
             href={AUTHOR.linkedinUrl}
             ariaLabel={t("hero.social.linkedin")}
-            icon={<LinkedinIcon className="size-5" />}
+            icon={<LinkedinIcon className="size-4.5 sm:size-5" />}
             hoverRotate="right"
           />
         </motion.div>
       </div>
 
+      {/* Scroll indicator */}
       <motion.a
         href="#journey"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:bottom-6"
+        transition={{
+          duration: 0.5,
+          delay: 0.6,
+        }}
+        className="
+          absolute bottom-4 left-1/2
+          flex -translate-x-1/2
+          flex-col items-center gap-1
+          text-[11px] font-medium
+          text-muted-foreground
+          transition-colors hover:text-foreground
+          sm:gap-1.5 sm:text-xs sm:bottom-24
+        "
         aria-label={t("hero.scrollHint")}
       >
         <span>{t("hero.scrollHint")}</span>
+
         <motion.span
           animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          transition={{
+            duration: 1.6,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
         >
-          <ChevronDown className="size-4" aria-hidden />
+          <ChevronDown className="size-3.5 sm:size-4" aria-hidden />
         </motion.span>
       </motion.a>
     </section>
