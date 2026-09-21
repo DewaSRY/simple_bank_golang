@@ -89,7 +89,7 @@ export function RegisterFormScreen() {
 
   return (
     <div className="w-full flex items-center justify-center">
-      <Card className="w-full z-1  sm:px-4 py-10 sm:min-w-150 space-y-4">
+      <Card className="w-full z-1  sm:px-4 py-10 sm:min-w-150  max-w-2xl space-y-4">
         <CardHeader>
           <div className="flex flex-col space-y-1 border border-brand-100 p-4 rounded-sm ">
             <div className=" mb-2">
@@ -237,7 +237,7 @@ export function RegisterFormScreen() {
             </form>
           )}
           {step === "preview" && (
-            <div className="h-full flex w-full flex-col gap-4 justify-between">
+            <div className="flex h-full w-full flex-1 flex-col gap-4">
               <Card>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between gap-4">
@@ -267,34 +267,33 @@ export function RegisterFormScreen() {
                   </div>
                 </CardContent>
               </Card>
-              <div>
-                <div className="flex flex-col gap-4">
-                  {form.formState.errors.root?.message && (
-                    <p className="text-sm text-destructive">
-                      {form.formState.errors.root.message}
-                    </p>
-                  )}
-                  <div className="flex gap-2 w-full">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="lg"
-                      className="h-11 flex-1"
-                      onClick={() => setStep("form")}
-                      disabled={isPending}
-                    >
-                      {tCommon("back")}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="lg"
-                      className="h-11 flex-1"
-                      onClick={onConfirmRegister}
-                      disabled={isPending}
-                    >
-                      {isPending ? t("registering") : t("confirmAndRegister")}
-                    </Button>
-                  </div>
+
+              <div className="mt-auto flex flex-col gap-4">
+                {form.formState.errors.root?.message && (
+                  <p className="text-sm text-center text-destructive">
+                    {form.formState.errors.root.message}
+                  </p>
+                )}
+                <div className="flex gap-2 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="h-11 flex-1"
+                    onClick={() => setStep("form")}
+                    disabled={isPending}
+                  >
+                    {tCommon("back")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="h-11 flex-1"
+                    onClick={onConfirmRegister}
+                    disabled={isPending}
+                  >
+                    {isPending ? t("registering") : t("confirmAndRegister")}
+                  </Button>
                 </div>
               </div>
             </div>
