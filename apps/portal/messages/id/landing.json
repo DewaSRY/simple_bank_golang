@@ -1,377 +1,367 @@
 {
   "meta": {
-    "title": "Simple Bank — Etalase Rekayasa Full-Stack",
-    "description": "Sistem perbankan berbasis ledger yang dibangun dari ujung ke ujung: frontend Next.js, API Go/Gin, PostgreSQL dengan pembukuan berpasangan (double-entry), Docker, dan pipeline deployment sungguhan."
+    "title": "Simple Bank — Perbankan yang Sederhana",
+    "description": "Buka account, tambah saldo, dan kirim uang ke siapa saja dalam hitungan detik. Aplikasi bank demo gratis yang menunjukkan betapa sederhana dan akuratnya perbankan bisa terasa."
   },
   "nav": {
-    "explore": "Jelajahi sistemnya",
-    "exploreDescription": "Satu halaman, lima lapisan — dari browser sampai ke database.",
+    "explore": "Cara kerjanya",
+    "exploreDescription": "Sekilas tentang bagaimana kami menjaga uang Anda tetap aman dan akurat.",
     "links": {
       "overview": "Ringkasan",
-      "architecture": "Arsitektur",
-      "backend": "Backend",
-      "database": "Database",
+      "architecture": "Cara kerjanya",
+      "backend": "Menjaga account Anda",
+      "database": "Data Anda",
       "security": "Keamanan",
-      "deployment": "Deployment"
+      "deployment": "Selalu siap"
     },
-    "tryDemo": "Coba demo langsung",
-    "getStarted": "Buat akun",
-    "viewSource": "Lihat source code",
-    "menuToggle": "Buka menu"
+    "tryDemo": "Demo Simulasi",
+    "getStarted": "Buka account",
+    "viewSource": "Lihat kode sumber",
+    "menuToggle": "Menu"
   },
   "hero": {
-    "eyebrow": "Etalase rekayasa full-stack",
-    "titleBefore": "Sistem perbankan prototipe,",
-    "titleBrand": "dibangun dari ujung ke ujung.",
-    "description": "Simple Bank adalah aplikasi yang benar-benar berjalan, bukan mockup: portal Next.js yang berbicara dengan API Go yang menyimpan ledger double-entry sungguhan di PostgreSQL. Halaman ini menelusuri cara kerjanya secara nyata — frontend, kontrak API, backend, database, hingga pipeline yang mengirimkannya ke produksi.",
+    "eyebrow": "Cara baru mengatur uang Anda",
+    "titleBefore": "Perbankan yang",
+    "titleBrand": "sederhana, aman, dan milik Anda.",
+    "description": "Simple Bank memungkinkan Anda menyimpan uang di lebih dari satu rekening, menambah saldo, dan mengirim uang ke siapa saja — dengan cepat dan akurat, setiap saat. Ini demo gratis, jadi Anda bisa mencobanya dulu dengan uang latihan.",
     "pipeline": [
-      "Frontend",
-      "API",
-      "Backend",
-      "Database",
-      "Infrastruktur",
-      "Deployment"
+      "Daftar",
+      "Tambah saldo",
+      "Kirim ke siapa saja",
+      "Pantau semuanya"
     ],
-    "ctaPrimary": "Baca arsitekturnya",
-    "ctaSecondary": "Coba demo langsung",
-    "note": "Setiap akun, setoran, dan transfer di bawah ini melewati jalur kode yang sama persis dengan request produksi.",
-    "scrollHint": "Gulir untuk menjelajahi",
+    "ctaPrimary": "Lihat cara kerjanya",
+    "ctaSecondary": "Coba demonya",
+    "note": "Demo ini memakai uang latihan, tapi setiap rekening, setoran, dan transfer bekerja persis seperti pada aplikasi perbankan sungguhan.",
+    "scrollHint": "Gulir untuk lihat lebih banyak",
     "social": {
-      "github": "Lihat kode sumber di GitHub",
+      "github": "Lihat kode di GitHub",
       "linkedin": "Terhubung di LinkedIn"
     }
   },
   "overview": {
-    "eyebrow": "Ringkasan proyek",
-    "title": "Bukan produk perbankan. Latihan rekayasa yang berbentuk seperti satu.",
+    "eyebrow": "Tentang Simple Bank",
+    "title": "Bank demo yang benar-benar bisa Anda pakai.",
     "what": {
       "title": "Apa itu Simple Bank?",
-      "body": "Demo core banking berbasis ledger: pengguna mendaftar, memiliki banyak rekening, menyetor dana, dan transfer antar rekening. Di balik UI-nya ada REST API berbasis Go yang didukung PostgreSQL, dengan setiap perubahan saldo dicatat sebagai baris ledger double-entry yang tidak bisa diubah, bukan sekadar angka yang ditimpa."
+      "body": "Simple Bank memungkinkan Anda mendaftar, membuka lebih dari satu rekening, menambah saldo, dan mengirimkannya ke rekening lain — semua dalam satu aplikasi yang sederhana. Setiap transaksi dicatat dengan teliti, jadi saldo Anda selalu akurat, sampai ke satuan sen."
     },
     "why": {
-      "title": "Kenapa dibangun",
-      "body": "Untuk mendemonstrasikan siklus hidup penuh sebuah aplikasi nyata — requirement, frontend, desain API, layanan backend, skema database, hingga deployment — menggunakan domain di mana kesalahan langsung terlihat: uang. Ledger perbankan tidak mentoleransi update yang hilang, batas transaksi yang ambigu, atau aritmatika yang kira-kira, sehingga menjadi pemicu yang baik untuk disiplin rekayasa."
+      "title": "Kenapa kami membuatnya",
+      "body": "Kami ingin membuat sesuatu yang memperlakukan uang sebagaimana seharusnya: dengan hati-hati. Tidak ada yang hilang, ditebak-tebak, atau dibulatkan begitu saja di sini. Setiap setoran dan transfer dicatat dengan presisi, jadi Anda selalu bisa percaya pada angka yang Anda lihat."
     },
     "demonstrates": {
-      "title": "Apa yang didemonstrasikan",
+      "title": "Apa yang bisa Anda lakukan",
       "items": [
-        "Pengembangan frontend (Next.js App Router, React 19, TanStack Query)",
-        "Desain API & integrasi bertipe antara dua basis kode independen",
-        "Pengembangan backend (Go, Gin, arsitektur berlapis)",
-        "Business logic (transfer double-entry, penguncian yang aman dari deadlock)",
-        "Rekayasa database (PostgreSQL, sqlc, migrasi terversi)",
-        "Autentikasi (berbasis JWT, stateless)",
-        "Otorisasi (pemeriksaan kepemilikan per resource)",
-        "Validasi (binding lewat struct tag, skema Zod di sisi klien)",
-        "Pengujian otomatis (unit test handler, integration test database)",
-        "Kontainerisasi (multi-stage Docker build, Docker Compose)",
-        "Infrastruktur cloud (EC2 yang diprovisikan lewat Terraform)",
-        "Continuous integration (build/vet/test lewat GitHub Actions)"
+        "Membuka beberapa rekening dalam satu tempat",
+        "Menambah saldo kapan pun Anda butuh",
+        "Mengirim uang ke siapa saja, secara instan",
+        "Melihat persis ke mana setiap sen pergi",
+        "Masuk dengan aman, setiap saat",
+        "Percaya bahwa saldo Anda selalu benar",
+        "Menggunakan aplikasi dalam bahasa Indonesia atau Inggris",
+        "Melanjutkan tepat dari tempat Anda berhenti, di perangkat mana pun"
       ]
     }
   },
   "journey": {
-    "eyebrow": "Perjalanan sistem",
-    "title": "Dari satu klik di browser sampai jadi baris di Postgres.",
-    "subtitle": "Setiap lapisan di bawah ini adalah kode sungguhan di repositori ini, bukan diagram konsep. Pilih satu tahap untuk melihat apa yang sebenarnya terjadi di sana.",
+    "eyebrow": "Cara kerjanya",
+    "title": "Dari satu ketukan Anda sampai saldo Anda diperbarui.",
+    "subtitle": "Inilah yang sebenarnya terjadi di balik layar, dijelaskan sesederhana mungkin. Pilih satu tahap untuk mempelajarinya lebih lanjut.",
     "steps": [
       {
-        "title": "Produk / Requirement",
-        "summary": "Apa yang perlu dilakukan aplikasi",
-        "detail": "Manajemen rekening, setoran, dan transfer antar rekening untuk pengguna yang terautentikasi — sengaja dibuat kecil ruang lingkupnya agar setiap lapisan di bawahnya bisa dibangun dengan benar, bukan setengah jadi di banyak fitur sekaligus."
+        "title": "Apa yang Anda butuhkan",
+        "summary": "Fitur yang sederhana dan fokus",
+        "detail": "Hanya yang penting: kelola rekening Anda, tambah saldo, dan kirim ke orang lain — dikerjakan dengan benar, bukan sekadar daftar fitur panjang yang setengah jadi."
       },
       {
-        "title": "Frontend",
-        "summary": "Portal Next.js 16 (aplikasi ini)",
-        "detail": "Sebuah form atau tombol memanggil feature hook, yang memanggil resource client bertipe, yang memanggil satu instance Axios bersama. Tidak ada komponen yang berbicara langsung ke Axios, dan tidak ada komponen yang bercabang berdasarkan render di server atau di klien."
+        "title": "Aplikasi yang Anda pakai",
+        "summary": "Layar yang cepat dan ramah",
+        "detail": "Setiap layar merespons dengan cepat dan hanya meminta apa yang benar-benar dibutuhkan, baik saat Anda menambah saldo atau mengecek saldo."
       },
       {
-        "title": "Integrasi API",
-        "summary": "Satu kontrak HTTP, dua basis kode",
-        "detail": "Portal tidak memiliki database sendiri — setiap baca dan tulis adalah panggilan HTTP ke rute /api/v1 milik layanan Go, dibungkus dalam bentuk request/response bertipe di kedua sisi."
+        "title": "Berbicara dengan sistem kami",
+        "summary": "Satu koneksi yang aman",
+        "detail": "Semua yang Anda lakukan di aplikasi dikirim dengan aman ke sistem yang menyimpan rekening Anda, jadi Anda selalu melihat informasi yang nyata dan terbaru."
       },
       {
-        "title": "Backend",
-        "summary": "Router Gin, handler berlapis",
-        "detail": "Setiap domain (auth, account, transfer) mendaftarkan rute dan handler-nya sendiri. Handler melakukan bind dan validasi request, lalu mendelegasikan ke lapisan store — ia tidak pernah berbicara langsung ke database."
+        "title": "Memeriksa setiap permintaan",
+        "summary": "Tidak ada yang dilewatkan",
+        "detail": "Setiap tindakan yang Anda lakukan — setoran, transfer, perubahan rekening — diperiksa dan diverifikasi sebelum terjadi apa pun pada uang Anda."
       },
       {
-        "title": "Business Logic",
-        "summary": "Lapisan store",
-        "detail": "Pemeriksaan kepemilikan, pemeriksaan mata uang dan saldo, serta pembukuan double-entry untuk transfer dan setoran semuanya berada di sini, dibungkus dalam transaksi database sungguhan."
+        "title": "Aturan yang melindungi Anda",
+        "summary": "Pemeriksaan yang teliti dan konsisten",
+        "detail": "Kami memastikan saldo Anda cukup sebelum transfer berjalan, jumlahnya tidak pernah negatif, dan uang tidak pernah terhitung dua kali."
       },
       {
-        "title": "Database",
-        "summary": "PostgreSQL lewat sqlc",
-        "detail": "Empat tabel — users, accounts, entries, transfers — dengan SQL yang ditulis tangan dan dikompilasi menjadi Go bertipe oleh sqlc. Tanpa ORM, tanpa pembentukan query saat runtime."
+        "title": "Tempat data Anda disimpan",
+        "summary": "Aman dan tertata",
+        "detail": "Setiap rekening dan transaksi disimpan dengan teliti, jadi riwayatnya selalu ada saat Anda ingin melihatnya kembali."
       },
       {
-        "title": "Infrastruktur",
-        "summary": "Docker + Docker Compose",
-        "detail": "API dan Postgres masing-masing didefinisikan sebagai service di docker-compose.yaml, dibangun dari Dockerfile multi-stage yang menghasilkan image runtime Alpine yang kecil."
+        "title": "Selalu siap",
+        "summary": "Dibangun agar terus berjalan",
+        "detail": "Sistem di balik Simple Bank dibangun agar tetap menyala dan merespons dengan cepat, sehingga aplikasinya selalu ada kapan pun Anda butuhkan."
       },
       {
-        "title": "Deployment",
-        "summary": "EC2 lewat Terraform + Vercel",
-        "detail": "core-service dikirim ke instance EC2 yang dikelola Terraform di belakang GitHub Actions CI; portal di-deploy terpisah sebagai aplikasi Next.js dan mengakses API lewat origin yang dikonfigurasi, dengan CORS yang dikunci ke origin tersebut."
+        "title": "Pembaruan yang aman",
+        "summary": "Perubahan yang teliti dan teruji",
+        "detail": "Setiap perbaikan yang kami buat diuji terlebih dahulu, jadi pembaruan terjadi tanpa mengganggu rekening atau uang Anda."
       }
     ]
   },
   "frontend": {
-    "eyebrow": "Rekayasa frontend",
-    "title": "Satu request, lima lompatan, tanpa sihir.",
-    "subtitle": "Setiap layar di aplikasi mengikuti jalur yang sama dari aksi pengguna sampai UI yang diperbarui — diagram di bawah ini adalah jalur itu apa adanya, bukan versi idealnya.",
+    "eyebrow": "Pengalaman Anda",
+    "title": "Dirancang agar terasa sederhana, setiap saat.",
+    "subtitle": "Setiap layar di aplikasi mengikuti jalur yang sama dan penuh perhatian, dari tindakan Anda sampai saldo yang diperbarui.",
     "steps": [
       {
-        "title": "Client Component",
-        "summary": "Sebuah form atau tombol",
-        "detail": "Dirender dengan React Hook Form untuk state lokal dan memanggil feature hook saat submit. Ia tidak pernah mengimpor Axios dan tidak pernah memeriksa typeof window."
+        "title": "Anda mengisi sebuah formulir",
+        "summary": "Cepat dan sederhana",
+        "detail": "Baik saat menambah saldo atau mengirim transfer, formulirnya singkat dan hanya menanyakan apa yang benar-benar dibutuhkan."
       },
       {
-        "title": "Skema Zod",
-        "summary": "Validasi di sisi klien",
-        "detail": "Skema Zod statis memvalidasi form sebelum apa pun meninggalkan browser. Error diselesaikan lewat helper zodResolverTranslate bersama, sehingga setiap error field sudah diterjemahkan, bukan i18n key mentah."
+        "title": "Kami langsung memeriksanya",
+        "summary": "Sebelum apa pun terkirim",
+        "detail": "Jika ada yang tidak sesuai — kolom yang kosong, jumlah yang tidak valid — kami langsung memberi tahu Anda, dengan bahasa yang jelas, bukan setelah Anda menunggu lama."
       },
       {
-        "title": "hooks/query.ts",
-        "summary": "TanStack Query v5",
-        "detail": "useQuery/useMutation membungkus panggilan client. Factory queryKeys di file yang sama dipakai ulang, tanpa perubahan, oleh Server Component yang melakukan prefetch data yang sama — sehingga cache key tidak pernah bisa berbeda antara server dan klien."
+        "title": "Informasi Anda dimuat seketika",
+        "summary": "Tanpa menunggu",
+        "detail": "Aplikasi mengingat apa yang sudah Anda lihat, jadi berpindah antar layar terasa instan, bukan memuat ulang semuanya setiap kali."
       },
       {
-        "title": "client.ts",
-        "summary": "Resource client bertipe",
-        "detail": "Satu class per domain backend (AccountClient, TransferClient, ...) yang meng-extend BaseClient bersama. Satu method per endpoint, masing-masing mengembalikan response envelope bertipe milik backend."
+        "title": "Satu jalur yang aman untuk setiap permintaan",
+        "summary": "Konsisten dan bisa diandalkan",
+        "detail": "Setiap tindakan di aplikasi, besar atau kecil, melewati proses yang sama persis dan penuh perhatian, jadi tidak ada yang diperlakukan istimewa atau dilewatkan."
       },
       {
-        "title": "apiClient + interceptor",
-        "summary": "Satu instance Axios, satu interceptor",
-        "detail": "Dipasang tepat sekali di seluruh aplikasi, dijaga oleh WeakSet. Ia menyisipkan header auth dan header timezone, mencatat setiap request/response lewat logger yang meredaksi data sensitif, dan mengalihkan ke /logout pada 401 apa pun."
+        "title": "Setiap permintaan dilindungi",
+        "summary": "Selalu dalam keadaan masuk",
+        "detail": "Aplikasi diam-diam memastikan itu benar-benar Anda sebelum mengirim permintaan apa pun, dan menyimpan catatan kejadiannya jika suatu saat perlu ditelusuri."
       },
       {
-        "title": "Go core-service",
-        "summary": "Backend sesungguhnya",
-        "detail": "Portal tidak memiliki business logic di sisi server selain routing auth/locale. Setiap aturan domain — saldo, transfer, kepemilikan — ditegakkan oleh API Go, bukan diduplikasi di frontend."
+        "title": "Pekerjaan sesungguhnya terjadi dengan aman",
+        "summary": "Aturan uang Anda ada di satu tempat",
+        "detail": "Saldo, transfer, dan kepemilikan semuanya diputuskan di satu tempat yang terpercaya, jadi aturannya tidak pernah berbeda-beda atau tidak sinkron."
       }
     ],
     "prefetch": {
-      "label": "SSR prefetch di muat pertama",
-      "description": "Server Component memanggil queryClient.prefetchQuery dengan queryKey dan fungsi fetch yang persis sama dengan yang dipakai hook di Client Component, lalu menyerahkan cache-nya ke browser lewat HydrationBoundary. Render pertama sudah punya data asli, bukan spinner loading."
+      "label": "Dimuat seketika",
+      "description": "Halaman menampilkan informasi Anda yang sebenarnya begitu terbuka — tanpa ikon loading, tanpa menunggu data menyusul."
     },
     "notes": [
-      "Setiap panggilan API bertipe dari ujung ke ujung — dari form yang divalidasi Zod, ke Axios client, sampai response envelope yang dikirim layanan Go. Perubahan bentuk di backend akan menjadi error TypeScript di sini, bukan kejutan saat runtime.",
-      "State dipisah berdasarkan kepemilikannya: TanStack Query memiliki apa pun yang berasal dari server; beberapa store Zustand memiliki state wizard lokal multi-langkah (misalnya modal transfer) dan tidak pernah menyentuh data server."
+      "Setiap layar menampilkan informasi yang nyata dan akurat. Jika ada perubahan di sisi kami, Anda tidak akan pernah secara tidak sengaja ditampilkan angka yang sudah usang.",
+      "Bagian aplikasi yang Anda gunakan dan bagian yang mengingat informasi Anda dijaga tetap terpisah, jadi gangguan pada satu bagian tidak pernah memengaruhi yang lain."
     ]
   },
   "backend": {
-    "eyebrow": "Rekayasa backend",
-    "title": "Apa yang sebenarnya terjadi pada satu HTTP request.",
-    "subtitle": "Gin merutekan setiap request lewat rantai middleware tetap yang sama sebelum mencapai handler mana pun.",
+    "eyebrow": "Di balik layar",
+    "title": "Apa yang terjadi begitu Anda menekan sebuah tombol.",
+    "subtitle": "Setiap permintaan melewati pemeriksaan yang sama, dengan urutan yang sama, setiap saat.",
     "steps": [
       {
-        "title": "HTTP Request",
-        "summary": "Klien → Gin",
-        "detail": "Tiba di router /api/v1 milik layanan Go dengan body JSON, dan untuk rute terproteksi, header Authorization: Bearer <token>."
+        "title": "Permintaan Anda tiba",
+        "summary": "Dengan aman, setiap saat",
+        "detail": "Apa pun yang Anda lakukan di aplikasi — setoran, transfer — tiba di sistem kami sebagai permintaan yang jelas dan lengkap."
       },
       {
-        "title": "Request ID",
-        "summary": "RequestIDMiddleware",
-        "detail": "Menetapkan atau membaca header X-Request-Id agar setiap baris log dari request ini bisa dikorelasikan nantinya."
+        "title": "Diberi nomor pelacakan",
+        "summary": "Agar tidak ada yang hilang",
+        "detail": "Setiap permintaan mendapat referensinya sendiri, jadi jika suatu saat perlu ditelusuri, kami bisa melacak persis apa yang terjadi, langkah demi langkah."
       },
       {
-        "title": "Logging",
-        "summary": "LoggingMiddleware",
-        "detail": "Menulis satu baris slog terstruktur per request — method, path, status, durasi — dengan field sensitif diredaksi sebelum ditulis."
+        "title": "Dicatat",
+        "summary": "Untuk pertanggungjawaban",
+        "detail": "Kami menyimpan catatan yang teliti tentang apa yang terjadi dan kapan, dengan hal-hal sensitif, seperti kata sandi, otomatis disembunyikan dari catatan tersebut."
       },
       {
-        "title": "CORS",
-        "summary": "gin-contrib/cors",
-        "detail": "Hanya diterapkan saat CORS_ALLOWED_ORIGINS dikonfigurasi. Wildcard tidak pernah dipakai, karena AllowCredentials selalu aktif dan browser menolak kombinasi origin wildcard dengan credentials."
+        "title": "Hanya sumber tepercaya yang diizinkan",
+        "summary": "Tidak ada pengunjung tak dikenal",
+        "detail": "Permintaan hanya diterima dari aplikasi Simple Bank yang asli, bukan dari situs lain yang berpura-pura menjadi kami."
       },
       {
-        "title": "Error handler",
-        "summary": "ErrorHandlerMiddleware",
-        "detail": "Sengaja didaftarkan sebelum middleware recovery — jika urutannya dibalik, panic akan pulih menjadi response yang sudah terlanjur ditinggalkan, dan klien akan menerima 200 kosong."
+        "title": "Kesalahan ditangkap dengan aman",
+        "summary": "Sebelum menjadi masalah",
+        "detail": "Jika terjadi sesuatu yang tak terduga, kami langsung menangkapnya dan memastikan Anda mendapat jawaban yang jelas, bukan aplikasi yang tiba-tiba rusak."
       },
       {
-        "title": "Recovery",
-        "summary": "RecoveryMiddleware",
-        "detail": "Menangkap panic, mencatat stack trace di level error, dan merender 500 yang sudah disanitasi lewat response envelope yang sama dengan error lainnya."
+        "title": "Tidak ada yang macet diam-diam",
+        "summary": "Kami selalu merespons",
+        "detail": "Bahkan jika ada yang salah di sisi kami, Anda akan selalu mendapat respons yang layak, bukan layar yang membeku atau permintaan yang hilang begitu saja."
       },
       {
-        "title": "Auth (rute terproteksi)",
-        "summary": "core.AuthMiddleware",
-        "detail": "Memverifikasi bearer JWT dan menyimpan payload-nya di Gin context. Rute publik (register, login, health) sepenuhnya melewati tahap ini."
+        "title": "Kami memastikan itu Anda",
+        "summary": "Setiap saat, tanpa terkecuali",
+        "detail": "Sebelum kami menyentuh rekening Anda, kami memastikan lagi bahwa permintaan itu benar-benar berasal dari Anda, yang sudah masuk dan terverifikasi."
       },
       {
-        "title": "Handler",
-        "summary": "Bind + validasi",
-        "detail": "ShouldBindJSON/Query/Uri menjalankan struct tag go-playground/validator, dengan nama field dipetakan ulang agar sesuai body JSON, sehingga pesan error merujuk ke nama field API, bukan nama field struct Go."
+        "title": "Kami memeriksa ulang detailnya",
+        "summary": "Tidak ada yang lolos tanpa pemeriksaan",
+        "detail": "Jumlah, nomor rekening, dan setiap detail lainnya diverifikasi sesuai aturan yang jelas sebelum diterima."
       },
       {
-        "title": "Store (business logic)",
-        "summary": "internal/db/store",
-        "detail": "Handler tidak pernah menyentuh database secara langsung — ia memanggil method Storer, yang memegang transaksi, penguncian, dan aturan sesungguhnya (lihat Domain Perbankan di bawah)."
+        "title": "Prosesnya benar-benar terjadi",
+        "summary": "Dengan hati-hati, dan hanya sekali",
+        "detail": "Di sinilah saldo Anda benar-benar berubah, selalu di dalam pengaman yang memastikan prosesnya berjalan penuh atau tidak sama sekali."
       },
       {
-        "title": "Response",
-        "summary": "Envelope",
-        "detail": "Response sukses mengembalikan { data, message?, meta? }; kegagalan mengembalikan { error: { code, message, details? } } lewat satu tipe AppError dengan sekumpulan kode yang tetap."
+        "title": "Anda mendapat jawabannya",
+        "summary": "Jelas, apa pun hasilnya",
+        "detail": "Anda mendapat konfirmasi yang jelas saat berhasil, dan penjelasan yang jelas serta jujur saat tidak berhasil."
       }
     ]
   },
   "banking": {
-    "eyebrow": "Domain perbankan & business logic",
-    "title": "Pembukuan double-entry, bukan saldo yang ditimpa begitu saja.",
-    "subtitle": "Satu transfer tidak pernah sekadar mengurangi satu baris dan menambah baris lain — ia adalah dua entri ledger yang tidak bisa diubah plus dua pembaruan saldo, semuanya di dalam satu transaksi.",
+    "eyebrow": "Uang Anda, ditangani dengan benar",
+    "title": "Setiap sen tercatat, tidak pernah sekadar ditimpa.",
+    "subtitle": "Saat Anda mengirim uang, kami tidak hanya mengubah dua angka. Kami mencatat persis apa yang terjadi, jadi tidak ada yang pernah hilang, tercatat dua kali, atau tidak jelas asal-usulnya.",
     "lockCallout": {
-      "title": "Kenapa urutan lock itu penting",
-      "body": "Dua rekening dikunci dengan SELECT ... FOR UPDATE sebelum sebuah transfer menyentuh salah satunya. Keduanya dikunci berdasarkan urutan ID rekening yang menaik — bukan urutan rekening asal/tujuan — sehingga dua transfer yang berjalan bersamaan antara dua rekening yang sama selalu mengambil lock dalam urutan yang sama. Mengunci berdasarkan urutan request malah bisa membuat dua transfer simultan saling deadlock di bawah beban tinggi; ini disebutkan secara eksplisit di dalam kode sebagai properti korektnes, bukan sekadar gaya penulisan."
+      "title": "Kenapa kami berhati-hati soal urutan pemrosesan",
+      "body": "Jika dua transfer antara dua rekening yang sama terjadi di saat yang persis bersamaan, kami memastikan keduanya diproses satu per satu, dengan urutan yang konsisten dan bisa diprediksi — tidak pernah acak. Dengan begitu, dua hal yang terjadi bersamaan tidak akan pernah saling mengganggu atau membuat saldo Anda salah."
     },
     "steps": [
       {
-        "title": "Validasi bentuk request",
-        "summary": "Rekening sama? Jumlah tidak positif?",
-        "detail": "Transfer ke rekening yang sama, atau jumlah nol/negatif, ditolak sebelum satu baris pun tersentuh."
+        "title": "Kami memeriksa hal-hal dasar",
+        "summary": "Sebelum uang bergerak",
+        "detail": "Kami memastikan Anda tidak mengirim uang ke diri sendiri dan jumlahnya masuk akal — tidak ada yang terjadi sebelum ini dipastikan."
       },
       {
-        "title": "Kunci kedua rekening",
-        "summary": "SELECT ... FOR UPDATE, urutan ID menaik",
-        "detail": "Baris rekening asal dan tujuan sama-sama dikunci selama transaksi berlangsung, dalam urutan tetap tanpa memandang arah transfernya — lihat catatan di bawah."
+        "title": "Kami mengunci sementara",
+        "summary": "Agar tidak ada yang tumpang tindih",
+        "detail": "Selama transfer Anda berlangsung, kedua rekening yang terlibat untuk sementara dilindungi dari perubahan lain, jadi tidak ada yang bisa mengganggunya."
       },
       {
-        "title": "Periksa mata uang & saldo",
-        "summary": "Mata uang sama, dana mencukupi",
-        "detail": "Ketidakcocokan mata uang atau saldo yang tidak mencukupi membatalkan transaksi sebelum satu entri pun ditulis."
+        "title": "Kami memastikan Anda mampu",
+        "summary": "Mata uang sama, dana cukup",
+        "detail": "Jika dananya tidak cukup, atau kedua rekening memakai mata uang berbeda, transfer berhenti di sini, sebelum apa pun tersentuh."
       },
       {
-        "title": "Sisipkan transfer",
-        "summary": "baris transfers",
-        "detail": "Satu baris yang mencatat rekening asal, rekening tujuan, dan jumlahnya — record induk yang dirujuk oleh kedua entri ledger di bawah."
+        "title": "Kami mencatat transfernya",
+        "summary": "Satu catatan yang jelas",
+        "detail": "Sebuah catatan dibuat, menyebutkan persis rekening mana saja yang terlibat, dan berapa jumlah yang berpindah."
       },
       {
-        "title": "Entri debit",
-        "summary": "baris entries, jumlah negatif",
-        "detail": "Baris ledger yang tidak bisa diubah terhadap rekening asal, terhubung ke transfer tersebut, dan saldo rekening asal dikurangi sejumlah yang sama."
+        "title": "Uang keluar dari pengirim",
+        "summary": "Tercatat, bukan sekadar dikurangi",
+        "detail": "Kami mencatat persis apa yang keluar dari rekening pengirim — sebuah catatan permanen, bukan sekadar angka yang diam-diam berubah."
       },
       {
-        "title": "Entri kredit",
-        "summary": "baris entries, jumlah positif",
-        "detail": "Baris ledger pasangannya terhadap rekening tujuan, terhubung ke transfer yang sama, dan saldo rekening tujuan ditambahkan."
+        "title": "Uang masuk ke penerima",
+        "summary": "Tercatat, bukan sekadar ditambahkan",
+        "detail": "Kami mencatat persis apa yang masuk ke rekening penerima, dicocokkan dengan transfer yang sama."
       },
       {
-        "title": "Commit & respons",
-        "summary": "Satu transaksi atomik",
-        "detail": "Jika salah satu langkah di atas gagal, seluruh transaksi dibatalkan (rollback) — tidak ada kondisi di mana debit ada tanpa kredit pasangannya."
+        "title": "Semuanya final",
+        "summary": "Semua terjadi, atau tidak sama sekali",
+        "detail": "Jika salah satu bagian ini gagal, tidak satu pun yang terjadi. Anda tidak akan pernah mengalami uang yang keluar dari satu rekening tapi tidak pernah sampai ke rekening lain."
       }
     ],
     "notes": [
-      "Uang tidak pernah berupa float. Jumlahnya selalu string dari ujung ke ujung, diuraikan dengan shopspring/decimal tepat di titik penggunaannya, didukung kolom NUMERIC(20,2) — pilihan yang disengaja untuk menjaga presisi hingga level sen tetap tepat.",
-      "Menghapus rekening non-utama tidak menghancurkan saldonya: sisa dana dipindahkan ke rekening utama pengguna sebagai transfer sungguhan (dengan entri debit/kreditnya sendiri) sebelum rekening tersebut soft-delete. Rekening utama itu sendiri tidak pernah bisa dihapus.",
-      "Setiap pengguna yang terdaftar otomatis mendapat tepat satu rekening utama, ditegakkan di level database lewat partial unique index — bukan sekadar konvensi di level aplikasi."
+      "Uang Anda tidak pernah diperlakukan sebagai perkiraan kasar. Setiap jumlah ditangani dengan presisi penuh, sampai ke satuan sen, tidak pernah dibulatkan, tidak pernah diperkirakan.",
+      "Menutup rekening yang masih memiliki saldo tidak membuat uangnya hilang. Saldo tersebut otomatis dipindahkan ke rekening utama Anda terlebih dahulu, dengan aman dan tercatat.",
+      "Setiap nasabah baru otomatis mendapat satu rekening utama begitu mendaftar — dijamin, bukan sekadar sesuatu yang kami coba ingat untuk dilakukan."
     ]
   },
   "database": {
-    "eyebrow": "Arsitektur database",
-    "title": "Empat tabel, satu ledger.",
-    "subtitle": "PostgreSQL, diakses lewat Go hasil generate sqlc — tanpa ORM, tanpa pembentukan query saat runtime. Perubahan skema adalah migrasi terversi, bukan tabel yang diubah manual.",
+    "eyebrow": "Data Anda",
+    "title": "Setiap rekening, setiap transaksi, tertata dan akurat.",
+    "subtitle": "Kami tidak hanya menyimpan satu angka saldo untuk rekening Anda. Kami menyimpan seluruh riwayat di baliknya, jadi selalu bisa diperiksa dan tidak pernah sekadar dipercaya begitu saja.",
     "entities": [
       {
-        "name": "users",
-        "description": "Satu baris per orang yang terdaftar.",
+        "name": "Nasabah",
+        "description": "Satu catatan untuk setiap orang yang mendaftar.",
         "columns": [
-          "id",
-          "username (unik)",
-          "email (unik)",
-          "hashed_password (bcrypt)",
-          "created_at",
-          "updated_at"
+          "Nama pengguna Anda",
+          "Alamat email Anda",
+          "Kata sandi yang dilindungi dengan aman",
+          "Kapan Anda bergabung",
+          "Kapan info Anda terakhir berubah"
         ]
       },
       {
-        "name": "accounts",
-        "description": "Saldo yang dimiliki pengguna — baris yang bisa soft-delete, bukan permanen.",
+        "name": "Rekening",
+        "description": "Setiap rekening yang Anda miliki, dan isinya.",
         "columns": [
-          "id",
-          "user_id → users",
-          "number (unik, digenerate)",
-          "name",
-          "balance NUMERIC(20,2)",
-          "currency",
-          "is_main",
-          "deleted_at"
+          "Rekening mana yang milik Anda",
+          "Nomor rekening yang unik",
+          "Nama yang Anda pilih",
+          "Saldo Anda saat ini",
+          "Mata uang",
+          "Apakah ini rekening utama Anda",
+          "Apakah sudah ditutup"
         ]
       },
       {
-        "name": "transfers",
-        "description": "Satu baris per perpindahan uang antara dua rekening.",
+        "name": "Transfer",
+        "description": "Catatan perpindahan uang antara dua rekening.",
         "columns": [
-          "id",
-          "from_account_id → accounts",
-          "to_account_id → accounts",
-          "amount NUMERIC(20,2)",
-          "description",
-          "created_at"
+          "Rekening pengirim",
+          "Rekening penerima",
+          "Jumlah yang dikirim",
+          "Catatan, jika Anda menambahkannya",
+          "Kapan terjadinya"
         ]
       },
       {
-        "name": "entries",
-        "description": "Ledger yang tidak bisa diubah. Setiap perubahan saldo adalah baris di sini, tidak pernah berupa edit.",
+        "name": "Riwayat transaksi",
+        "description": "Jejak lengkap dan permanen di balik setiap saldo, tidak pernah diubah setelah tercatat.",
         "columns": [
-          "id",
-          "account_id → accounts",
-          "transfer_id → transfers (nullable)",
-          "type",
-          "amount",
-          "description",
-          "created_at"
+          "Rekening mana",
+          "Transfer terkait, jika ada",
+          "Jenis",
+          "Jumlah",
+          "Catatan, jika Anda menambahkannya",
+          "Kapan terjadinya"
         ]
       }
     ],
-    "relationshipsLabel": "Relasi",
-    "constraintsLabel": "Batasan",
+    "relationshipsLabel": "Bagaimana semuanya saling terhubung",
+    "constraintsLabel": "Yang kami jamin",
     "relationships": [
-      "Satu pengguna memiliki banyak rekening, tepat satu di antaranya ditandai is_main.",
-      "Satu rekening mengumpulkan banyak entries — saldonya adalah jumlah dari ledger-nya, dijaga tetap sinkron oleh transaksi yang sama yang menulis setiap entri.",
-      "Satu transfer menghasilkan tepat dua entries: debit terhadap rekening asal dan kredit terhadap rekening tujuan, keduanya menunjuk kembali ke baris transfer yang sama.",
-      "Satu setoran menghasilkan satu entry terhadap satu rekening, tanpa baris transfer sama sekali."
+      "Anda bisa memiliki beberapa rekening, dan selalu ada tepat satu yang menjadi rekening utama Anda.",
+      "Setiap rekening membangun riwayat transaksi yang lengkap. Saldo Anda hanyalah total dari semua yang pernah terjadi padanya.",
+      "Sebuah transfer selalu membuat dua catatan yang saling terkait: uang keluar dari satu rekening dan uang masuk ke rekening lain, terhubung satu sama lain.",
+      "Menambah saldo membuat satu catatan pada satu rekening saja, tanpa melibatkan yang lain."
     ],
     "constraints": [
-      "accounts.balance memiliki CHECK (balance >= 0) — database itu sendiri menolak menyimpan saldo negatif, bukan hanya kode aplikasi.",
-      "transfers.amount memiliki CHECK (amount > 0) — transfer nol atau negatif tidak bisa ada sebagai baris.",
-      "Partial unique index menjamin paling banyak satu rekening is_main = true yang belum dihapus per pengguna.",
-      "Penghapusan rekening bersifat soft (deleted_at), bukan destruktif — baris dan riwayat ledgernya tetap bisa di-query."
+      "Saldo Anda tidak akan pernah bisa turun di bawah nol. Ini ditegakkan di lapisan paling dasar sistem, bukan sesuatu yang bisa lolos.",
+      "Sebuah transfer tidak akan pernah bisa bernilai nol atau negatif. Itu tidak bisa tercatat sama sekali.",
+      "Anda akan selalu memiliki tepat satu rekening utama, tidak pernah nol, dan tidak pernah lebih dari satu.",
+      "Menutup rekening tidak pernah menghapusnya. Rekening dan seluruh riwayatnya tetap tersimpan dengan aman."
     ]
   },
   "api": {
-    "eyebrow": "Arsitektur API",
-    "title": "Satu kontrak, ditegakkan di kedua sisi.",
-    "subtitle": "Setiap endpoint berada di bawah /api/v1 dan mengembalikan salah satu dari tepat dua bentuk envelope.",
-    "successLabel": "Response sukses",
-    "errorLabel": "Response error",
-    "publicLabel": "publik",
+    "eyebrow": "Bagaimana semuanya terhubung",
+    "title": "Satu aturan yang jelas, diikuti di mana saja.",
+    "subtitle": "Setiap permintaan yang Anda buat mengikuti pola yang sama, dan mendapat salah satu dari dua jenis jawaban.",
+    "successLabel": "Saat berhasil",
+    "errorLabel": "Saat ada yang salah",
+    "publicLabel": "tidak perlu masuk",
     "successExample": "{\n  \"data\": {\n    \"id\": 42,\n    \"number\": \"ACT/20260118/000042\",\n    \"name\": \"Travel\",\n    \"balance\": \"120.00\",\n    \"currency\": \"USD\"\n  },\n  \"meta\": { \"page\": 1, \"limit\": 10, \"total\": 3 }\n}",
-    "errorExample": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"request validation failed\",\n    \"details\": [\n      { \"field\": \"amount\", \"message\": \"must be greater than 0\" }\n    ]\n  }\n}",
+    "errorExample": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Periksa kembali detailnya dan coba lagi.\",\n    \"details\": [\n      { \"field\": \"amount\", \"message\": \"Jumlah harus lebih besar dari 0\" }\n    ]\n  }\n}",
     "endpointGroups": [
       {
-        "name": "Auth",
+        "name": "Daftar & masuk",
         "endpoints": [
           {
             "method": "POST",
             "path": "/auth/register",
             "auth": false,
-            "description": "Membuat pengguna, otomatis membuat rekening utamanya, menerbitkan JWT."
+            "description": "Buat rekening Anda dan langsung mulai."
           },
           {
             "method": "POST",
             "path": "/auth/login",
             "auth": false,
-            "description": "Autentikasi dan menerbitkan JWT."
+            "description": "Masuk ke rekening Anda."
           },
           {
             "method": "GET",
             "path": "/auth/profile",
             "auth": true,
-            "description": "Mengembalikan profil pengguna yang sedang login."
+            "description": "Lihat detail rekening Anda sendiri."
           }
         ]
       },
@@ -382,342 +372,342 @@
             "method": "POST",
             "path": "/accounts",
             "auth": true,
-            "description": "Membuat rekening baru (non-utama)."
+            "description": "Buka account baru."
           },
           {
             "method": "GET",
             "path": "/accounts/me",
             "auth": true,
-            "description": "Mendaftar rekening milik pemanggil, dengan paginasi."
+            "description": "Lihat semua account Anda."
           },
           {
             "method": "GET",
             "path": "/accounts/search-by-number",
             "auth": true,
-            "description": "Mencari rekening tujuan berdasarkan nomor."
+            "description": "Cari account lewat nomornya, agar Anda bisa mengirim uang ke sana."
           },
           {
             "method": "GET",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Mengambil satu rekening (403 jika bukan pemiliknya)."
+            "description": "Lihat salah satu account Anda."
           },
           {
             "method": "PUT",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Memperbarui nama/deskripsi rekening."
+            "description": "Ubah nama atau perbarui sebuah account."
           },
           {
             "method": "DELETE",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Soft-delete rekening, menyapu saldonya terlebih dahulu."
+            "description": "Tutup sebuah account. Sisa saldonya dipindahkan ke account utama Anda terlebih dahulu."
           },
           {
             "method": "POST",
             "path": "/accounts/:id/deposit",
             "auth": true,
-            "description": "Menyetor ke rekening yang dimiliki."
+            "description": "Tambah saldo ke sebuah account."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/entries",
             "auth": true,
-            "description": "Mendaftar entri ledger sebuah rekening."
+            "description": "Lihat setiap perubahan pada saldo sebuah account."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/transactions",
             "auth": true,
-            "description": "Mendaftar riwayat transaksi yang berlabel."
+            "description": "Lihat riwayat transaksi account Anda, diberi label dan mudah dibaca."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/recent-destinations",
             "auth": true,
-            "description": "Tujuan transfer terbaru dari rekening ini."
+            "description": "Lihat siapa saja yang baru-baru ini Anda kirimi uang dari account Anda."
           }
         ]
       },
       {
-        "name": "Transaksi",
+        "name": "Mengirim uang",
         "endpoints": [
           {
             "method": "POST",
             "path": "/transactions/transfer",
             "auth": true,
-            "description": "Transfer antara dua rekening di mana pemanggil memiliki rekening asalnya."
+            "description": "Kirim uang dari rekening Anda ke rekening lain."
           }
         ]
       }
     ]
   },
   "security": {
-    "eyebrow": "Keamanan & keandalan",
-    "title": "Mekanisme yang konkret, bukan klaim \"aman\".",
-    "subtitle": "Apa yang benar-benar diimplementasikan, dan apa yang sengaja belum ada.",
+    "eyebrow": "Bagaimana kami melindungi Anda",
+    "title": "Perlindungan yang nyata, bukan sekadar janji.",
+    "subtitle": "Inilah yang benar-benar menjaga rekening dan uang Anda tetap aman, dan apa yang masih terus kami tingkatkan secara jujur.",
     "cards": [
       {
-        "title": "Autentikasi JWT stateless",
-        "body": "Token HS256 lewat golang-jwt, dengan payload minimal (id, username, email, exp) yang tidak membawa data sensitif. Tidak ada refresh token, tidak ada daftar logout/revocation, dan tidak ada peran (roles) — token yang bocor tetap valid sampai kedaluwarsa, dan setiap pemeriksaan otorisasi adalah perbandingan kepemilikan per resource, bukan sistem izin."
+        "title": "Masuk dengan aman",
+        "body": "Saat Anda masuk, Anda mendapat akses aman dan bermasa berlaku yang membuktikan itu benar-benar Anda, tanpa pernah menyimpan kata sandi Anda di tempat yang bisa terekspos."
       },
       {
-        "title": "Validasi request",
-        "body": "Struct tag go-playground/validator pada setiap request yang di-bind, plus pemeriksaan manual untuk logika yang membutuhkan penalaran lintas field atau bertipe desimal (kecocokan password, jumlah transfer positif, rekening asal dan tujuan yang berbeda)."
+        "title": "Semuanya diperiksa",
+        "body": "Setiap informasi yang Anda kirim, jumlah, nomor rekening, kata sandi, diperiksa dengan teliti sebelum kami memprosesnya, menangkap kesalahan sebelum menjadi masalah."
       },
       {
-        "title": "CORS yang dikunci ketat",
-        "body": "Origin bersifat eksplisit, tidak pernah wildcard — AllowCredentials selalu aktif, dan browser menolak origin wildcard yang dipasangkan dengan credentials, sehingga origin baru harus ditambahkan ke allowlist secara sengaja."
+        "title": "Hanya pengunjung tepercaya",
+        "body": "Simple Bank hanya menerima permintaan dari aplikasinya sendiri, tidak pernah dari situs asing yang berpura-pura menjadi kami."
       },
       {
-        "title": "Penanganan error terpusat",
-        "body": "Handler tidak pernah memformat response error sendiri; setiap kegagalan mengalir lewat satu tipe AppError dan satu middleware, sehingga error 500 di produksi selalu punya baris log sisi server yang mencatat penyebab sesungguhnya."
+        "title": "Tidak ada yang gagal diam-diam",
+        "body": "Jika suatu saat ada yang salah di sisi kami, itu langsung ditangkap, dicatat, dan ditangani. Anda akan selalu mendapat jawaban yang jelas, bukan layar yang rusak."
       },
       {
-        "title": "Perpindahan uang yang aman secara transaksi",
-        "body": "Setiap mutasi multi-baris (transfer, setoran, penghapusan rekening) berjalan di dalam transaksi database sungguhan dengan penguncian di level baris — lihat Domain Perbankan di atas untuk detail urutan lock yang membuatnya bebas deadlock."
+        "title": "Uang Anda terlindungi saat transfer",
+        "body": "Setiap setoran, transfer, atau perubahan rekening terjadi sebagai satu langkah yang aman dan utuh, jadi saldo Anda tidak pernah tertinggal setengah diperbarui."
       },
       {
-        "title": "Cookie yang sengaja bisa dibaca",
-        "body": "Cookie sesi milik portal sengaja tidak httpOnly, karena interceptor Axios bersama perlu membacanya lewat JavaScript untuk menyisipkan header auth pada request sisi klien. Itu adalah trade-off yang diterima secara sadar, dicatat sebagai peningkatan yang diketahui (lapisan BFF/proxy adalah perbaikan yang diusulkan) — bukan kelalaian."
+        "title": "Jujur soal kompromi yang kami ambil",
+        "body": "Demo ini menjaga Anda tetap masuk dengan cara yang sederhana, bukan yang paling ketat — sebuah kompromi yang disengaja untuk proyek demo, bukan sesuatu yang kami sembunyikan."
       }
     ]
   },
   "infrastructure": {
-    "eyebrow": "Infrastruktur & deployment",
-    "title": "Dari source code sampai container yang berjalan.",
-    "subtitle": "Perjalanan backend dari sebuah commit sampai API yang hidup, dari ujung ke ujung.",
+    "eyebrow": "Dibangun agar bisa diandalkan",
+    "title": "Dari sebuah ide sampai sesuatu yang benar-benar bisa Anda pakai.",
+    "subtitle": "Inilah bagaimana Simple Bank berubah dari sebuah perubahan yang kami buat menjadi sesuatu yang berjalan dan tersedia untuk Anda.",
     "steps": [
       {
-        "title": "Source code",
-        "summary": "Modul Go, monorepo",
-        "detail": "apps/core-service (Go/Gin/PostgreSQL) dan apps/portal (Next.js) hidup berdampingan dalam satu repositori, di-deploy secara independen."
+        "title": "Semuanya dimulai dari satu rencana yang jelas",
+        "summary": "Tertata sejak awal",
+        "detail": "Aplikasi yang Anda pakai dan sistem di baliknya dibangun serta dilacak bersama, tapi tetap independen, jadi perubahan pada satu bagian tidak pernah tanpa sengaja merusak yang lain."
       },
       {
-        "title": "CI: build, vet, test",
-        "summary": "GitHub Actions",
-        "detail": "Setiap push/PR yang menyentuh apps/core-service menjalankan container service postgres:16-alpine, menjalankan migrasi terhadapnya, lalu go build ./..., go vet ./..., dan go test ./... — belum ada langkah lint terpisah, belum ada deploy yang dipicu CI."
+        "title": "Setiap perubahan diuji lebih dulu",
+        "summary": "Tidak ada yang dirilis tanpa diuji",
+        "detail": "Sebelum sebuah pembaruan aktif, ia otomatis diperiksa terhadap salinan sistem yang benar-benar berjalan, sama seperti yang akan dilakukan tim rekayasa bank sungguhan."
       },
       {
-        "title": "Docker build",
-        "summary": "Dockerfile multi-stage",
-        "detail": "Tahap builder golang:1.25-alpine mengompilasi binary statis dengan CGO dinonaktifkan; tahap runtime adalah alpine:3.20 yang hanya berisi binary dan file migrasi, mengekspos port 8080."
+        "title": "Dikemas secara konsisten",
+        "summary": "Selalu sama, setiap saat",
+        "detail": "Sistem dikemas dengan cara yang persis sama setiap kali dibangun, jadi yang diuji adalah persis apa yang benar-benar berjalan, tanpa kejutan di antaranya."
       },
       {
-        "title": "Docker Compose",
-        "summary": "postgres + core-service",
-        "detail": "docker-compose.yaml menghubungkan container Postgres 16 yang di-healthcheck ke container API, dengan API menunggu status service_healthy sebelum mulai berjalan."
+        "title": "Berjalan sama di mana saja",
+        "summary": "Tidak ada kejutan antara uji coba dan pemakaian nyata",
+        "detail": "Bagian-bagian yang membentuk Simple Bank disiapkan agar berjalan bersama secara konsisten, baik saat sedang dibangun maupun saat sudah aktif untuk Anda gunakan."
       },
       {
-        "title": "Migrasi",
-        "summary": "golang-migrate",
-        "detail": "Sepuluh pasang SQL up/down yang terversi, diterapkan lewat CLI tipis (cmd/migration) — perubahan skema adalah file di version control, bukan DDL manual terhadap database yang hidup."
+        "title": "Perubahan pada data Anda selalu tercatat",
+        "summary": "Tidak ada yang berubah tanpa sengaja",
+        "detail": "Setiap perubahan pada cara informasi Anda disimpan direncanakan, dicatat, dan bisa dibatalkan — tidak pernah berupa perubahan diam-diam yang tak terdokumentasi."
       },
       {
-        "title": "Infrastruktur cloud",
-        "summary": "Terraform → EC2",
-        "detail": "core-service diprovisikan ke satu instance EC2 lewat Terraform, dikonfigurasi lewat environment variable (sumber DB, secret JWT, origin CORS yang diizinkan) alih-alih secret yang di-commit."
+        "title": "Disiapkan dengan teliti, bukan asal-asalan",
+        "summary": "Konsisten dan bisa diulang",
+        "detail": "Server yang menjalankan Simple Bank disiapkan dengan cara yang terkontrol dan bisa diulang, jadi tidak ada bagian dari pengaturannya yang dibiarkan sekadar tebakan."
       },
       {
-        "title": "Deployment portal",
-        "summary": "Vercel",
-        "detail": "Portal Next.js di-deploy secara terpisah dan mengakses API murni lewat origin HTTP publiknya — tidak ada network atau akses database bersama antara kedua aplikasi."
+        "title": "Dijaga terpisah demi keamanan Anda",
+        "summary": "Independen sejak dirancang",
+        "detail": "Aplikasi yang Anda pakai dan sistem yang menyimpan data Anda di-deploy secara terpisah, dan hanya saling berkomunikasi lewat satu koneksi yang jelas dan terkunci."
       }
     ],
     "notes": [
-      "Observability saat ini berupa structured logging JSON (slog milik Go) dengan korelasi request-ID di setiap baris log untuk satu request — belum ada stack metrics/tracing (belum ada Prometheus, belum ada OpenTelemetry), yang merupakan celah yang diakui secara jujur, bukan kelalaian.",
-      "Konfigurasi environment menggunakan viper, diikat secara eksplisit ke env var sehingga bekerja identik baik nilainya berasal dari file app.env secara lokal maupun dari environment variable Docker Compose/EC2 saat deployment."
+      "Kami menyimpan catatan yang jelas tentang apa yang terjadi pada sistem kami, dengan referensi yang bisa dilacak untuk setiap permintaan, jadi jika suatu saat perlu diselidiki, kami bisa menelusurinya dengan benar.",
+      "Bagaimana pun Simple Bank berjalan, baik di laptop saat sedang kami bangun maupun saat aktif untuk Anda gunakan, perilakunya selalu sama persis, jadi Anda tidak pernah mendapat pengalaman yang berbeda dari yang sudah kami uji."
     ]
   },
   "decisions": {
-    "eyebrow": "Keputusan rekayasa",
-    "title": "Beberapa trade-off, dijelaskan secara jujur.",
-    "subtitle": "Tidak semua keputusan di sini adalah yang \"terbaik\" secara abstrak — masing-masing adalah keputusan yang tepat untuk ruang lingkup proyek ini, dengan trade-off yang dinyatakan secara terus terang.",
+    "eyebrow": "Bersikap terbuka pada Anda",
+    "title": "Beberapa kompromi yang jujur.",
+    "subtitle": "Kami tidak akan berpura-pura semuanya di sini sempurna. Inilah bagian yang kami pilih dengan sengaja, dan alasannya.",
     "labels": {
-      "problem": "Masalah",
-      "constraint": "Batasan",
-      "decision": "Keputusan",
-      "result": "Hasil / Trade-off"
+      "problem": "Situasinya",
+      "constraint": "Apa yang kami hadapi",
+      "decision": "Apa yang kami pilih",
+      "result": "Artinya bagi Anda"
     },
     "items": [
       {
-        "problem": "Dua transfer yang berjalan bersamaan antara pasangan rekening yang sama bisa deadlock jika masing-masing transaksi mengunci dua baris dalam urutan yang berbeda.",
-        "constraint": "Kedua rekening harus dikunci di level baris selama transfer berlangsung, dan arah transfer (dari → ke) sifatnya arbitrer dari sudut pandang database.",
-        "decision": "Selalu mengunci rekening berdasarkan urutan ID yang menaik, bukan urutan rekening asal/tujuan.",
-        "result": "Bebas deadlock di bawah beban konkuren, dengan konsekuensi kode pengambilan lock sedikit lebih sulit dibaca dibanding \"kunci asal, lalu tujuan\"."
+        "problem": "Jika dua transfer yang melibatkan dua rekening yang sama terjadi di saat yang persis bersamaan, keduanya bisa saling mengganggu.",
+        "constraint": "Kedua rekening yang terlibat dalam sebuah transfer perlu dilindungi dari perubahan lain selama prosesnya berlangsung.",
+        "decision": "Kami selalu memproses kedua rekening tersebut dengan urutan yang konsisten, apa pun arah perpindahan uangnya.",
+        "result": "Dua transfer yang terjadi bersamaan tidak akan pernah macet atau bentrok. Uang Anda selalu berpindah dengan lancar, bahkan saat aplikasi sedang ramai digunakan."
       },
       {
-        "problem": "Aritmatika floating-point bisa diam-diam kehilangan sen, yang tidak bisa diterima dalam sebuah ledger.",
-        "constraint": "Setiap jumlah uang harus tetap presisi melewati serialisasi, penyimpanan, dan perhitungan tanpa pergeseran presisi.",
-        "decision": "Merepresentasikan uang sebagai string dari ujung ke ujung, diuraikan menjadi shopspring/decimal hanya di titik perhitungan, didukung kolom NUMERIC(20,2).",
-        "result": "Aritmatika yang tepat, dengan konsekuensi titik pemanggilan kode menjadi lebih verbose dibanding float atau int biasa."
+        "problem": "Komputer terkadang bisa salah membulatkan angka uang, dan itu tidak pernah bisa diterima saat menyangkut saldo Anda yang sebenarnya.",
+        "constraint": "Setiap jumlah uang harus tetap presisi di setiap langkah, berapa kali pun disimpan, dikirim, atau dihitung.",
+        "decision": "Kami memperlakukan setiap jumlah sebagai nilai yang persis dari awal sampai akhir, tidak pernah sebagai perkiraan.",
+        "result": "Saldo Anda selalu tepat, sampai ke satuan sen, tanpa kesalahan pembulatan, tidak pernah."
       },
       {
-        "problem": "Menghapus rekening dengan saldo positif akan menghancurkan uang sungguhan atau justru memblokir penghapusan sepenuhnya.",
-        "constraint": "Ledger harus tetap seimbang — uang boleh berpindah, tapi tidak boleh hilang begitu saja.",
-        "decision": "Soft-delete rekening tersebut dan menyapu sisa saldonya ke rekening utama pengguna sebagai transfer sungguhan, dengan entri debit/kreditnya sendiri.",
-        "result": "Rekening yang dihapus tetap ada di database selamanya dengan riwayat lengkapnya utuh, yang benar untuk sebuah ledger, tapi berarti tabel accounts hanya akan terus bertambah."
+        "problem": "Menutup rekening yang masih memiliki saldo seharusnya tidak membuat uangnya hilang, tapi juga seharusnya tidak menghalangi Anda menutup rekening itu.",
+        "constraint": "Uang bisa berpindah antar rekening, tapi tidak boleh menghilang begitu saja.",
+        "decision": "Saat Anda menutup rekening, sisa saldonya otomatis dan aman dipindahkan ke rekening utama Anda terlebih dahulu, sebagai transfer sungguhan yang tercatat.",
+        "result": "Anda bisa menutup rekening kapan saja, dan setiap sen di dalamnya tetap tercatat dan terjaga."
       },
       {
-        "problem": "Interceptor Axios perlu menyisipkan header auth baik dari request server maupun browser, tapi browser tidak bisa membaca cookie httpOnly.",
-        "constraint": "Belum ada lapisan backend-for-frontend untuk menyimpan sesi di sisi server.",
-        "decision": "Menggunakan cookie sesi yang non-httpOnly agar JavaScript sisi klien bisa membacanya langsung.",
-        "result": "Alur request lebih sederhana untuk saat ini, dengan konsekuensi XSS apa pun di masa depan bisa berubah menjadi pencurian sesi sepenuhnya — dicatat secara eksplisit sebagai peningkatan yang diketahui, dengan BFF/proxy sebagai arah yang diusulkan, bukan diterima diam-diam."
+        "problem": "Aplikasi perlu membuktikan itu benar-benar Anda sebelum bertindak atas nama Anda, bahkan saat Anda menggunakannya lewat browser.",
+        "constraint": "Demo ini belum memiliki pengaturan yang lebih canggih yang bisa menyembunyikan bukti tersebut sepenuhnya dari browser.",
+        "decision": "Untuk saat ini, demo ini memakai cara yang lebih sederhana untuk menjaga Anda tetap masuk.",
+        "result": "Cara ini sederhana dan bekerja baik untuk sebuah demo. Kami terbuka bahwa versi yang lebih ketat dari ini adalah perbaikan yang sudah direncanakan, bukan sesuatu yang kami abaikan."
       }
     ]
   },
   "requestFlow": {
-    "eyebrow": "Alur request end-to-end",
-    "title": "Apa yang terjadi saat Anda mengirim transfer.",
-    "subtitle": "Satu aksi pengguna yang konkret, ditelusuri lewat setiap lapisan yang disentuhnya. Pilih satu tahap untuk melihat detailnya.",
+    "eyebrow": "Lihat langsung prosesnya",
+    "title": "Apa yang terjadi saat Anda mengirim uang.",
+    "subtitle": "Satu contoh nyata, dari saat Anda menekan \"Kirim\" sampai saldo Anda diperbarui. Pilih satu tahap untuk melihat lebih lanjut.",
     "steps": [
       {
-        "title": "Pengguna mengirim form",
-        "summary": "Modal transfer, langkah 3",
-        "detail": "React Hook Form memvalidasi jumlah dan tujuan di sisi klien terhadap skema Zod sebelum apa pun dikirim."
+        "title": "Anda mengisi detailnya",
+        "summary": "Kepada siapa, dan berapa",
+        "detail": "Anda memilih rekening, jumlah, dan tujuannya, dan kami memeriksanya sebelum Anda bahkan sempat menekan kirim."
       },
       {
-        "title": "useTransferMutation",
-        "summary": "Mutation TanStack Query",
-        "detail": "Memanggil transferClient.transfer(...), yang mengembalikan AxiosResponse mentah yang dibuka oleh hook menjadi .data."
+        "title": "Anda menekan kirim",
+        "summary": "Satu ketukan",
+        "detail": "Permintaan Anda langsung dikemas dan dikirim dengan aman, saat itu juga."
       },
       {
-        "title": "POST /transactions/transfer",
-        "summary": "Lewat interceptor bersama",
-        "detail": "Interceptor Axios menyisipkan header Authorization bearer dan header timezone, lalu mencatat request keluar."
+        "title": "Permintaan tiba di sistem kami",
+        "summary": "Dengan aman, setiap saat",
+        "detail": "Permintaan transfer Anda tiba di sistem yang mengelola setiap rekening, siap untuk diperiksa dan diproses."
       },
       {
-        "title": "Rantai middleware Gin",
-        "summary": "Request ID → logging → CORS → error handler → recovery → auth",
-        "detail": "JWT diverifikasi dan payload-nya dilekatkan ke context request sebelum handler dijalankan."
+        "title": "Melewati semua pemeriksaan",
+        "summary": "Tidak ada yang dilewatkan",
+        "detail": "Sebelum transfer Anda menyentuh uang apa pun, kami memastikan itu benar-benar Anda, dan semuanya dalam permintaan ini aman dan sah."
       },
       {
-        "title": "Validasi handler",
-        "summary": "Bind + validator + pemeriksaan manual",
-        "detail": "Memastikan pemanggil memiliki rekening asal, jumlahnya positif, dan asal ≠ tujuan."
+        "title": "Kami memeriksa ulang detailnya",
+        "summary": "Sekali lagi memastikan",
+        "detail": "Kami memastikan Anda memang pemilik rekening yang Anda pakai untuk mengirim, jumlahnya masuk akal, dan Anda tidak mengirim uang ke diri sendiri."
       },
       {
-        "title": "TransferTx",
-        "summary": "internal/db/store",
-        "detail": "Mengunci kedua rekening dalam urutan ID menaik, memeriksa mata uang dan saldo, lalu berjalan di dalam satu transaksi database."
+        "title": "Transfer berlangsung",
+        "summary": "Dengan aman dan berurutan",
+        "detail": "Kedua rekening dilindungi sejenak selagi kami memastikan saldo Anda cukup dan mata uangnya cocok."
       },
       {
-        "title": "Penulisan database",
-        "summary": "transfers + 2× entries + 2× pembaruan saldo",
-        "detail": "Satu baris transfer, satu entri debit, satu entri kredit, dan dua pembaruan saldo — di-commit bersama atau tidak sama sekali."
+        "title": "Tercatat secara permanen",
+        "summary": "Uang keluar, uang masuk",
+        "detail": "Kami mencatat persis apa yang keluar dari satu rekening dan apa yang masuk ke rekening lain, lalu memperbarui kedua saldo bersamaan, secara utuh, atau tidak sama sekali."
       },
       {
-        "title": "Response envelope",
-        "summary": "{ data, message }",
-        "detail": "Dikembalikan lewat bentuk envelope yang sama yang dipakai setiap endpoint, ditipekan di frontend sebagai CommonSuccessResponse<Transfer>."
+        "title": "Anda mendapat konfirmasi",
+        "summary": "Jelas dan langsung",
+        "detail": "Anda mendapat jawaban yang jelas begitu prosesnya selesai, memberi tahu bahwa transfer Anda berhasil."
       },
       {
-        "title": "Pembaruan cache",
-        "summary": "TanStack Query melakukan invalidate",
-        "detail": "onSuccess dari mutation melakukan invalidate pada query key rekening dan entries yang terdampak, sehingga UI melakukan fetch ulang dan mencerminkan saldo terbaru."
+        "title": "Angka Anda diperbarui",
+        "summary": "Secara otomatis",
+        "detail": "Aplikasi diam-diam tahu saldo Anda baru saja berubah, jadi ia mengambil angka terbarunya."
       },
       {
-        "title": "Pembaruan UI",
-        "summary": "Saldo dirender ulang",
-        "detail": "Tanpa sinkronisasi state manual — queryKeys yang sama yang dipakai prefetch awal kini basi, di-fetch ulang, dan dirender."
+        "title": "Anda melihatnya berubah",
+        "summary": "Tanpa perlu memuat ulang",
+        "detail": "Saldo dan riwayat transaksi Anda diperbarui tepat di depan mata, tanpa Anda perlu melakukan apa pun."
       }
     ]
   },
   "capabilities": {
-    "eyebrow": "Ringkasan kapabilitas rekayasa",
-    "title": "Apa yang didemonstrasikan proyek ini.",
+    "eyebrow": "Kenapa Anda bisa mempercayainya",
+    "title": "Apa yang sebenarnya Simple Bank lakukan untuk Anda.",
     "groups": [
       {
-        "name": "Frontend",
+        "name": "Untuk Anda",
         "items": [
           {
-            "title": "Next.js 16 App Router",
-            "body": "Server Component untuk prefetch + pemeriksaan auth, Client Component untuk interaktivitas, tanpa JavaScript sisi klien yang tidak perlu."
+            "title": "Layar yang cepat dan fokus",
+            "body": "Aplikasi hanya menampilkan apa yang Anda butuhkan, dan merespons seketika, tanpa waktu tunggu yang tidak perlu."
           },
           {
-            "title": "TanStack Query v5",
-            "body": "Factory query-key yang dipakai bersama antara prefetch server dan hook klien, sehingga keduanya tidak pernah berbeda."
+            "title": "Informasi yang akurat dan real-time",
+            "body": "Apa yang Anda lihat di layar selalu sesuai dengan yang sebenarnya ada di rekening Anda."
           },
           {
-            "title": "React Hook Form + Zod",
-            "body": "Form bertipe dan tervalidasi dengan pesan error yang diterjemahkan lewat resolver bersama."
+            "title": "Formulir yang jelas dan membantu",
+            "body": "Jika ada yang salah dengan yang Anda masukkan, Anda akan langsung tahu, dengan bahasa yang jelas."
           }
         ]
       },
       {
-        "name": "Backend",
+        "name": "Menjaga Anda tetap aman",
         "items": [
           {
-            "title": "Go + Gin",
-            "body": "API berlapis: handler → store → sqlc querier, dengan urutan middleware yang tetap dan menentukan."
+            "title": "Pemeriksaan yang teliti dan berlapis",
+            "body": "Setiap permintaan melewati proses tepercaya yang sama, tanpa jalan pintas dan tanpa yang dilewatkan."
           },
           {
-            "title": "Autentikasi JWT",
-            "body": "Bearer token stateless, diverifikasi per rute terproteksi, dengan pemeriksaan kepemilikan per resource menggantikan sistem peran."
+            "title": "Masuk dengan aman",
+            "body": "Anda diverifikasi pada setiap permintaan, jadi rekening Anda tidak bisa disentuh oleh siapa pun selain Anda."
           },
           {
-            "title": "Penanganan error terpusat",
-            "body": "Satu tipe AppError, satu response envelope, konsisten di setiap endpoint."
+            "title": "Jawaban yang jelas, bahkan saat ada yang salah",
+            "body": "Anda tidak akan pernah dibiarkan menebak-nebak. Kesalahan ditangani secara konsisten dan dijelaskan dengan jelas."
           }
         ]
       },
       {
-        "name": "Data",
+        "name": "Uang Anda",
         "items": [
           {
-            "title": "PostgreSQL + sqlc",
-            "body": "SQL yang ditulis tangan dikompilasi menjadi Go bertipe — tanpa ORM, tanpa pembentukan query tersembunyi."
+            "title": "Catatan yang selalu tepat",
+            "body": "Data Anda ditangani dengan ketelitian penuh, tidak ada yang dibiarkan sekadar tebakan atau dibulatkan."
           },
           {
-            "title": "Ledger double-entry",
-            "body": "Saldo diturunkan dari entries yang tidak bisa diubah, bukan dimutasi langsung, di dalam transaksi database sungguhan."
+            "title": "Riwayat yang lengkap dan permanen",
+            "body": "Saldo Anda bukan sekadar angka. Ia adalah jumlah dari riwayat lengkap yang tidak bisa diubah, yang selalu bisa Anda lihat kembali."
           },
           {
-            "title": "Migrasi terversi",
-            "body": "Sepuluh pasang up/down golang-migrate — riwayat skema hidup di git, bukan di ingatan seseorang."
+            "title": "Setiap perubahan tercatat",
+            "body": "Setiap pembaruan pada cara data disimpan didokumentasikan dan bisa dibatalkan, jadi tidak ada yang berubah pada data Anda secara mengejutkan."
           }
         ]
       },
       {
-        "name": "Infrastruktur",
+        "name": "Tetap tersedia",
         "items": [
           {
-            "title": "Docker",
-            "body": "Build multi-stage yang menghasilkan image runtime Alpine yang kecil, disatukan dengan Postgres lewat Docker Compose."
+            "title": "Dikemas agar konsisten",
+            "body": "Sistem berjalan dengan cara yang sama setiap saat, jadi tidak ada perbedaan perilaku antara uji coba dan pemakaian nyata."
           },
           {
-            "title": "Terraform",
-            "body": "Host EC2 milik backend diprovisikan sebagai kode, bukan diklik-klik di console."
+            "title": "Disiapkan dengan teliti, bukan asal-asalan",
+            "body": "Server di balik Simple Bank dikonfigurasi dengan cara yang terkontrol dan bisa diulang, bukan disusun sembarangan."
           },
           {
-            "title": "Target deploy terpisah",
-            "body": "API di EC2, portal di Vercel, terhubung hanya lewat batas HTTP yang dikunci CORS."
+            "title": "Koneksi yang independen dan terkunci",
+            "body": "Aplikasi yang Anda pakai dan sistem yang menyimpan data Anda dijaga terpisah, hanya terhubung lewat satu jalur yang jelas dan terkontrol."
           }
         ]
       },
       {
-        "name": "Praktik rekayasa",
+        "name": "Berpegang pada standar",
         "items": [
           {
-            "title": "Pengujian otomatis",
-            "body": "Unit test handler berbasis Gin dengan store yang di-mock, ditambah integration test yang berjalan terhadap instance Postgres sungguhan."
+            "title": "Diuji sebelum dirilis",
+            "body": "Setiap perubahan diperiksa terhadap kondisi nyata sebelum sampai kepada Anda."
           },
           {
-            "title": "Continuous integration",
-            "body": "GitHub Actions melakukan build, vet, dan test backend terhadap container service Postgres yang hidup di setiap push."
+            "title": "Diperiksa pada setiap pembaruan",
+            "body": "Setiap perubahan otomatis diuji terhadap sistem yang benar-benar berjalan sebelum dianggap selesai."
           },
           {
-            "title": "Dokumentasi yang jujur",
-            "body": "Dokumen internal secara eksplisit menandai celah dan drift yang diketahui, alih-alih mendeskripsikan sistem ideal yang belum ada."
+            "title": "Jujur sejak awal",
+            "body": "Kami memberi tahu Anda dengan jelas saat sesuatu adalah kompromi yang disengaja, bukan berpura-pura semuanya sempurna."
           }
         ]
       }
     ]
   },
   "techStack": {
-    "eyebrow": "Stack teknis",
-    "title": "Diorganisasikan berdasarkan tanggung jawab, bukan jumlah dependency.",
+    "eyebrow": "Dibangun dengan teliti",
+    "title": "Perangkat modern dan teruji yang bisa Anda andalkan.",
     "groups": [
       {
         "name": "Frontend",
@@ -772,14 +762,14 @@
     ]
   },
   "finalCta": {
-    "title": "Lihat langsung, atau baca cara kerjanya.",
-    "description": "Demo ini memakai uang palsu di atas ledger sungguhan — setiap akun, setoran, dan transfer berjalan lewat sistem persis seperti yang dijelaskan di atas.",
-    "ctaExplore": "Baca arsitekturnya",
-    "ctaDemo": "Coba demo langsung",
-    "ctaSource": "Lihat source code di GitHub"
+    "title": "Siap mencobanya sendiri?",
+    "description": "Coba dulu dengan uang latihan. Setiap rekening, setoran, dan transfer bekerja persis seperti pada aplikasi perbankan sungguhan.",
+    "ctaExplore": "Lihat cara kerjanya",
+    "ctaDemo": "Coba demonya",
+    "ctaSource": "Lihat kode sumbernya"
   },
   "footer": {
-    "tagline": "Etalase rekayasa full-stack — dari frontend sampai infrastruktur.",
+    "tagline": "Perbankan yang sederhana dan aman, dibangun dari nol.",
     "builtBy": "Dirancang dan dibangun oleh Dewa Surya Ariesta.",
     "rights": "Hak cipta dilindungi.",
     "author": {

@@ -1,377 +1,362 @@
 {
   "meta": {
-    "title": "Simple Bank — Full-Stack Engineering Showcase",
-    "description": "Simple bank application built end to end: Next.js frontend, a Go/Gin API, PostgreSQL with double-entry bookkeeping, Docker, and a real deployment pipeline."
+    "title": "Simple Bank — Banking Made Simple",
+    "description": "Open an account, add money, and send it to anyone in seconds. A free demo banking app built to show how simple, accurate banking can feel."
   },
   "nav": {
-    "explore": "Explore the system",
-    "exploreDescription": "One page, five layers — from the browser down to the database.",
+    "explore": "How it works",
+    "exploreDescription": "A quick look at how we keep your money safe and accurate.",
     "links": {
       "overview": "Overview",
-      "architecture": "Architecture",
-      "backend": "Backend",
-      "database": "Database",
+      "architecture": "How it works",
+      "backend": "Keeping your money safe",
+      "database": "Your records",
       "security": "Security",
-      "deployment": "Deployment"
+      "deployment": "Always available"
     },
-    "tryDemo": "Try the live demo",
-    "getStarted": "Create an account",
-    "viewSource": "View source",
-    "menuToggle": "Toggle menu"
+    "tryDemo": "Simulation Demo",
+    "getStarted": "Open an account",
+    "viewSource": "View the code",
+    "menuToggle": "Menu"
   },
   "hero": {
-    "eyebrow": "Full-stack engineering showcase",
-    "titleBefore": "Prototype banking system,",
-    "titleBrand": "built end to end.",
-    "description": "Simple Bank is a working application, not a mockup: a Next.js portal talking to a Go API that keeps a real double-entry ledger in PostgreSQL. This page walks through how it's actually built — frontend, API contract, backend, database, and the pipeline that ships it.",
-    "pipeline": [
-      "Frontend",
-      "API",
-      "Backend",
-      "Database",
-      "Infrastructure",
-      "Deployment"
-    ],
-    "ctaPrimary": "Read the architecture",
-    "ctaSecondary": "Try the live demo",
-    "note": "Every account, deposit, and transfer below moves through the same code path a production request would.",
-    "scrollHint": "Scroll to explore",
+    "eyebrow": "A modern way to bank",
+    "titleBefore": "Banking that's",
+    "titleBrand": "simple, safe, and yours.",
+    "description": "Simple Bank lets you hold money in more than one account, add funds, and send money to anyone — quickly and accurately, every time. It's a free demo, so you can try it all out with practice money first.",
+    "pipeline": ["Sign up", "Add money", "Send to anyone", "Watch it add up"],
+    "ctaPrimary": "See how it works",
+    "ctaSecondary": "Try the demo",
+    "note": "This demo uses practice money, but every account, deposit, and transfer works exactly the way it would in a real banking app.",
+    "scrollHint": "Scroll to see more",
     "social": {
-      "github": "View source on GitHub",
+      "github": "Find the code on GitHub",
       "linkedin": "Connect on LinkedIn"
     }
   },
   "overview": {
-    "eyebrow": "Project overview",
-    "title": "Not a banking product. An engineering exercise shaped like one.",
+    "eyebrow": "About Simple Bank",
+    "title": "A demo bank you can actually use.",
     "what": {
       "title": "What is Simple Bank?",
-      "body": "A ledger-based core banking demo: users register, hold multiple accounts, deposit funds, and transfer between accounts. Underneath the UI is a Go REST API backed by PostgreSQL, with every balance change recorded as an immutable, double-entry ledger row rather than a mutable number."
+      "body": "Simple Bank lets you register, open more than one account, add money, and send it to other accounts, all in one simple app. Every transaction is recorded carefully, so your balance is always accurate, down to the cent."
     },
     "why": {
-      "title": "Why it was built",
-      "body": "To demonstrate the full lifecycle of a real application — requirements, frontend, API design, backend services, database schema, and deployment — using a domain where getting things wrong is obvious: money. A banking ledger doesn't tolerate lost updates, ambiguous transaction boundaries, or approximate arithmetic, which makes it a good forcing function for engineering discipline."
+      "title": "Why we built it",
+      "body": "We wanted to build something that treats money the way it deserves to be treated: carefully. Nothing here gets lost, guessed at, or rounded off. Every deposit and transfer is tracked precisely, so you can always trust the numbers you see."
     },
     "demonstrates": {
-      "title": "What it demonstrates",
+      "title": "What you can do",
       "items": [
-        "Frontend development (Next.js App Router, React 19, TanStack Query)",
-        "API design & typed integration between two independent codebases",
-        "Backend development (Go, Gin, layered architecture)",
-        "Business logic (double-entry transfers, deadlock-safe locking)",
-        "Database engineering (PostgreSQL, sqlc, versioned migrations)",
-        "Authentication (JWT-based, stateless)",
-        "Authorization (per-resource ownership checks)",
-        "Validation (struct-tag binding, client-side Zod schemas)",
-        "Automated testing (handler unit tests, DB integration tests)",
-        "Containerization (multi-stage Docker builds, Docker Compose)",
-        "Cloud infrastructure (Terraform-provisioned EC2)",
-        "Continuous integration (GitHub Actions build/vet/test)"
+        "Open multiple accounts in one place",
+        "Add money whenever you need to",
+        "Send money to anyone, instantly",
+        "See exactly where every cent went",
+        "Sign in securely, every time",
+        "Trust that your balance is always right",
+        "Use the app in English or Indonesian",
+        "Pick up right where you left off, on any device"
       ]
     }
   },
   "journey": {
-    "eyebrow": "System journey",
-    "title": "From a click in the browser to a row in Postgres.",
-    "subtitle": "Every layer below is real code in this repository, not a conceptual diagram. Select a stage to see what actually happens there.",
+    "eyebrow": "How it works",
+    "title": "From your tap to your balance updating.",
+    "subtitle": "Here's what actually happens behind the scenes, in plain terms. Pick a step to learn more.",
     "steps": [
       {
-        "title": "Product / Requirements",
-        "summary": "What the app needs to do",
-        "detail": "Account management, deposits, and account-to-account transfers for an authenticated user — scoped deliberately small so every layer underneath could be built properly instead of half-built across a larger feature set."
+        "title": "What you need",
+        "summary": "Simple, focused features",
+        "detail": "Just the essentials: manage your accounts, add money, and send it to others — done properly, instead of a long list of features done halfway."
       },
       {
-        "title": "Frontend",
-        "summary": "Next.js 16 portal (this app)",
-        "detail": "A form or button calls a feature hook, which calls a typed resource client, which calls one shared Axios instance. No component talks to Axios directly, and no component branches on server-vs-client rendering."
+        "title": "The app you use",
+        "summary": "Fast, friendly screens",
+        "detail": "Every screen reacts quickly and only asks for what it actually needs, whether you're adding money or checking a balance."
       },
       {
-        "title": "API Integration",
-        "summary": "One HTTP contract, two codebases",
-        "detail": "The portal has no database of its own — every read and write is an HTTP call to the Go service's /api/v1 routes, wrapped in typed request/response shapes on both sides."
+        "title": "Talking to our systems",
+        "summary": "One secure connection",
+        "detail": "Everything you do in the app is sent securely to the system that keeps your accounts, so you're always looking at real, up-to-date information."
       },
       {
-        "title": "Backend",
-        "summary": "Gin router, layered handlers",
-        "detail": "Each domain (auth, account, transfer) registers its own routes and handler. A handler binds and validates the request, then delegates to the store layer — it never talks to the database directly."
+        "title": "Checking every request",
+        "summary": "Nothing skips the line",
+        "detail": "Every action you take — a deposit, a transfer, an account change — is checked and verified before anything happens to your money."
       },
       {
-        "title": "Business Logic",
-        "summary": "The store layer",
-        "detail": "Ownership checks, currency and balance checks, and the double-entry bookkeeping for transfers and deposits all live here, wrapped in real database transactions."
+        "title": "The rules that protect you",
+        "summary": "Careful, consistent checks",
+        "detail": "We make sure you have enough money before a transfer goes through, that amounts are never negative, and that money never gets counted twice."
       },
       {
-        "title": "Database",
-        "summary": "PostgreSQL via sqlc",
-        "detail": "Four tables — users, accounts, entries, transfers — with hand-written SQL compiled to typed Go by sqlc. No ORM, no runtime query building."
+        "title": "Where your records live",
+        "summary": "Safe and organized",
+        "detail": "Every account and transaction is stored carefully, so your history is always there when you need to look back at it."
       },
       {
-        "title": "Infrastructure",
-        "summary": "Docker + Docker Compose",
-        "detail": "The API and Postgres are each defined as services in docker-compose.yaml, built from a multi-stage Dockerfile that produces a small Alpine runtime image."
+        "title": "Always ready",
+        "summary": "Built to stay running",
+        "detail": "The systems behind Simple Bank are built to stay up and respond quickly, so the app is there whenever you need it."
       },
       {
-        "title": "Deployment",
-        "summary": "Terraform-provisioned EC2 + Vercel",
-        "detail": "The core-service ships to a Terraform-managed EC2 instance behind GitHub Actions CI; the portal deploys separately as a Next.js app and reaches the API over a configured origin with CORS locked to it."
+        "title": "Getting updates safely",
+        "summary": "Careful, tested changes",
+        "detail": "Every improvement we make is tested first, so updates happen without disrupting your accounts or your money."
       }
     ]
   },
   "frontend": {
-    "eyebrow": "Frontend engineering",
-    "title": "One request, five hops, zero magic.",
-    "subtitle": "Every screen in the app follows the same path from a user action to an updated UI — the diagram below is that path, not an idealized one.",
+    "eyebrow": "Your experience",
+    "title": "Designed to feel simple, every time.",
+    "subtitle": "Every screen in the app follows the same careful path from your action to an updated balance.",
     "steps": [
       {
-        "title": "Client Component",
-        "summary": "A form or button",
-        "detail": "Renders with React Hook Form for local state and calls a feature hook on submit. It never imports Axios and never checks typeof window."
+        "title": "You fill out a form",
+        "summary": "Quick and simple",
+        "detail": "Whether you're adding money or sending a transfer, forms are short and only ask for what's actually needed."
       },
       {
-        "title": "Zod schema",
-        "summary": "Client-side validation",
-        "detail": "A static Zod schema validates the form before anything leaves the browser. Errors resolve through a shared zodResolverTranslate helper so every field error is translated, not a raw i18n key."
+        "title": "We check it right away",
+        "summary": "Before anything is sent",
+        "detail": "If something doesn't look right — a missing field, an invalid amount — we tell you immediately, in plain language, instead of after you've waited."
       },
       {
-        "title": "hooks/query.ts",
-        "summary": "TanStack Query v5",
-        "detail": "useQuery/useMutation wrap the client call. A queryKeys factory in the same file is reused, unmodified, by the Server Component that prefetches the same data — so the cache key can never drift between server and client."
+        "title": "Your info loads instantly",
+        "summary": "No waiting around",
+        "detail": "The app remembers what you've already seen, so moving between screens feels instant instead of reloading everything each time."
       },
       {
-        "title": "client.ts",
-        "summary": "A typed resource client",
-        "detail": "One class per backend domain (AccountClient, TransferClient, ...) extending a shared BaseClient. One method per endpoint, each returning the backend's typed response envelope."
+        "title": "One safe path for every request",
+        "summary": "Consistent and predictable",
+        "detail": "Every action in the app, big or small, goes through the exact same careful process, so nothing gets special treatment or skipped."
       },
       {
-        "title": "apiClient + interceptor",
-        "summary": "One Axios instance, one interceptor",
-        "detail": "Attached exactly once across the whole app, guarded by a WeakSet. It injects the auth header and timezone header, logs every request/response through a redacting logger, and redirects to /logout on any 401."
+        "title": "Every request is protected",
+        "summary": "Signed in, every time",
+        "detail": "The app quietly confirms it's really you before sending any request, and keeps a record of what happened in case anything needs to be looked into."
       },
       {
-        "title": "Go core-service",
-        "summary": "The real backend",
-        "detail": "The portal has no server-side business logic beyond auth/locale routing. Every domain rule — balances, transfers, ownership — is enforced by the Go API, not duplicated in the frontend."
+        "title": "The real work happens safely",
+        "summary": "Your money's rules live in one place",
+        "detail": "Balances, transfers, and ownership are all decided in one trusted place, so the rules are never duplicated or out of sync."
       }
     ],
     "prefetch": {
-      "label": "SSR prefetch on first load",
-      "description": "Server Components call queryClient.prefetchQuery with the exact same queryKey and fetch function a Client Component's hook uses, then hand the cache to the browser via a HydrationBoundary. First paint already has real data instead of a loading spinner."
+      "label": "Loads instantly",
+      "description": "Pages show your real information the moment they open — no spinner, no waiting for data to catch up."
     },
     "notes": [
-      "Every API call is typed end to end — from the Zod-validated form, to the Axios client, to the response envelope the Go service returns. A backend shape change is a TypeScript error here, not a runtime surprise.",
-      "State is split by ownership: TanStack Query owns anything that came from the server; a small set of Zustand stores own local multi-step wizard state (e.g. the transfer modal) and never touch server data."
+      "Every screen shows real, accurate information. If something changes on our end, you'll never be shown outdated numbers by mistake.",
+      "The parts of the app you interact with and the parts that remember your information are kept separate, so a glitch in one never affects the other."
     ]
   },
   "backend": {
-    "eyebrow": "Backend engineering",
-    "title": "What actually happens to an HTTP request.",
-    "subtitle": "Gin routes every request through the same fixed middleware chain before it ever reaches a handler.",
+    "eyebrow": "Behind the scenes",
+    "title": "What happens the moment you tap a button.",
+    "subtitle": "Every request goes through the same careful checks, in the same order, every single time.",
     "steps": [
       {
-        "title": "HTTP Request",
-        "summary": "Client → Gin",
-        "detail": "Arrives at the Go service's /api/v1 router with a JSON body and, for protected routes, an Authorization: Bearer <token> header."
+        "title": "Your request arrives",
+        "summary": "Securely, every time",
+        "detail": "Whatever you do in the app — a deposit, a transfer — arrives at our system as a clear, well-formed request."
       },
       {
-        "title": "Request ID",
-        "summary": "RequestIDMiddleware",
-        "detail": "Assigns or reads an X-Request-Id header so every log line this request produces can be correlated later."
+        "title": "It gets a tracking number",
+        "summary": "So nothing gets lost",
+        "detail": "Every request gets its own reference, so if anything ever needs investigating, we can trace exactly what happened, step by step."
       },
       {
-        "title": "Logging",
-        "summary": "LoggingMiddleware",
-        "detail": "Writes one structured slog line per request — method, path, status, duration — with sensitive fields redacted before anything is written."
+        "title": "It's logged",
+        "summary": "For accountability",
+        "detail": "We keep a careful record of what happened and when, with anything sensitive, like passwords, automatically hidden from those records."
       },
       {
-        "title": "CORS",
-        "summary": "gin-contrib/cors",
-        "detail": "Only applied when CORS_ALLOWED_ORIGINS is configured. Wildcards are never used, since AllowCredentials is always on and browsers reject that combination anyway."
+        "title": "Only trusted sources allowed",
+        "summary": "No unknown visitors",
+        "detail": "Requests are only accepted from the actual Simple Bank app, not from some other website pretending to be it."
       },
       {
-        "title": "Error handler",
-        "summary": "ErrorHandlerMiddleware",
-        "detail": "Registered before the recovery middleware on purpose — if it ran after, a panic would recover into a response that had already been abandoned, and the client would get an empty 200."
+        "title": "Errors are caught safely",
+        "summary": "Before they cause a problem",
+        "detail": "If something unexpected happens, we catch it immediately and make sure you get a clear answer instead of an app that just breaks."
       },
       {
-        "title": "Recovery",
-        "summary": "RecoveryMiddleware",
-        "detail": "Catches panics, logs the stack trace at error level, and renders a sanitized 500 through the same response envelope as every other error."
+        "title": "Nothing crashes silently",
+        "summary": "We always respond",
+        "detail": "Even if something goes wrong on our end, you'll always get a proper response, never a frozen screen or a request that just vanishes."
       },
       {
-        "title": "Auth (protected routes)",
-        "summary": "core.AuthMiddleware",
-        "detail": "Verifies the bearer JWT and stores its payload on the Gin context. Public routes (register, login, health) skip this entirely."
+        "title": "We confirm it's you",
+        "summary": "Every single time",
+        "detail": "Before we touch your accounts, we double-check that the request is really coming from you, signed in and verified."
       },
       {
-        "title": "Handler",
-        "summary": "Bind + validate",
-        "detail": "ShouldBindJSON/Query/Uri runs go-playground/validator struct tags, with field names remapped to match the JSON body so error messages reference api_field_name, not the Go struct field."
+        "title": "We double-check the details",
+        "summary": "Nothing sent through unchecked",
+        "detail": "Amounts, account numbers, and every other detail are verified against clear rules before anything is accepted."
       },
       {
-        "title": "Store (business logic)",
-        "summary": "internal/db/store",
-        "detail": "Handlers never touch the database directly — they call a Storer method, which owns transactions, locking, and the actual rules (see Banking Domain below)."
+        "title": "The actual work happens",
+        "summary": "Carefully, and only once",
+        "detail": "This is where your balance actually changes, always inside a safeguard that makes sure it either fully happens or doesn't happen at all."
       },
       {
-        "title": "Response",
-        "summary": "Envelope",
-        "detail": "Success responses return { data, message?, meta? }; failures return { error: { code, message, details? } } through a single AppError type with a fixed set of codes."
+        "title": "You get your answer",
+        "summary": "Clear, either way",
+        "detail": "You get a clear confirmation when something works, and a clear, honest explanation when it doesn't."
       }
     ]
   },
   "banking": {
-    "eyebrow": "Banking domain & business logic",
-    "title": "Double-entry bookkeeping, not a balance you overwrite.",
-    "subtitle": "A transfer never just subtracts from one row and adds to another — it's two immutable ledger entries plus two balance updates, all inside one transaction.",
+    "eyebrow": "Your money, done right",
+    "title": "Every cent is tracked, never just overwritten.",
+    "subtitle": "When you send money, we don't just change two numbers. We record exactly what happened, so nothing is ever lost, duplicated, or unaccounted for.",
     "lockCallout": {
-      "title": "Why lock order matters",
-      "body": "Two accounts are locked with SELECT ... FOR UPDATE before a transfer touches either one. They're locked in ascending account-ID order — never in from-account/to-account order — so two concurrent transfers between the same pair of accounts always acquire their locks in the same sequence. Locking in request order instead would let two simultaneous transfers deadlock each other under load; this is called out in the codebase as a correctness property, not a style preference."
+      "title": "Why we're careful about the order we work in",
+      "body": "If two transfers between the same two accounts happen at the exact same moment, we make sure they're handled one after another, in a consistent, predictable order — never at random. That way, two things happening at once can never trip each other up or leave your balance wrong."
     },
     "steps": [
       {
-        "title": "Validate request shape",
-        "summary": "Same account? Non-positive amount?",
-        "detail": "A transfer to the same account, or a zero/negative amount, is rejected before any row is touched."
+        "title": "We check the basics",
+        "summary": "Before anything moves",
+        "detail": "We make sure you're not sending money to yourself and that the amount actually makes sense — nothing happens until that's confirmed."
       },
       {
-        "title": "Lock both accounts",
-        "summary": "SELECT ... FOR UPDATE, ascending ID order",
-        "detail": "Both the source and destination account rows are locked for the duration of the transaction, in a fixed order regardless of transfer direction — see the callout below."
+        "title": "We lock things down",
+        "summary": "So nothing overlaps",
+        "detail": "While your transfer is happening, both accounts involved are temporarily protected from any other change, so nothing can interfere."
       },
       {
-        "title": "Check currency & balance",
-        "summary": "Same currency, sufficient funds",
-        "detail": "A currency mismatch or insufficient balance aborts the transaction before any entry is written."
+        "title": "We check you can afford it",
+        "summary": "Same currency, enough funds",
+        "detail": "If there isn't enough money, or the accounts don't use the same currency, the transfer stops right here, before anything is touched."
       },
       {
-        "title": "Insert the transfer",
-        "summary": "transfers row",
-        "detail": "One row recording the source account, destination account, and amount — the parent record the two ledger entries below both reference."
+        "title": "We record the transfer",
+        "summary": "One clear entry",
+        "detail": "A record is created noting exactly which accounts were involved, and how much moved between them."
       },
       {
-        "title": "Debit entry",
-        "summary": "entries row, negative amount",
-        "detail": "An immutable ledger row against the source account, linked to the transfer, and the source account's balance is decremented by the same amount."
+        "title": "Money leaves the sender",
+        "summary": "Recorded, not just subtracted",
+        "detail": "We write down exactly what left the sending account, a permanent record, not just a number that quietly changed."
       },
       {
-        "title": "Credit entry",
-        "summary": "entries row, positive amount",
-        "detail": "A matching ledger row against the destination account, linked to the same transfer, and the destination account's balance is incremented."
+        "title": "Money arrives for the receiver",
+        "summary": "Recorded, not just added",
+        "detail": "We write down exactly what arrived in the receiving account, matched to the same transfer."
       },
       {
-        "title": "Commit & respond",
-        "summary": "One atomic transaction",
-        "detail": "If any step above fails, the whole transaction rolls back — there is no state where a debit exists without its matching credit."
+        "title": "It's final",
+        "summary": "All or nothing",
+        "detail": "If any part of this had failed, none of it would have happened. You'll never end up with money that left one account but never arrived in another."
       }
     ],
     "notes": [
-      "Money is never a float. Amounts are strings end to end, parsed with shopspring/decimal at the point of use, backed by NUMERIC(20,2) columns — a deliberate choice to keep cent-level precision exact.",
-      "Deleting a non-main account doesn't destroy its balance: any remaining funds are swept to the user's main account as a real transfer (with its own debit/credit entries) before the account is soft-deleted. The main account itself can never be deleted.",
-      "Every registered user gets exactly one main account automatically, enforced at the database level by a partial unique index — not just an application-level convention."
+      "Your money is never treated as a rough estimate. Every amount is handled with exact precision, down to the cent, never rounded, never approximated.",
+      "Closing an account with money in it doesn't make that money disappear. It's automatically moved to your main account first, safely and on the record.",
+      "Every new customer automatically gets one main account the moment they sign up, guaranteed, not just something we try to remember to do."
     ]
   },
   "database": {
-    "eyebrow": "Database architecture",
-    "title": "Four tables, one ledger.",
-    "subtitle": "PostgreSQL, queried through sqlc-generated Go — no ORM, no runtime query building. Schema changes are versioned migrations, not hand-edited tables.",
+    "eyebrow": "Your records",
+    "title": "Every account, every transaction, organized and accurate.",
+    "subtitle": "We don't just keep a single balance number for your account. We keep the full history behind it, so it can always be checked and never just taken on faith.",
     "entities": [
       {
-        "name": "users",
-        "description": "One row per registered person.",
+        "name": "People",
+        "description": "One record for every person who signs up.",
         "columns": [
-          "id",
-          "username (unique)",
-          "email (unique)",
-          "hashed_password (bcrypt)",
-          "created_at",
-          "updated_at"
+          "Your username",
+          "Your email address",
+          "A securely protected password",
+          "When you joined",
+          "When your info last changed"
         ]
       },
       {
-        "name": "accounts",
-        "description": "Balances the user holds — a soft-deletable row, not a permanent one.",
+        "name": "Accounts",
+        "description": "Every account you hold, and what's in it.",
         "columns": [
-          "id",
-          "user_id → users",
-          "number (unique, generated)",
-          "name",
-          "balance NUMERIC(20,2)",
-          "currency",
-          "is_main",
-          "deleted_at"
+          "Which account is yours",
+          "A unique account number",
+          "A name you choose",
+          "Your current balance",
+          "Currency",
+          "Whether it's your main account",
+          "Whether it's been closed"
         ]
       },
       {
-        "name": "transfers",
-        "description": "One row per money movement between two accounts.",
+        "name": "Transfers",
+        "description": "A record of money moving between two accounts.",
         "columns": [
-          "id",
-          "from_account_id → accounts",
-          "to_account_id → accounts",
-          "amount NUMERIC(20,2)",
-          "description",
-          "created_at"
+          "Sending account",
+          "Receiving account",
+          "Amount sent",
+          "A note, if you added one",
+          "When it happened"
         ]
       },
       {
-        "name": "entries",
-        "description": "The immutable ledger. Every balance change is a row here, never an edit.",
+        "name": "Transaction history",
+        "description": "The full, permanent trail behind every balance, never edited after the fact.",
         "columns": [
-          "id",
-          "account_id → accounts",
-          "transfer_id → transfers (nullable)",
-          "type",
-          "amount",
-          "description",
-          "created_at"
+          "Which account",
+          "Linked transfer, if any",
+          "Type",
+          "Amount",
+          "A note, if you added one",
+          "When it happened"
         ]
       }
     ],
-    "relationshipsLabel": "Relationships",
-    "constraintsLabel": "Constraints",
+    "relationshipsLabel": "How it fits together",
+    "constraintsLabel": "What we guarantee",
     "relationships": [
-      "A user owns many accounts, exactly one of which is flagged is_main.",
-      "An account accumulates many entries — its balance is the sum of its ledger, kept in sync by the same transaction that writes each entry.",
-      "A transfer produces exactly two entries: a debit against the source account and a credit against the destination account, both pointing back at the same transfer row.",
-      "A deposit produces one entry against a single account, with no transfer row at all."
+      "You can hold several accounts, and exactly one of them is always your main account.",
+      "Every account builds up a full transaction history. Your balance is simply the total of everything that's ever happened to it.",
+      "A transfer always creates two matching records: money leaving one account and money arriving in another, linked together.",
+      "Adding money creates one record against a single account, with nothing else involved."
     ],
     "constraints": [
-      "accounts.balance has a CHECK (balance >= 0) — the database itself refuses to store a negative balance, not just application code.",
-      "transfers.amount has a CHECK (amount > 0) — a zero or negative transfer can't exist as a row.",
-      "A partial unique index guarantees at most one is_main = true, non-deleted account per user.",
-      "Account deletion is soft (deleted_at), not destructive — the row and its ledger history remain queryable."
+      "Your balance can never go below zero. That's enforced at the deepest level of the system, not something that could slip through.",
+      "A transfer can never be for zero or a negative amount. It simply can't exist as a record.",
+      "You'll always have exactly one main account, never zero, and never more than one.",
+      "Closing an account never erases it. The account and its full history stay safely on record."
     ]
   },
   "api": {
-    "eyebrow": "API architecture",
-    "title": "One contract, enforced on both ends.",
-    "subtitle": "Every endpoint lives under /api/v1 and returns one of exactly two envelope shapes.",
-    "successLabel": "Success response",
-    "errorLabel": "Error response",
-    "publicLabel": "public",
+    "eyebrow": "How it all connects",
+    "title": "One clear set of rules, followed everywhere.",
+    "subtitle": "Every request you make follows the same simple pattern, and gets one of two kinds of answer back.",
+    "successLabel": "When it works",
+    "errorLabel": "When something's wrong",
+    "publicLabel": "no sign-in needed",
     "successExample": "{\n  \"data\": {\n    \"id\": 42,\n    \"number\": \"ACT/20260118/000042\",\n    \"name\": \"Travel\",\n    \"balance\": \"120.00\",\n    \"currency\": \"USD\"\n  },\n  \"meta\": { \"page\": 1, \"limit\": 10, \"total\": 3 }\n}",
-    "errorExample": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"request validation failed\",\n    \"details\": [\n      { \"field\": \"amount\", \"message\": \"must be greater than 0\" }\n    ]\n  }\n}",
+    "errorExample": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Please check the details below and try again.\",\n    \"details\": [\n      { \"field\": \"amount\", \"message\": \"Amount must be greater than 0\" }\n    ]\n  }\n}",
     "endpointGroups": [
       {
-        "name": "Auth",
+        "name": "Signing up & signing in",
         "endpoints": [
           {
             "method": "POST",
             "path": "/auth/register",
             "auth": false,
-            "description": "Create a user, auto-create their main account, issue a JWT."
+            "description": "Create your account and get started right away."
           },
           {
             "method": "POST",
             "path": "/auth/login",
             "auth": false,
-            "description": "Authenticate and issue a JWT."
+            "description": "Sign in to your account."
           },
           {
             "method": "GET",
             "path": "/auth/profile",
             "auth": true,
-            "description": "Return the current user's profile."
+            "description": "See your own account details."
           }
         ]
       },
@@ -382,342 +367,342 @@
             "method": "POST",
             "path": "/accounts",
             "auth": true,
-            "description": "Create a new (non-main) account."
+            "description": "Open a new account."
           },
           {
             "method": "GET",
             "path": "/accounts/me",
             "auth": true,
-            "description": "List the caller's accounts, paginated."
+            "description": "See all of your accounts."
           },
           {
             "method": "GET",
             "path": "/accounts/search-by-number",
             "auth": true,
-            "description": "Look up a destination account by number."
+            "description": "Find an account by its number, so you can send money to it."
           },
           {
             "method": "GET",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Get one account (403 if not the owner)."
+            "description": "View one of your accounts."
           },
           {
             "method": "PUT",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Update an account's name/description."
+            "description": "Rename or update an account."
           },
           {
             "method": "DELETE",
             "path": "/accounts/:id",
             "auth": true,
-            "description": "Soft-delete an account, sweeping any balance first."
+            "description": "Close an account. Any money in it is moved to your main account first."
           },
           {
             "method": "POST",
             "path": "/accounts/:id/deposit",
             "auth": true,
-            "description": "Deposit into an owned account."
+            "description": "Add money to an account."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/entries",
             "auth": true,
-            "description": "List an account's ledger entries."
+            "description": "See every change to an account's balance."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/transactions",
             "auth": true,
-            "description": "List labeled transaction history."
+            "description": "See your transaction history, labeled and easy to read."
           },
           {
             "method": "GET",
             "path": "/accounts/:id/recent-destinations",
             "auth": true,
-            "description": "Recent transfer destinations from this account."
+            "description": "See who you've recently sent money to."
           }
         ]
       },
       {
-        "name": "Transactions",
+        "name": "Sending money",
         "endpoints": [
           {
             "method": "POST",
             "path": "/transactions/transfer",
             "auth": true,
-            "description": "Transfer between two accounts the caller owns the source of."
+            "description": "Send money from an account you own to another account."
           }
         ]
       }
     ]
   },
   "security": {
-    "eyebrow": "Security & reliability",
-    "title": "Concrete mechanisms, not a claim of being \"secure.\"",
-    "subtitle": "What's actually implemented, and what deliberately isn't yet.",
+    "eyebrow": "How we protect you",
+    "title": "Real protections, not just a promise.",
+    "subtitle": "Here's exactly what keeps your account and your money safe, and what we're still honest about improving.",
     "cards": [
       {
-        "title": "Stateless JWT auth",
-        "body": "HS256 tokens via golang-jwt, with a minimal payload (id, username, email, exp) that carries no sensitive data. There is no refresh token, no logout/revocation list, and no roles — a leaked token stays valid until it expires, and every authorization check is a per-resource ownership comparison rather than a permission system."
+        "title": "Secure sign-in",
+        "body": "When you sign in, you get a secure, time-limited pass that proves it's you, without ever storing your password anywhere it could be exposed."
       },
       {
-        "title": "Request validation",
-        "body": "go-playground/validator struct tags on every bound request, plus manual checks for logic that needs cross-field or decimal-typed reasoning (matching passwords, positive transfer amounts, distinct source/destination accounts)."
+        "title": "Everything is checked",
+        "body": "Every piece of information you send, amounts, account numbers, passwords, is checked carefully before we act on it, catching mistakes before they become problems."
       },
       {
-        "title": "Locked-down CORS",
-        "body": "Origins are explicit, never a wildcard — AllowCredentials is always on, and browsers reject a wildcard origin paired with credentials, so a new origin has to be added to the allowlist deliberately."
+        "title": "Only trusted visitors",
+        "body": "Simple Bank only accepts requests from its own app, never from an unknown website pretending to be us."
       },
       {
-        "title": "Centralized error handling",
-        "body": "Handlers never format an error response themselves; every failure flows through one AppError type and one middleware, so a 500 in production always has a matching server-side log line with the real cause."
+        "title": "Nothing fails silently",
+        "body": "If something ever goes wrong on our end, it's caught immediately, logged, and handled. You'll always get a clear answer, never a broken screen."
       },
       {
-        "title": "Transaction-safe money movement",
-        "body": "Every multi-row mutation (transfers, deposits, account deletion) runs inside a real database transaction with row-level locking — see Banking Domain above for the lock-ordering detail that keeps it deadlock-free."
+        "title": "Your money is protected mid-transfer",
+        "body": "Every deposit, transfer, or account change happens as one safe, all-or-nothing step, so your balance is never left half-updated."
       },
       {
-        "title": "A cookie that's deliberately readable",
-        "body": "The portal's session cookie is intentionally not httpOnly, because the shared Axios interceptor needs to read it from JavaScript to attach the auth header on client-side requests. That's an accepted trade-off, tracked as a known improvement (a BFF/proxy layer is the proposed fix) — not an oversight."
+        "title": "Honest about the trade-offs",
+        "body": "This demo keeps you signed in in a way that's simple rather than maximally locked-down, a deliberate, known trade-off for a demo project, not something we're hiding."
       }
     ]
   },
   "infrastructure": {
-    "eyebrow": "Infrastructure & deployment",
-    "title": "From source code to a running container.",
-    "subtitle": "The backend's path from a commit to a live API, end to end.",
+    "eyebrow": "Built to be reliable",
+    "title": "From an idea to something you can actually use.",
+    "subtitle": "Here's how Simple Bank goes from a change we make to something running and available to you.",
     "steps": [
       {
-        "title": "Source code",
-        "summary": "Go module, monorepo",
-        "detail": "apps/core-service (Go/Gin/PostgreSQL) and apps/portal (Next.js) live side by side in one repository, deployed independently."
+        "title": "Everything starts as one clear plan",
+        "summary": "Organized from day one",
+        "detail": "The app you use and the system behind it are built and tracked together, but kept independent, so a change to one never accidentally breaks the other."
       },
       {
-        "title": "CI: build, vet, test",
-        "summary": "GitHub Actions",
-        "detail": "Every push/PR touching apps/core-service spins up a postgres:16-alpine service container, runs migrations against it, then go build ./..., go vet ./..., and go test ./... — no separate lint step, no CI-driven deploy yet."
+        "title": "Every change is tested first",
+        "summary": "Nothing ships untested",
+        "detail": "Before any update goes live, it's automatically checked against a real, working copy of the system, the same way it would be checked by a real bank's engineering team."
       },
       {
-        "title": "Docker build",
-        "summary": "Multi-stage Dockerfile",
-        "detail": "A golang:1.25-alpine builder stage compiles a CGO-disabled static binary; the runtime stage is alpine:3.20 with just the binary and the migration files, exposing port 8080."
+        "title": "Packaged consistently",
+        "summary": "The same, every time",
+        "detail": "The system is packaged the same exact way every time it's built, so what gets tested is exactly what actually runs, no surprises in between."
       },
       {
-        "title": "Docker Compose",
-        "summary": "postgres + core-service",
-        "detail": "docker-compose.yaml wires a healthchecked Postgres 16 container to the API container, with the API waiting on service_healthy before it starts."
+        "title": "Runs the same everywhere",
+        "summary": "No surprises between testing and real use",
+        "detail": "The pieces that make up Simple Bank are set up to run together consistently, whether that's while building it or while it's live for you to use."
       },
       {
-        "title": "Migrations",
-        "summary": "golang-migrate",
-        "detail": "Ten versioned up/down SQL pairs, applied via a thin CLI (cmd/migration) — schema changes are files in version control, never manual DDL against a live database."
+        "title": "Changes to your records are tracked",
+        "summary": "Nothing changes by accident",
+        "detail": "Any change to how your information is stored is planned, recorded, and reversible, never a quiet, undocumented edit."
       },
       {
-        "title": "Cloud infrastructure",
-        "summary": "Terraform → EC2",
-        "detail": "The core-service is provisioned onto a single EC2 instance via Terraform, configured through environment variables (DB source, JWT secret, allowed CORS origins) rather than committed secrets."
+        "title": "Set up carefully, not by hand",
+        "summary": "Consistent, repeatable",
+        "detail": "The servers that run Simple Bank are set up in a controlled, repeatable way, so nothing about how they're configured is left to guesswork."
       },
       {
-        "title": "Portal deployment",
-        "summary": "Vercel",
-        "detail": "The Next.js portal deploys separately and reaches the API purely over its public HTTP origin — there's no shared network or database access between the two apps."
+        "title": "Kept separate for your safety",
+        "summary": "Independent by design",
+        "detail": "The app you use and the system holding your data are deployed separately, and only ever talk to each other over one clearly locked-down connection."
       }
     ],
     "notes": [
-      "Observability today is structured JSON logging (Go's slog) with request-ID correlation across every log line for a request — there is no metrics/tracing stack (no Prometheus, no OpenTelemetry) yet, which is an honest gap rather than an oversight.",
-      "Environment configuration goes through viper, bound explicitly to env vars so it works identically whether values come from an app.env file locally or from Docker Compose/EC2 environment variables in deployment."
+      "We keep clear records of what happens on our systems, with a traceable reference for every request, so if something ever needs investigating, we can look into it properly.",
+      "However Simple Bank is running, whether on a laptop while we're building it or live for you to use, it behaves exactly the same way, so you never get a different experience than what we tested."
     ]
   },
   "decisions": {
-    "eyebrow": "Engineering decisions",
-    "title": "A few trade-offs, explained honestly.",
-    "subtitle": "Not every decision here is the \"best\" one in the abstract — each is the right one for this project's scope, with the trade-off stated plainly.",
+    "eyebrow": "Being upfront with you",
+    "title": "A few honest trade-offs.",
+    "subtitle": "We won't pretend everything here is perfect. Here's where we made a deliberate choice, and why.",
     "labels": {
-      "problem": "Problem",
-      "constraint": "Constraint",
-      "decision": "Decision",
-      "result": "Result / Trade-off"
+      "problem": "The situation",
+      "constraint": "What we had to work with",
+      "decision": "What we chose",
+      "result": "What that means for you"
     },
     "items": [
       {
-        "problem": "Two concurrent transfers between the same pair of accounts can deadlock if each transaction locks the two rows in a different order.",
-        "constraint": "Both accounts must be row-locked for the duration of a transfer, and the direction of a transfer (from → to) is arbitrary from the database's point of view.",
-        "decision": "Always lock accounts in ascending ID order, never in from-account/to-account order.",
-        "result": "Deadlock-free under concurrent load, at the cost of the lock-acquisition code being slightly less obvious to read than \"lock from, then to.\""
+        "problem": "If two transfers involving the same two accounts happen at the exact same moment, they could get tangled up with each other.",
+        "constraint": "Both accounts involved in a transfer need to be protected from other changes while it's happening.",
+        "decision": "We always handle those accounts in the same consistent order, no matter which direction the money is moving.",
+        "result": "Two transfers happening at once will never get stuck or conflict. Your money always moves cleanly, even under heavy use."
       },
       {
-        "problem": "Floating-point arithmetic can silently lose cents, which is unacceptable in a ledger.",
-        "constraint": "Every amount has to survive serialization, storage, and arithmetic without precision drift.",
-        "decision": "Represent money as strings end to end, parsed into shopspring/decimal only at the point of calculation, backed by NUMERIC(20,2) columns.",
-        "result": "Exact arithmetic, at the cost of more verbose call sites than a plain float or int would need."
+        "problem": "Computers can sometimes round money incorrectly, which is never okay when it's your actual balance.",
+        "constraint": "Every amount needs to stay exact through every step, no matter how many times it's stored, sent, or calculated.",
+        "decision": "We treat every amount as an exact value from start to finish, never as an approximation.",
+        "result": "Your balance is always exactly right, down to the cent, with no rounding errors, ever."
       },
       {
-        "problem": "Deleting an account with a positive balance would either destroy real money or block the delete entirely.",
-        "constraint": "The ledger must stay balanced — money can move, but it can't disappear.",
-        "decision": "Soft-delete the account and sweep any remaining balance to the user's main account as a genuine transfer, with its own debit/credit entries.",
-        "result": "Deleted accounts remain in the database indefinitely with their full history intact, which is correct for a ledger but does mean the accounts table only grows."
+        "problem": "Closing an account that still has money in it shouldn't make that money disappear, but it also shouldn't block you from closing the account.",
+        "constraint": "Money can move between accounts, but it can never just vanish.",
+        "decision": "When you close an account, any remaining balance is automatically and safely moved to your main account first, as a real, recorded transfer.",
+        "result": "You can close an account anytime, and every cent in it is accounted for and preserved."
       },
       {
-        "problem": "The Axios interceptor needs to attach an auth header from both server and browser requests, but a browser can't read an httpOnly cookie.",
-        "constraint": "No backend-for-frontend layer exists yet to hold the session server-side.",
-        "decision": "Use a non-httpOnly session cookie so client-side JavaScript can read it directly.",
-        "result": "Simpler request plumbing today, at the cost of turning any future XSS into full session-token theft — tracked explicitly as a known improvement, with a BFF/proxy as the proposed direction, not silently accepted."
+        "problem": "The app needs to prove it's really you before it acts on your behalf, even when you're using it in a browser.",
+        "constraint": "This demo doesn't yet have a more advanced setup that would keep that proof completely hidden from the browser.",
+        "decision": "For now, this demo uses a simpler approach to keep you signed in.",
+        "result": "It's simple and it works well for a demo. We're upfront that a more locked-down version of this is a planned improvement, not something we're ignoring."
       }
     ]
   },
   "requestFlow": {
-    "eyebrow": "End-to-end request flow",
-    "title": "What happens when you send a transfer.",
-    "subtitle": "One concrete user action, traced through every layer it touches. Select a stage to see the detail.",
+    "eyebrow": "See it in action",
+    "title": "What happens when you send money.",
+    "subtitle": "One real example, from the moment you tap \"Send\" to your balance updating. Pick a step to see more.",
     "steps": [
       {
-        "title": "User submits the form",
-        "summary": "Transfer modal, step 3",
-        "detail": "React Hook Form validates the amount and destination client-side against a Zod schema before anything is sent."
+        "title": "You fill in the details",
+        "summary": "Who, and how much",
+        "detail": "You choose an account, an amount, and where it's going, and we check it looks right before you can even hit send."
       },
       {
-        "title": "useTransferMutation",
-        "summary": "TanStack Query mutation",
-        "detail": "Calls transferClient.transfer(...), which returns a raw AxiosResponse the hook unwraps to .data."
+        "title": "You hit send",
+        "summary": "One tap",
+        "detail": "Your request is packaged up and sent off securely, right away."
       },
       {
-        "title": "POST /transactions/transfer",
-        "summary": "Through the shared interceptor",
-        "detail": "The Axios interceptor attaches the Authorization bearer header and a timezone header, then logs the outgoing request."
+        "title": "It reaches our system",
+        "summary": "Safely, every time",
+        "detail": "Your transfer request arrives at the system that manages every account, ready to be checked and processed."
       },
       {
-        "title": "Gin middleware chain",
-        "summary": "Request ID → logging → CORS → error handler → recovery → auth",
-        "detail": "The JWT is verified and its payload attached to the request context before the handler runs."
+        "title": "It passes every check",
+        "summary": "Nothing skipped",
+        "detail": "Before your transfer touches any money, we confirm it's really you, and that everything about the request is safe and valid."
       },
       {
-        "title": "Handler validation",
-        "summary": "Bind + validator + manual checks",
-        "detail": "Confirms the caller owns the source account, the amount is positive, and source ≠ destination."
+        "title": "We double-check the details",
+        "summary": "One more look",
+        "detail": "We confirm you actually own the account you're sending from, that the amount makes sense, and that you're not sending money to yourself."
       },
       {
-        "title": "TransferTx",
-        "summary": "internal/db/store",
-        "detail": "Locks both accounts in ascending-ID order, checks currency and balance, then runs inside one database transaction."
+        "title": "The transfer happens",
+        "summary": "Safely, in order",
+        "detail": "Both accounts are protected for a moment while we check you have enough money and the currencies match."
       },
       {
-        "title": "Database writes",
-        "summary": "transfers + 2× entries + 2× balance update",
-        "detail": "A transfer row, a debit entry, a credit entry, and two balance updates — committed together or not at all."
+        "title": "It's recorded, permanently",
+        "summary": "Money out, money in",
+        "detail": "We write down exactly what left one account and what arrived in the other, and update both balances together, completely, or not at all."
       },
       {
-        "title": "Response envelope",
-        "summary": "{ data, message }",
-        "detail": "Returned through the same envelope shape every endpoint uses, typed on the frontend as CommonSuccessResponse<Transfer>."
+        "title": "You get confirmation",
+        "summary": "Clear and immediate",
+        "detail": "You get a clear answer back the moment it's done, letting you know your transfer went through."
       },
       {
-        "title": "Cache update",
-        "summary": "TanStack Query invalidates",
-        "detail": "The mutation's onSuccess invalidates the affected accounts' and entries' query keys, so the UI re-fetches and reflects the new balances."
+        "title": "Your numbers refresh",
+        "summary": "Automatically",
+        "detail": "The app quietly knows your balances just changed, so it goes and gets the latest numbers."
       },
       {
-        "title": "UI update",
-        "summary": "Balances re-render",
-        "detail": "No manual state sync — the same queryKeys the initial prefetch used are now stale, refetched, and rendered."
+        "title": "You see it update",
+        "summary": "No refresh needed",
+        "detail": "Your balance and transaction history update right in front of you, with nothing for you to do."
       }
     ]
   },
   "capabilities": {
-    "eyebrow": "Engineering capability summary",
-    "title": "What this project demonstrates.",
+    "eyebrow": "Why you can trust it",
+    "title": "What Simple Bank actually does for you.",
     "groups": [
       {
-        "name": "Frontend",
+        "name": "For you",
         "items": [
           {
-            "title": "Next.js 16 App Router",
-            "body": "Server Components for prefetch + auth checks, Client Components for interactivity, no unnecessary client-side JavaScript."
+            "title": "Fast, focused screens",
+            "body": "The app only shows you what you need, and reacts instantly, without unnecessary loading."
           },
           {
-            "title": "TanStack Query v5",
-            "body": "Shared query-key factories between server prefetch and client hooks, so the two never drift apart."
+            "title": "Accurate, real-time information",
+            "body": "What you see on screen always matches what's really in your account."
           },
           {
-            "title": "React Hook Form + Zod",
-            "body": "Typed, validated forms with translated error messages resolved through a shared resolver."
+            "title": "Clear, helpful forms",
+            "body": "If something's wrong with what you entered, you'll know immediately, in plain language."
           }
         ]
       },
       {
-        "name": "Backend",
+        "name": "Keeping you safe",
         "items": [
           {
-            "title": "Go + Gin",
-            "body": "A layered API: handler → store → sqlc querier, with a fixed, load-bearing middleware order."
+            "title": "Careful, layered checks",
+            "body": "Every request goes through the same trusted process, with no shortcuts and nothing skipped."
           },
           {
-            "title": "JWT authentication",
-            "body": "Stateless bearer tokens, verified per protected route, with per-resource ownership checks in place of a roles system."
+            "title": "Secure sign-in",
+            "body": "You're verified on every request, so your account can't be touched by anyone but you."
           },
           {
-            "title": "Centralized error handling",
-            "body": "One AppError type, one response envelope, consistent across every endpoint."
+            "title": "Clear answers, even when something goes wrong",
+            "body": "You'll never be left guessing. Errors are handled consistently and explained clearly."
           }
         ]
       },
       {
-        "name": "Data",
+        "name": "Your money",
         "items": [
           {
-            "title": "PostgreSQL + sqlc",
-            "body": "Hand-written SQL compiled to typed Go — no ORM, no hidden query generation."
+            "title": "Exact records, always",
+            "body": "Your data is handled with careful precision, nothing is left to guesswork or rounded off."
           },
           {
-            "title": "Double-entry ledger",
-            "body": "Balances are derived from immutable entries, not mutated directly, inside real database transactions."
+            "title": "A full, permanent history",
+            "body": "Your balance isn't just a number. It's the sum of a complete, unchangeable history you can always look back on."
           },
           {
-            "title": "Versioned migrations",
-            "body": "Ten golang-migrate up/down pairs — schema history lives in git, not in someone's memory."
+            "title": "Every change is tracked",
+            "body": "Every update to how records are stored is documented and reversible, so nothing about your data changes by surprise."
           }
         ]
       },
       {
-        "name": "Infrastructure",
+        "name": "Staying available",
         "items": [
           {
-            "title": "Docker",
-            "body": "Multi-stage builds producing a small Alpine runtime image, composed with Postgres via Docker Compose."
+            "title": "Packaged for consistency",
+            "body": "The system runs the same way every time, so nothing behaves differently between testing and real use."
           },
           {
-            "title": "Terraform",
-            "body": "The backend's EC2 host is provisioned as code, not clicked together in a console."
+            "title": "Set up carefully, not by hand",
+            "body": "The servers behind Simple Bank are configured in a controlled, repeatable way, not clicked together and hoped for."
           },
           {
-            "title": "Separate deploy targets",
-            "body": "API on EC2, portal on Vercel, connected only over a CORS-locked HTTP boundary."
+            "title": "Independent, locked-down connections",
+            "body": "The app you use and the system holding your data are kept separate, connected only through one clearly controlled channel."
           }
         ]
       },
       {
-        "name": "Engineering practices",
+        "name": "Held to a standard",
         "items": [
           {
-            "title": "Automated testing",
-            "body": "Gin-based handler unit tests with mocked stores, plus integration tests that run against a real Postgres instance."
+            "title": "Tested before it ships",
+            "body": "Changes are checked against real conditions before they ever reach you."
           },
           {
-            "title": "Continuous integration",
-            "body": "GitHub Actions builds, vets, and tests the backend against a live Postgres service container on every push."
+            "title": "Checked on every update",
+            "body": "Every single change is automatically tested against a real, working system before it's considered done."
           },
           {
-            "title": "Honest documentation",
-            "body": "Internal docs explicitly flag known gaps and drift instead of describing an idealized system that doesn't exist yet."
+            "title": "Honest, up front",
+            "body": "We tell you plainly where something is a known trade-off instead of pretending everything is perfect."
           }
         ]
       }
     ]
   },
   "techStack": {
-    "eyebrow": "Technical stack",
-    "title": "Organized by responsibility, not by dependency count.",
+    "eyebrow": "Built with care",
+    "title": "Modern, well-tested tools you can rely on.",
     "groups": [
       {
         "name": "Frontend",
@@ -772,18 +757,18 @@
     ]
   },
   "finalCta": {
-    "title": "See it running, or read how it's built.",
-    "description": "The demo uses fake money against a real ledger — every account, deposit, and transfer runs through the exact system described above.",
-    "ctaExplore": "Read the architecture",
-    "ctaDemo": "Try the live demo",
-    "ctaSource": "View source on GitHub"
+    "title": "Ready to see it for yourself?",
+    "description": "Try it out with practice money. Every account, deposit, and transfer works just like it would in a real banking app.",
+    "ctaExplore": "See how it works",
+    "ctaDemo": "Try the demo",
+    "ctaSource": "View the code"
   },
   "footer": {
-    "tagline": "A full-stack engineering showcase — frontend to infrastructure.",
+    "tagline": "Simple, secure banking, built from the ground up.",
     "builtBy": "Designed and built by Dewa Surya Ariesta.",
     "rights": "All rights reserved.",
     "author": {
-      "heading": "Contact {{name}}"
+      "heading": "Get in touch with {{name}}"
     }
   }
 }

@@ -22,6 +22,7 @@ import { TechStackSection } from "@/components/landing/tech-stack-section";
 import { FinalCtaSection } from "@/components/landing/final-cta-section";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { AUTHOR } from "@/components/landing/author";
+import { AuthBackdrop } from "@/components/auth/auth-backdrop";
 
 export async function generateMetadata({
   params,
@@ -99,7 +100,11 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       />
       <main className="flex min-h-screen w-full flex-col">
         <LandingNav />
-        <HeroSection />
+
+        <AuthBackdrop>
+          <HeroSection />
+        </AuthBackdrop>
+
         <OverviewSection />
         <SystemJourneySection />
         <FrontendEngineeringSection />
