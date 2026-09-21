@@ -27,17 +27,16 @@ import type { DisplayLedgerEntry } from "@/feature/account-transaction";
 
 interface Props {
   accountName: string;
-  accountId: number;
   currency: string;
   entries: DisplayLedgerEntry[];
 }
 
-export function OnboardingEntriesCard({ accountName, accountId, currency, entries }: Props) {
+export function OnboardingEntriesCard({ accountName, currency, entries }: Props) {
   const { t } = useTranslation("account");
 
   const columns = useMemo(
-    () => getAccountEntriesColumns({ accountId, currency, t }),
-    [accountId, currency, t],
+    () => getAccountEntriesColumns({ currency, t }),
+    [currency, t],
   );
 
   const table = useTable({

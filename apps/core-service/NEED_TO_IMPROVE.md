@@ -9,17 +9,18 @@ repeated here unless a new, more specific angle was found.
 
 ## Critical — fix before next deploy
 
-4. **No `.gitignore` anywhere in the repo.**
-   `app.prod.env`, `core-service-key.pem`, `terraform/terraform.tfstate*`,
-   `terraform/terraform.tfvars`, and `coverage.out` are untracked only by
-   discipline today (verified: none are currently tracked). A single
-   `git add .` / `git add -A` would commit live DB credentials, the JWT
-   secret, the SSH private key, and full Terraform state (which itself holds
-   `jwt_secret_key`/`db_source` in plaintext, `terraform/main.tf:112-120`).
-   Add a `.gitignore` now, independent of anything else on this list.
+4. ~~**No `.gitignore` anywhere in the repo.**~~ A root `.gitignore` now
+   exists and covers `app.prod.env`, `*.pem`, `*.tfstate*`, `*.tfvars`
+   (`!*.tfvars.example`) — verified none of those are tracked. Terraform
+   itself also moved, from `terraform/` (inside this app) to `infra/terraform/`
+   (repo root) — it now provisions the EC2 host, nginx, and core-service
+   together, not core-service alone. `jwt_secret_key`/`db_source` still land
+   in `infra/terraform/terraform.tfstate` in plaintext (Terraform's
+   `sensitive = true` only redacts terminal output, not the state file
+   itself) — that risk is unchanged by the gitignore existing.
 
 5. **Secrets written into EC2 instance user-data in plaintext.**
-   `terraform/user_data.sh.tpl:14-21` interpolates `DB_SOURCE` and
+   `infra/terraform/user_data.sh.tpl` interpolates `DB_SOURCE` and
    `JWT_SECRET_KEY` directly into the instance's user-data script, which AWS
    stores in plaintext instance metadata — readable by anyone with
    `ec2:DescribeInstanceAttribute` or console access to that account. This
@@ -37,11 +38,12 @@ repeated here unless a new, more specific angle was found.
 ## High
 
 7. **SSH open to the world by default.**
-   `terraform/variables.tf` default `ssh_cidr_blocks` (and `app_cidr_blocks`)
-   is `0.0.0.0/0` (`terraform/main.tf:79-93`). `terraform.tfvars.example:14`
-   even comments "lock this down" but nothing enforces it — there's no
-   `validation` block like the one guarding `jwt_secret_key`. Add one, or at
-   least flip the default to require an explicit override.
+   `infra/terraform/variables.tf` default `ssh_cidr_blocks` (and
+   `app_cidr_blocks`, which now gates nginx's public port rather than
+   core-service's) is `0.0.0.0/0`. `terraform.tfvars.example` even comments
+   "lock this down" but nothing enforces it — there's no `validation` block
+   like the one guarding `jwt_secret_key`. Add one, or at least flip the
+   default to require an explicit override.
 
 8. **No CI/CD pipeline.** No `.github/` or equivalent exists — `go test`,
    `go vet`/lint, and `terraform validate` aren't automatically enforced
@@ -56,10 +58,14 @@ repeated here unless a new, more specific angle was found.
    undoes login's own anti-enumeration effort — an attacker enumerates valid
    emails via `/auth/register` instead of `/auth/login`.
 
-10. **No rate limiting on `/auth/login` or `/auth/register`.** Nothing in the
-    middleware chain (`internal/api/server.go:68-73`) or `router.go` throttles
-    repeated auth attempts — unlimited credential-stuffing and the
-    enumeration in item 9 above are both unmitigated.
+10. **No per-route rate limiting on `/auth/login` or `/auth/register`.**
+    `core.RateLimitMiddleware` and nginx's `limit_req`
+    (`infra/terraform/nginx.conf.tpl`) both apply globally, per client IP,
+    across every route — neither singles out the auth endpoints for a
+    tighter limit. That caps blunt credential-stuffing/enumeration (item 9)
+    at the same rate as any other endpoint, but a distributed attacker
+    spreading requests across many IPs, or one staying just under the global
+    limit, is still unmitigated for auth specifically.
 
 ## Medium
 

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { InputField } from "@/components/form/input-field";
+import { MoneyInputField } from "@/components/form/money-input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { scrollToFirstError } from "@/lib/form";
 import type { TransferDetailsFormValues } from "@/feature/transfer";
@@ -18,7 +18,7 @@ interface Props {
 export function DetailsStep({ form }: Props) {
   const { t } = useTranslation("transfer");
   const { t: tCommon } = useTranslation("common");
-  const { fieldErrors, setDetails, setFieldErrors, setStep } =
+  const { fieldErrors, sourceAccount, setDetails, setFieldErrors, setStep } =
     useTransferStore();
 
   useEffect(() => {
@@ -45,16 +45,12 @@ export function DetailsStep({ form }: Props) {
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-4 mb-6">
-        <InputField
+        <MoneyInputField
           name="amount"
           label={t("amount")}
           control={form.control}
-          type="number"
-          step="0.01"
-          min="0"
-          inputMode="decimal"
+          currency={sourceAccount?.currency}
           placeholder={t("amountPlaceholder")}
-          autoComplete="off"
         />
         <TextareaField
           name="description"

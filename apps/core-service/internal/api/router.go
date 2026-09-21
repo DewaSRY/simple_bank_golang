@@ -42,6 +42,7 @@ func (server *Server) bindRouters(engine *gin.Engine) {
 			Store:               server.store,
 			TokenMaker:          server.tokenMaker,
 			AccessTokenDuration: server.config.JWTAccessTokenDuration,
+			TrustedIPs:          server.config.DeviceFingerprintTrustedIPs,
 		},
 		&account.Handler{Store: server.store},
 		&transfer.Handler{Store: server.store},

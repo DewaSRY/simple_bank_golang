@@ -41,6 +41,12 @@ func newTestHandler(t *testing.T, storer store.Storer) *Handler {
 	return &Handler{Store: storer, TokenMaker: tokenMaker, AccessTokenDuration: time.Minute}
 }
 
+func newTestHandlerWithTrustedIPs(t *testing.T, storer store.Storer, trustedIPs []string) *Handler {
+	h := newTestHandler(t, storer)
+	h.TrustedIPs = trustedIPs
+	return h
+}
+
 // newTestRouter wires the same route groups NewServer does (public "/api/v1"
 // routes, then an authorized group behind core.AuthMiddleware), so these
 // tests exercise auth's Handler exactly as it runs in production.
@@ -58,12 +64,21 @@ func newTestRouter(h *Handler) *gin.Engine {
 	return router
 }
 
-func doRegisterRequest(t *testing.T, router *gin.Engine, body registerUserRequest) *httptest.ResponseRecorder {
+// fingerprintFor mirrors requestDeviceFingerprint for a request that only
+// sets User-Agent (Accept-Language/Accept-Encoding absent, as in these tests).
+func fingerprintFor(userAgent string) string {
+	return util.ComputeDeviceFingerprint(userAgent, "", "")
+}
+
+func doRegisterRequest(t *testing.T, router *gin.Engine, body registerUserRequest, userAgent string) *httptest.ResponseRecorder {
 	payload, err := json.Marshal(body)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(payload))
 	req.Header.Set("Content-Type", "application/json")
+	if userAgent != "" {
+		req.Header.Set("User-Agent", userAgent)
+	}
 
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
@@ -71,22 +86,24 @@ func doRegisterRequest(t *testing.T, router *gin.Engine, body registerUserReques
 }
 
 func TestRegisterUser(t *testing.T) {
+	const registerUserAgent = "register-agent/1.0"
+
 	validReq := registerUserRequest{
-		Username:        "dewa",
-		Email:           "dewa@example.com",
-		Password:        "password123",
-		PasswordConfirm: "password123",
+		Username: "dewa",
+		Email:    "dewa@example.com",
 	}
 
 	testCases := []struct {
 		name          string
 		body          registerUserRequest
+		userAgent     string
 		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "registers successfully and returns an access token",
-			body: validReq,
+			name:      "registers successfully, binding the account to the requesting device",
+			body:      validReq,
+			userAgent: registerUserAgent,
 			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), validReq.Email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 				q.EXPECT().CheckIsUsernameExist(gomock.Any(), validReq.Username).Return(false, nil)
@@ -94,7 +111,7 @@ func TestRegisterUser(t *testing.T) {
 					func(_ context.Context, arg db.CreateUserParams) (db.CreateUserRow, error) {
 						require.Equal(t, validReq.Username, arg.Username)
 						require.Equal(t, validReq.Email, arg.Email)
-						require.NoError(t, util.CheckPassword(validReq.Password, arg.HashedPassword))
+						require.Equal(t, fingerprintFor(registerUserAgent), arg.DeviceFingerprintHash)
 						return db.CreateUserRow{ID: 1, Username: arg.Username, Email: arg.Email, CreatedAt: time.Now()}, nil
 					},
 				)
@@ -116,23 +133,6 @@ func TestRegisterUser(t *testing.T) {
 				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
 				require.NotEmpty(t, resp.Data.AccessToken)
 				require.Equal(t, "Bearer", resp.Data.TokenType)
-			},
-		},
-		{
-			name: "rejects a mismatched password confirmation without touching the db",
-			body: registerUserRequest{
-				Username:        "dewa",
-				Email:           "dewa@example.com",
-				Password:        "password123",
-				PasswordConfirm: "somethingelse",
-			},
-			buildStubs: func(q *mockdb.MockStorer) {
-				q.EXPECT().GetUserByEmail(gomock.Any(), gomock.Any()).Times(0)
-				q.EXPECT().CheckIsUsernameExist(gomock.Any(), gomock.Any()).Times(0)
-				q.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Times(0)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 		{
@@ -237,7 +237,7 @@ func TestRegisterUser(t *testing.T) {
 		},
 		{
 			name: "rejects a request missing required fields without touching the db",
-			body: registerUserRequest{Email: "dewa@example.com", Password: "password123", PasswordConfirm: "password123"},
+			body: registerUserRequest{Email: "dewa@example.com"},
 			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -258,18 +258,21 @@ func TestRegisterUser(t *testing.T) {
 			tc.buildStubs(q)
 
 			router := newTestRouter(newTestHandler(t, q))
-			recorder := doRegisterRequest(t, router, tc.body)
+			recorder := doRegisterRequest(t, router, tc.body, tc.userAgent)
 			tc.checkResponse(t, recorder)
 		})
 	}
 }
 
-func doLoginRequest(t *testing.T, router *gin.Engine, body loginUserRequest) *httptest.ResponseRecorder {
+func doLoginRequest(t *testing.T, router *gin.Engine, body loginUserRequest, userAgent string) *httptest.ResponseRecorder {
 	payload, err := json.Marshal(body)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(payload))
 	req.Header.Set("Content-Type", "application/json")
+	if userAgent != "" {
+		req.Header.Set("User-Agent", userAgent)
+	}
 
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
@@ -278,28 +281,27 @@ func doLoginRequest(t *testing.T, router *gin.Engine, body loginUserRequest) *ht
 
 func TestLoginUser(t *testing.T) {
 	const (
-		email    = "dewa@example.com"
-		password = "password123"
+		email          = "dewa@example.com"
+		boundUserAgent = "bound-agent/1.0"
 	)
 
-	hashedPassword, err := util.HashPassword(password)
-	require.NoError(t, err)
-
-	existingUser := db.GetUserByEmailRow{
-		ID: 1, Username: "dewa", Email: email, HashedPassword: hashedPassword, CreatedAt: time.Now(),
+	boundUser := db.GetUserByEmailRow{
+		ID: 1, Username: "dewa", Email: email, DeviceFingerprintHash: fingerprintFor(boundUserAgent), CreatedAt: time.Now(),
 	}
 
 	testCases := []struct {
 		name          string
 		body          loginUserRequest
+		userAgent     string
 		buildStubs    func(q *mockdb.MockStorer)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "logs in successfully and returns an access token",
-			body: loginUserRequest{Email: email, Password: password},
+			name:      "logs in successfully from the bound device and returns an access token",
+			body:      loginUserRequest{Email: email},
+			userAgent: boundUserAgent,
 			buildStubs: func(q *mockdb.MockStorer) {
-				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(existingUser, nil)
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(boundUser, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -314,7 +316,7 @@ func TestLoginUser(t *testing.T) {
 		},
 		{
 			name: "rejects a request missing required fields without touching the db",
-			body: loginUserRequest{Email: email},
+			body: loginUserRequest{},
 			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -328,7 +330,7 @@ func TestLoginUser(t *testing.T) {
 		},
 		{
 			name: "returns 401 when the email is not registered",
-			body: loginUserRequest{Email: email, Password: password},
+			body: loginUserRequest{Email: email},
 			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 			},
@@ -338,7 +340,7 @@ func TestLoginUser(t *testing.T) {
 		},
 		{
 			name: "returns 500 when looking up the user hits a db error",
-			body: loginUserRequest{Email: email, Password: password},
+			body: loginUserRequest{Email: email},
 			buildStubs: func(q *mockdb.MockStorer) {
 				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(db.GetUserByEmailRow{}, sql.ErrConnDone)
 			},
@@ -347,13 +349,52 @@ func TestLoginUser(t *testing.T) {
 			},
 		},
 		{
-			name: "returns 401 when the password is wrong",
-			body: loginUserRequest{Email: email, Password: "wrong-password"},
+			name:      "returns 403 when the request comes from a different device",
+			body:      loginUserRequest{Email: email},
+			userAgent: "some-other-agent/9.9",
 			buildStubs: func(q *mockdb.MockStorer) {
-				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(existingUser, nil)
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(boundUser, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
+		{
+			name:      "binds and succeeds on first login for a legacy, unbound account",
+			body:      loginUserRequest{Email: email},
+			userAgent: "first-login-agent/1.0",
+			buildStubs: func(q *mockdb.MockStorer) {
+				unboundUser := db.GetUserByEmailRow{ID: 2, Username: "legacy", Email: email, DeviceFingerprintHash: "", CreatedAt: time.Now()}
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(unboundUser, nil)
+				q.EXPECT().BindUserDeviceFingerprint(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(_ context.Context, arg db.BindUserDeviceFingerprintParams) (db.BindUserDeviceFingerprintRow, error) {
+						require.Equal(t, int64(2), arg.ID)
+						require.Equal(t, fingerprintFor("first-login-agent/1.0"), arg.DeviceFingerprintHash)
+						return db.BindUserDeviceFingerprintRow{ID: 2, Username: "legacy", Email: email, CreatedAt: time.Now()}, nil
+					},
+				)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+
+				var resp struct {
+					Data AuthResponse `json:"data"`
+				}
+				require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
+				require.NotEmpty(t, resp.Data.AccessToken)
+			},
+		},
+		{
+			name:      "returns 500 when binding a legacy account's device fails",
+			body:      loginUserRequest{Email: email},
+			userAgent: "first-login-agent/1.0",
+			buildStubs: func(q *mockdb.MockStorer) {
+				unboundUser := db.GetUserByEmailRow{ID: 2, Username: "legacy", Email: email, DeviceFingerprintHash: "", CreatedAt: time.Now()}
+				q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(unboundUser, nil)
+				q.EXPECT().BindUserDeviceFingerprint(gomock.Any(), gomock.Any()).Return(db.BindUserDeviceFingerprintRow{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 	}
@@ -365,10 +406,38 @@ func TestLoginUser(t *testing.T) {
 			tc.buildStubs(q)
 
 			router := newTestRouter(newTestHandler(t, q))
-			recorder := doLoginRequest(t, router, tc.body)
+			recorder := doLoginRequest(t, router, tc.body, tc.userAgent)
 			tc.checkResponse(t, recorder)
 		})
 	}
+}
+
+// TestLoginUser_TrustedIPBypassesDeviceFingerprint covers Handler.TrustedIPs:
+// a request from a configured trusted IP must log in even with a device
+// fingerprint that doesn't match the bound one, since it gets the fixed mock
+// fingerprint instead of one derived from headers.
+func TestLoginUser_TrustedIPBypassesDeviceFingerprint(t *testing.T) {
+	const (
+		email          = "dewa@example.com"
+		trustedIP      = "192.0.2.1" // httptest.NewRequest's default RemoteAddr
+		boundUserAgent = "bound-agent/1.0"
+	)
+
+	boundUser := db.GetUserByEmailRow{
+		ID: 1, Username: "dewa", Email: email, DeviceFingerprintHash: trustedIPMockFingerprint, CreatedAt: time.Now(),
+	}
+
+	ctrl := gomock.NewController(t)
+	q := mockdb.NewMockStorer(ctrl)
+	q.EXPECT().GetUserByEmail(gomock.Any(), email).Return(boundUser, nil)
+
+	h := newTestHandlerWithTrustedIPs(t, q, []string{trustedIP})
+	router := newTestRouter(h)
+
+	// A user agent that would normally mismatch the bound fingerprint and be
+	// rejected with 403 — the trusted IP bypass must still let it through.
+	recorder := doLoginRequest(t, router, loginUserRequest{Email: email}, boundUserAgent+"-different")
+	require.Equal(t, http.StatusOK, recorder.Code)
 }
 
 func doGetProfileRequest(t *testing.T, router *gin.Engine, authHeader string) *httptest.ResponseRecorder {

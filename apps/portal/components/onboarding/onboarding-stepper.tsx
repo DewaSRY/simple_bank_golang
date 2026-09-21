@@ -15,7 +15,13 @@ const STEP_PATHS = [
   "/onboarding/complete",
 ] as const;
 
-const STEP_KEYS = ["start", "createAccount", "deposit", "transfer", "complete"] as const;
+const STEP_KEYS = [
+  "start",
+  "createAccount",
+  "deposit",
+  "transfer",
+  "complete",
+] as const;
 
 export function OnboardingStepper() {
   const { t } = useTranslation("onboarding");
@@ -24,7 +30,9 @@ export function OnboardingStepper() {
   const hasEntries = useOnboardingStore((s) => s.entries.length > 0);
 
   const unlocked = [true, true, hasAccount, hasAccount, hasEntries];
-  const activeIndex = STEP_PATHS.indexOf(pathname as (typeof STEP_PATHS)[number]);
+  const activeIndex = STEP_PATHS.indexOf(
+    pathname as (typeof STEP_PATHS)[number],
+  );
 
   return (
     <ol className="flex w-full items-center gap-1.5 overflow-x-auto sm:gap-2">
@@ -35,7 +43,10 @@ export function OnboardingStepper() {
         const label = t(`steps.${STEP_KEYS[index]}`);
 
         return (
-          <li key={href} className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <li
+            key={href}
+            className="flex shrink-0 items-center gap-1.5 sm:gap-2"
+          >
             {isUnlocked ? (
               <Link
                 href={href}
@@ -58,7 +69,11 @@ export function OnboardingStepper() {
                         : "bg-muted-foreground/15",
                   )}
                 >
-                  {isComplete ? <Check className="size-3" aria-hidden /> : index + 1}
+                  {isComplete ? (
+                    <Check className="size-3" aria-hidden />
+                  ) : (
+                    index + 1
+                  )}
                 </span>
                 <span className="hidden sm:inline">{label}</span>
               </Link>

@@ -93,11 +93,8 @@ definitions:
     properties:
       email:
         type: string
-      password:
-        type: string
     required:
     - email
-    - password
     type: object
   api_auth.profileResponse:
     properties:
@@ -114,17 +111,10 @@ definitions:
     properties:
       email:
         type: string
-      password:
-        minLength: 8
-        type: string
-      password_confirm:
-        type: string
       username:
         type: string
     required:
     - email
-    - password
-    - password_confirm
     - username
     type: object
   api_transfer.accountEntriesViewResponse:
@@ -807,7 +797,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticate a user and return an access token
+      description: |-
+        Authenticate by email. There is no password: the caller's
+        browser/device fingerprint (derived from request headers)
+        must match the one this account was registered/last bound
+        with, or the request is rejected with 403.
       parameters:
       - description: Login credentials
         in: body
@@ -833,6 +827,10 @@ paths:
             $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse'
         "500":
@@ -878,7 +876,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Register a new user and return an access token
+      description: |-
+        Register a new user and return an access token. There is no
+        password: the account is bound to the caller's current
+        browser/device fingerprint, and future logins are only
+        accepted from that same device.
       parameters:
       - description: Registration details
         in: body

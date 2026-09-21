@@ -4,19 +4,19 @@ import { useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "@/i18n/navigation";
 import { AuthBackdrop } from "@/components/auth/auth-backdrop";
 
-const REDIRECT_DELAY_MS = 1000;
+const SUCCESS_DISPLAY_MS = 1000;
 
-export function AuthSuccessBanner() {
+interface AuthSuccessBannerProps {
+  onComplete: () => void;
+}
+
+export function AuthSuccessBanner({ onComplete }: AuthSuccessBannerProps) {
   const { t } = useTranslation("auth");
-  const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace("/dashboard");
-    }, REDIRECT_DELAY_MS);
+    const timer = setTimeout(onComplete, SUCCESS_DISPLAY_MS);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -135,6 +135,7 @@ export class ApiInterceptor {
             request_params: response.config?.params,
             response_header: response.headers,
             request_header: response.config?.headers,
+            response_data_length: response.headers.getAuthorization,
             ...(await this.getRequestDeviceInfo()),
           });
         }

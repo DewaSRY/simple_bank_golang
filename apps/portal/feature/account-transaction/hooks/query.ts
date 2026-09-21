@@ -10,13 +10,10 @@ import {
   getRecentTransactionsAction,
 } from "../actions";
 
-function toDisplayLedgerEntry(
-  entry: AccountEntriesResponse,
-  accountId: number,
-): DisplayLedgerEntry {
+function toDisplayLedgerEntry(entry: AccountEntriesResponse): DisplayLedgerEntry {
   return {
     ...entry,
-    direction: isIncomingEntry(entry, accountId) ? "incoming" : "outgoing",
+    direction: isIncomingEntry(entry) ? "incoming" : "outgoing",
   };
 }
 
@@ -41,9 +38,7 @@ export function useAccountEntries(
       getAccountEntriesAction(accountId, params).then(unwrapActionResult),
     select: (response) => ({
       ...response,
-      data: response.data.map((entry) =>
-        toDisplayLedgerEntry(entry, accountId),
-      ),
+      data: response.data.map((entry) => toDisplayLedgerEntry(entry)),
     }),
   });
 }

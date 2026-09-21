@@ -1,13 +1,18 @@
 import { useTranslation } from "react-i18next";
-import { useAccounts } from "@/feature/account";
+import { AccountWithUserName, useAccounts } from "@/feature/account";
 import { SearchInput } from "@/components/common/search-input";
 
 import { AccountCard } from "./account-card";
 
 import { useDepositeStore } from "./store";
 import { useState } from "react";
+import { DepositeForm } from "./deposite-dialog";
 
-export function AccountList() {
+interface Props {
+  form: DepositeForm;
+}
+
+export function AccountList({ form }: Props) {
   const { t } = useTranslation("common");
   const { setSelectedAccount, selectedAccount } = useDepositeStore();
 
@@ -23,6 +28,11 @@ export function AccountList() {
     setName(value);
   }
 
+  function handleSelectAccount(account: AccountWithUserName) {
+    setSelectedAccount(account);
+    form.setValue("accountId", account.id, { shouldDirty: true });
+  }
+
   return (
     <div>
       <SearchInput
@@ -32,15 +42,15 @@ export function AccountList() {
       />
 
       <div className="space-y-2 py-2">
-        {accounts &&
-          accounts.length > 0 &&
-          accounts.map((account, idx) => (
+        {accounts?.data &&
+          accounts?.data.length > 0 &&
+          accounts.data.map((account, idx) => (
             <AccountCard
               key={`account-${account.id}-${idx}`}
               name={account.name}
               number={account.number}
               selected={selectedAccount?.id === account.id}
-              onClick={() => setSelectedAccount(account)}
+              onClick={() => handleSelectAccount(account)}
             />
           ))}
       </div>

@@ -1,21 +1,21 @@
 import type { AccountEntriesResponse } from "./type";
 
-export function isIncomingEntry(
-  entry: AccountEntriesResponse,
-  accountId: number,
-) {
-  return entry.to_account_id === accountId && entry.account_id !== accountId;
+const INCOMING_ENTRY_TYPES = new Set(["deposit", "received"]);
+
+export function isIncomingEntry(entry: AccountEntriesResponse) {
+  return INCOMING_ENTRY_TYPES.has(entry.type.toLowerCase());
 }
 
 export function getEntryLabel(
   entry: AccountEntriesResponse,
-  accountId: number,
   t: (key: string, params?: Record<string, unknown>) => string,
 ) {
-  if (entry.type.toLowerCase() === "deposit") return t("deposit");
-  if (entry.type.toLowerCase() === "withdraw") return t("withdrawal");
+  const type = entry.type.toLowerCase();
+  if (type === "deposit") return t("deposit");
+  if (type === "withdraw") return t("withdrawal");
 
-  return entry.account_id === accountId
-    ? t("toEntry", { name: entry.to_account_name || entry.to_account_number })
-    : t("fromEntry", { name: entry.account_name || entry.account_number });
+  const counterparty = entry.to_account_name || entry.to_account_number;
+  return type === "received"
+    ? t("fromEntry", { name: counterparty })
+    : t("toEntry", { name: counterparty });
 }

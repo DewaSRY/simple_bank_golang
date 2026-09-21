@@ -12,7 +12,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
-import { createAccountSchema, type AccountWithUserName } from "@/feature/account";
+import {
+  createAccountSchema,
+  type AccountWithUserName,
+} from "@/feature/account";
 import { zodResolverTranslate } from "@/lib/form";
 
 import { FormStep } from "./form-step";
@@ -48,9 +51,7 @@ export function EditAccountDialog({ account, open, setOpen }: Props) {
   const isDirty = form.formState.isDirty;
 
   const setGuard = useNavigationGuardStore((s) => s.setGuard);
-  const requestNavigation = useNavigationGuardStore(
-    (s) => s.requestNavigation,
-  );
+  const requestNavigation = useNavigationGuardStore((s) => s.requestNavigation);
 
   useEffect(() => {
     if (!open) return;
@@ -93,7 +94,7 @@ export function EditAccountDialog({ account, open, setOpen }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm px-4">
+      <DialogContent className="p-4 lg:min-w-4xl space-y-4">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

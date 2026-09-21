@@ -8,7 +8,7 @@ import { ArrowRight, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { InputField } from "@/components/form/input-field";
+import { MoneyInputField } from "@/components/form/money-input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { PreviewRow } from "@/components/common/preview-row";
 import { AnimatedNumber } from "@/components/onboarding/animated-number";
@@ -132,16 +132,12 @@ export function DepositFlow() {
             <Card>
               <CardContent className="space-y-4">
                 <div>
-                  <InputField
+                  <MoneyInputField
                     name="amount"
                     label={t("amount")}
                     control={form.control}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    inputMode="decimal"
+                    currency={account.currency}
                     placeholder={t("amountPlaceholder")}
-                    autoComplete="off"
                   />
                   <div className="mt-2 flex flex-wrap gap-2">
                     <span className="self-center text-xs text-muted-foreground">
@@ -230,7 +226,7 @@ export function DepositFlow() {
         )}
       </AnimatePresence>
 
-      <RecentActivity entries={entries} accountId={account.id} />
+      <RecentActivity entries={entries} />
 
       {justDeposited && (
         <motion.div

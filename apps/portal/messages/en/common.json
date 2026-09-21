@@ -1,4 +1,5 @@
 {
+  "searchAccountsPlaceholder": "Search accounts",
   "mainAccount": "Main account",
   "appName": "Simple Bank",
   "backToHome": "Back to home",
@@ -28,6 +29,14 @@
   "unsavedChangesDescription": "You have unsaved changes. If you leave now, they will be lost.",
   "availableBalance": "Available balance",
   "searchPlaceholder": "Search...",
+  "sidebarTitle": "Sidebar",
+  "sidebarDescription": "Displays the mobile sidebar.",
+  "noDataFound": "No data found",
+  "noDataDescription": "Try adjusting filters or search",
+  "paginationRowsInfo": "From {{count}} rows",
+  "previousPage": "Previous page",
+  "nextPage": "Next page",
+  "pageNumber": "Page {{page}}",
   "error": {
     "title": "Something went wrong",
     "description": "An unexpected error occurred. Please try again.",

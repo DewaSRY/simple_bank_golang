@@ -30,7 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:px-1.5!"
+              className="data-[slot=sidebar-menu-button]:p-4! p-2!"
               render={<Link href={`/${i18n.language}/dashboard`} />}
             >
               <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">
@@ -43,7 +43,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="gap-4">
+      <SidebarContent className="gap-4 w-full! min-w-max">
         <Separator />
         <div className="flex flex-col gap-1 px-2">
           <CreateNewAccount />

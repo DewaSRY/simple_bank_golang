@@ -17,7 +17,12 @@ interface OnboardingState {
   depositCount: number;
   transferCount: number;
 
-  createAccount: (input: { name: string; description: string }) => OnboardingAccount;
+  createAccount: (input: {
+    name: string;
+    description: string;
+    currency: string;
+    openingBalance: number;
+  }) => OnboardingAccount;
   deposit: (input: { amount: number; description: string }) => OnboardingEntry;
   transfer: (input: {
     contact: DirectoryContact;
@@ -38,7 +43,7 @@ const INITIAL_STATE = {
 export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   ...INITIAL_STATE,
 
-  createAccount({ name, description }) {
+  createAccount({ name, description, currency, openingBalance }) {
     const now = new Date().toISOString();
     const account: OnboardingAccount = {
       id: 1,
@@ -46,8 +51,8 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       description,
       number: generateAccountNumber(),
       username: "you",
-      currency: "IDR",
-      balance: 0,
+      currency,
+      balance: openingBalance,
       is_main: true,
       created_at: now,
       updated_at: now,

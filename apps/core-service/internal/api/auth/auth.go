@@ -1,5 +1,3 @@
-// Package auth handles login, registration, and the authenticated user's
-// profile.
 package auth
 
 import (
@@ -11,12 +9,12 @@ import (
 	"github.com/DewaSRY/core-service/internal/token"
 )
 
-// Handler holds everything the auth endpoints need from the rest of the
-// service.
 type Handler struct {
 	Store               store.Storer
 	TokenMaker          token.Maker
 	AccessTokenDuration time.Duration
+
+	TrustedIPs []string
 }
 
 func (h *Handler) RegisterRoutes(public, authorized *gin.RouterGroup) {

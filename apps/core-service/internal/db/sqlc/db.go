@@ -27,6 +27,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.accountEntriesByAccountIdStmt, err = db.PrepareContext(ctx, accountEntriesByAccountId); err != nil {
 		return nil, fmt.Errorf("error preparing query AccountEntriesByAccountId: %w", err)
 	}
+	if q.bindUserDeviceFingerprintStmt, err = db.PrepareContext(ctx, bindUserDeviceFingerprint); err != nil {
+		return nil, fmt.Errorf("error preparing query BindUserDeviceFingerprint: %w", err)
+	}
 	if q.checkIsAccountWithIdExistStmt, err = db.PrepareContext(ctx, checkIsAccountWithIdExist); err != nil {
 		return nil, fmt.Errorf("error preparing query CheckIsAccountWithIdExist: %w", err)
 	}
@@ -116,6 +119,11 @@ func (q *Queries) Close() error {
 	if q.accountEntriesByAccountIdStmt != nil {
 		if cerr := q.accountEntriesByAccountIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing accountEntriesByAccountIdStmt: %w", cerr)
+		}
+	}
+	if q.bindUserDeviceFingerprintStmt != nil {
+		if cerr := q.bindUserDeviceFingerprintStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing bindUserDeviceFingerprintStmt: %w", cerr)
 		}
 	}
 	if q.checkIsAccountWithIdExistStmt != nil {
@@ -293,6 +301,7 @@ type Queries struct {
 	db                                  DBTX
 	tx                                  *sql.Tx
 	accountEntriesByAccountIdStmt       *sql.Stmt
+	bindUserDeviceFingerprintStmt       *sql.Stmt
 	checkIsAccountWithIdExistStmt       *sql.Stmt
 	checkIsUsernameExistStmt            *sql.Stmt
 	countAccountEntriesByAccountIdStmt  *sql.Stmt
@@ -327,6 +336,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                                  tx,
 		tx:                                  tx,
 		accountEntriesByAccountIdStmt:       q.accountEntriesByAccountIdStmt,
+		bindUserDeviceFingerprintStmt:       q.bindUserDeviceFingerprintStmt,
 		checkIsAccountWithIdExistStmt:       q.checkIsAccountWithIdExistStmt,
 		checkIsUsernameExistStmt:            q.checkIsUsernameExistStmt,
 		countAccountEntriesByAccountIdStmt:  q.countAccountEntriesByAccountIdStmt,

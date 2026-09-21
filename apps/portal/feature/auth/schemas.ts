@@ -4,7 +4,6 @@ import type { Translate } from "@/feature/common";
 export function createLoginSchema(t: Translate) {
   return z.object({
     email: z.string().min(1, t("emailRequired")).email(t("emailInvalid")),
-    password: z.string().min(1, t("passwordRequired")),
   });
 }
 
@@ -13,17 +12,10 @@ export type LoginFormScreenValues = z.infer<
 >;
 
 export function createRegisterSchema(t: Translate) {
-  return z
-    .object({
-      username: z.string().min(1, t("usernameRequired")),
-      email: z.string().min(1, t("emailRequired")).email(t("emailInvalid")),
-      password: z.string().min(8, t("passwordMinLength")),
-      confirmPassword: z.string().min(1, t("confirmPasswordRequired")),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      message: t("passwordMismatch"),
-      path: ["confirmPassword"],
-    });
+  return z.object({
+    username: z.string().min(1, t("usernameRequired")),
+    email: z.string().min(1, t("emailRequired")).email(t("emailInvalid")),
+  });
 }
 
 export type RegisterFormScreenValues = z.infer<
