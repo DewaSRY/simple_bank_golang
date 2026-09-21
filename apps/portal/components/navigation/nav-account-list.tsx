@@ -17,7 +17,6 @@ import { Star } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useTransition } from "react";
 import { useQueryStates, parseAsString, parseAsInteger } from "nuqs";
-import Pagination from "../ui/pagination";
 import { SearchInput } from "../common/search-input";
 
 export function NavAccountList() {
@@ -129,29 +128,6 @@ export function NavAccountList() {
             </p>
           )}
         </div>
-        {hasAccounts && (
-          <div className="min-w-0 shrink-0 overflow-x-auto">
-            <Pagination
-              pageName="account"
-              currentPage={accountsResponse?.meta?.page || 1}
-              onPageChange={(p) =>
-                void setQuery((prev) => {
-                  prev.account_page = p;
-                  return prev;
-                })
-              }
-              totalRows={accountsResponse?.meta?.total || 0}
-              rowsPerPageOptions={[25, 50, 100]}
-              rowsPerPage={accountsResponse?.meta?.limit || 25}
-              onRowsPerPageChange={(l) =>
-                void setQuery((prev) => {
-                  prev.account_limit = l;
-                  return prev;
-                })
-              }
-            />
-          </div>
-        )}
       </SidebarGroupContent>
     </SidebarGroup>
   );
