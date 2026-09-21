@@ -11,6 +11,8 @@ import {
   Server,
   Database,
   ShieldCheck,
+  ArrowUpRight,
+  Sparkles,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Link } from "@/i18n/navigation";
@@ -38,7 +40,11 @@ export function LandingNav() {
       title: tLanding("nav.links.architecture"),
       href: "#journey",
     },
-    { icon: Server, title: tLanding("nav.links.backend"), href: "#backend" },
+    {
+      icon: Server,
+      title: tLanding("nav.links.backend"),
+      href: "#backend",
+    },
     {
       icon: Database,
       title: tLanding("nav.links.database"),
@@ -52,44 +58,79 @@ export function LandingNav() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-transparent bg-background/70 backdrop-blur-md transition-colors">
-      <div className="mx-auto flex h-16 w-full max-w-[84rem] items-center justify-between px-4 sm:px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-base font-semibold tracking-tight"
-        >
-          <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">
-            <Wallet className="size-4" aria-hidden />
+    <header className="sticky top-0 z-50 w-full">
+      {/* Background blur */}
+      <div className="absolute inset-0 border-b border-border/40 bg-background/75 backdrop-blur-xl" />
+
+      <div className="relative mx-auto flex h-[72px] w-full max-w-[84rem] items-center justify-between px-4 sm:px-6">
+        {/* Logo */}
+        <Link href="/" className="group flex items-center gap-2.5">
+          <motion.span
+            whileHover={{ rotate: -8, scale: 1.08 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            className="relative flex size-8 items-center justify-center overflow-hidden rounded-xs bg-primary text-primary-foreground shadow-sm"
+          >
+            <Wallet className="relative z-10 size-4" aria-hidden />
+
+            <motion.span
+              className="absolute inset-0 bg-white/20"
+              initial={{ x: "-100%" }}
+              whileHover={{ x: "100%" }}
+              transition={{ duration: 0.5 }}
+            />
+          </motion.span>
+
+          <span className="text-[15px] font-semibold tracking-tight">
+            {t("appName")}
           </span>
-          {t("appName")}
         </Link>
 
-        {/* desktop nav */}
+        {/* Desktop navigation */}
         <nav className="hidden items-center gap-1 md:flex">
           <Popover.Root>
             <Popover.Trigger
               render={
                 <Button
                   variant="ghost"
-                  className="gap-1 text-sm text-muted-foreground hover:text-foreground"
+                  className="group relative h-9 gap-1.5 rounded-xs px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                 />
               }
             >
               {tLanding("nav.explore")}
-              <ChevronDown className="size-3.5 transition-transform duration-150 group-data-popup-open/button:rotate-180" />
+
+              <ChevronDown className="size-3.5 transition-transform duration-200 group-data-popup-open/button:rotate-180" />
+
+              {/* active underline */}
+              <span className="absolute inset-x-3 -bottom-[1px] h-px origin-center scale-x-0 bg-primary transition-transform duration-200 group-hover:scale-x-100" />
             </Popover.Trigger>
+
             <Popover.Portal>
               <Popover.Positioner
                 className="isolate z-50 outline-none"
                 side="bottom"
                 align="start"
-                sideOffset={12}
+                sideOffset={10}
               >
-                <Popover.Popup className="w-screen max-w-md origin-(--transform-origin) rounded-2xl bg-popover p-2 text-popover-foreground shadow-lg ring-1 ring-foreground/10 duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
-                  <p className="px-3 pt-2 pb-1 text-xs text-muted-foreground">
-                    {tLanding("nav.exploreDescription")}
-                  </p>
-                  <div className="flex flex-col gap-1 p-1">
+                <Popover.Popup className="w-[390px] origin-(--transform-origin) overflow-hidden rounded-xs border border-border/60 bg-popover/95 p-2 text-popover-foreground shadow-2xl shadow-black/10 backdrop-blur-xl duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+                  {/* Header */}
+                  <div className="px-3 pb-2 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex size-7 items-center justify-center rounded-xs bg-primary/10 text-primary">
+                        <Sparkles className="size-3.5" />
+                      </span>
+
+                      <p className="text-sm font-semibold">
+                        {tLanding("nav.explore")}
+                      </p>
+                    </div>
+
+                    <p className="mt-1.5 pl-9 text-xs leading-relaxed text-muted-foreground">
+                      {tLanding("nav.exploreDescription")}
+                    </p>
+                  </div>
+
+                  {/* Items */}
+                  <div className="grid grid-cols-2 gap-1 p-1">
                     {exploreItems.map((item) => (
                       <Popover.Close
                         key={item.title}
@@ -97,15 +138,23 @@ export function LandingNav() {
                         render={
                           <a
                             href={item.href}
-                            className="flex items-center gap-3 rounded-sm p-2.5 transition-colors hover:bg-muted"
+                            className="group flex items-center gap-3 rounded-xs p-3 transition-all duration-200 hover:bg-muted"
                           />
                         }
                       >
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary">
-                          <item.icon className="size-4.5" aria-hidden />
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary transition-transform duration-200 group-hover:scale-105 group-hover:bg-primary group-hover:text-primary-foreground">
+                          <item.icon className="size-4" aria-hidden />
                         </span>
-                        <span className="text-sm font-medium">
-                          {item.title}
+
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium">
+                            {item.title}
+                          </span>
+
+                          <span className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                            Explore
+                            <ArrowUpRight className="size-3" />
+                          </span>
                         </span>
                       </Popover.Close>
                     ))}
@@ -116,49 +165,91 @@ export function LandingNav() {
           </Popover.Root>
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        {/* Desktop actions */}
+        <div className="hidden items-center gap-1.5 md:flex">
           <LocaleSwitcher />
           <ThemeToggle />
-          <Link
-            href="/onboarding"
-            className="px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            {tLanding("nav.tryDemo")}
-          </Link>
+
+          <div className="mx-1 h-5 w-px bg-border/70" />
+
+          {/* Try demo */}
+          <div className="relative inline-flex rounded-xs p-[1px] overflow-hidden">
+            <div className="absolute inset-[-100%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,#6dec2e_50%,transparent_60%,transparent_100%)]" />
+
+            <Link
+              href="/onboarding"
+              className="relative rounded-[5px] bg-background px-3 py-1 text-sm font-medium text-brand transition-colors ease-in-out duration-300 hover:text-foreground"
+            >
+              {tLanding("nav.tryDemo")}
+            </Link>
+          </div>
+
+          {/* Login */}
           <Link
             href="/login"
-            className="px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="relative flex h-9 items-center rounded-xs px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {tAuth("login")}
           </Link>
-          <Button
-            size="sm"
-            nativeButton={false}
-            render={<Link href="/register" />}
-          >
-            {tLanding("nav.getStarted")}
-          </Button>
+
+          {/* CTA */}
+          <div className="relative ml-1">
+            <motion.div
+              className="absolute -inset-[1px] rounded-xs bg-primary/50 blur-sm"
+              animate={{
+                opacity: [0.35, 0.7, 0.35],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            <Button
+              size="sm"
+              className="relative h-9 rounded-xs px-4 shadow-sm"
+              nativeButton={false}
+              render={<Link href="/register" />}
+            >
+              {tLanding("nav.getStarted")}
+
+              <ArrowUpRight className="ml-1 size-3.5" />
+            </Button>
+          </div>
         </div>
 
-        {/* mobile trigger */}
+        {/* Mobile */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="size-9 rounded-xs md:hidden"
             aria-label={tLanding("nav.menuToggle")}
             onClick={() => setMobileOpen(true)}
           >
-            <Menu />
+            <Menu className="size-5" />
           </Button>
-          <SheetContent side="right" className="w-full sm:max-w-xs">
+
+          <SheetContent
+            side="right"
+            className="w-full border-l-border/50 bg-background/95 backdrop-blur-xl sm:max-w-sm"
+          >
             <SheetHeader>
-              <SheetTitle>{t("appName")}</SheetTitle>
+              <SheetTitle className="flex items-center gap-2">
+                <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">
+                  <Wallet className="size-4" />
+                </span>
+
+                {t("appName")}
+              </SheetTitle>
             </SheetHeader>
-            <div className="flex flex-col gap-1 px-4">
-              <p className="px-1 pb-1 text-xs font-medium text-muted-foreground">
+
+            <div className="flex flex-col gap-1 px-4 pt-4">
+              <p className="px-1 pb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {tLanding("nav.explore")}
               </p>
+
               {exploreItems.map((item) => (
                 <SheetClose
                   key={item.title}
@@ -166,54 +257,64 @@ export function LandingNav() {
                   render={
                     <a
                       href={item.href}
-                      className="flex items-center gap-3 rounded-xs p-2 hover:bg-muted"
+                      className="group flex items-center gap-3 rounded-xs p-3 transition-colors hover:bg-muted"
                     />
                   }
                 >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <item.icon className="size-4" aria-hidden />
                   </span>
+
                   <span className="text-sm font-medium">{item.title}</span>
+
+                  <ArrowUpRight className="ml-auto size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </SheetClose>
               ))}
             </div>
-            <div className="mt-auto flex flex-col gap-3 border-t p-4">
-              <div className="flex items-center justify-between">
+
+            <div className="mt-auto flex flex-col gap-3 border-t border-border/50 p-4">
+              <div className="flex items-center justify-between rounded-xs border bg-muted/30 p-2">
                 <LocaleSwitcher />
                 <ThemeToggle />
               </div>
+
               <SheetClose
                 nativeButton={false}
                 render={<Link href="/onboarding" />}
-                className="text-center text-sm font-medium text-foreground"
+                className="flex h-10 items-center justify-center rounded-xs text-sm font-medium transition-colors hover:bg-muted"
               >
                 {tLanding("nav.tryDemo")}
               </SheetClose>
+
               <SheetClose
                 nativeButton={false}
                 render={<Link href="/login" />}
                 className={cn(
-                  "text-center text-sm font-medium text-foreground",
+                  "flex h-10 items-center justify-center rounded-xs text-sm font-medium transition-colors hover:bg-muted",
                 )}
               >
                 {tAuth("login")}
               </SheetClose>
+
               <Button
                 nativeButton={false}
                 render={<Link href="/register" />}
-                className="w-full"
+                className="h-10 w-full rounded-xs"
               >
                 {tLanding("nav.getStarted")}
+                <ArrowUpRight className="ml-1 size-4" />
               </Button>
             </div>
           </SheetContent>
         </Sheet>
       </div>
+
+      {/* Loading/progress line */}
       <motion.div
-        className="h-px w-full origin-left bg-border"
+        className="relative h-px w-full origin-left bg-border"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
       />
     </header>
   );

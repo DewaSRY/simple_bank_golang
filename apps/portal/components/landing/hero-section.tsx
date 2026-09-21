@@ -46,23 +46,60 @@ export function HeroSection() {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.15,
+                delayChildren: 0.2,
+              },
+            },
+          }}
           className="mt-2 flex w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2"
         >
           {pipeline.map((step, index) => (
-            <span key={step} className="flex items-center gap-1.5 sm:gap-2">
+            <motion.span
+              key={step}
+              variants={{
+                hidden: {
+                  opacity: 0,
+                  y: 12,
+                  scale: 0.9,
+                },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: {
+                    duration: 0.4,
+                    ease: "easeOut",
+                  },
+                },
+              }}
+              className="flex items-center gap-1.5 sm:gap-2"
+            >
               <span className="rounded-full bg-card px-3 py-1.5 text-xs font-medium ring-1 ring-foreground/10 sm:text-sm">
                 {step}
               </span>
+
               {index < pipeline.length - 1 && (
-                <ArrowRight
-                  className="size-3.5 shrink-0 text-muted-foreground/50"
-                  aria-hidden
-                />
+                <motion.span
+                  initial={{ opacity: 0, x: -4 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: 0.2 + (index + 1) * 0.15,
+                  }}
+                >
+                  <ArrowRight
+                    className="size-3.5 shrink-0 text-muted-foreground/50"
+                    aria-hidden
+                  />
+                </motion.span>
               )}
-            </span>
+            </motion.span>
           ))}
         </motion.div>
 
