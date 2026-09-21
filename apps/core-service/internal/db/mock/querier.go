@@ -58,6 +58,21 @@ func (mr *MockStorerMockRecorder) AccountEntriesByAccountId(ctx, id any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountEntriesByAccountId", reflect.TypeOf((*MockStorer)(nil).AccountEntriesByAccountId), ctx, id)
 }
 
+// BindUserDeviceFingerprint mocks base method.
+func (m *MockStorer) BindUserDeviceFingerprint(ctx context.Context, arg db.BindUserDeviceFingerprintParams) (db.BindUserDeviceFingerprintRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BindUserDeviceFingerprint", ctx, arg)
+	ret0, _ := ret[0].(db.BindUserDeviceFingerprintRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BindUserDeviceFingerprint indicates an expected call of BindUserDeviceFingerprint.
+func (mr *MockStorerMockRecorder) BindUserDeviceFingerprint(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BindUserDeviceFingerprint", reflect.TypeOf((*MockStorer)(nil).BindUserDeviceFingerprint), ctx, arg)
+}
+
 // CheckIsAccountWithIdExist mocks base method.
 func (m *MockStorer) CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error) {
 	m.ctrl.T.Helper()

@@ -24,6 +24,7 @@ const (
 	ErrCodeUnauthorized = "UNAUTHORIZED"
 	ErrCodeForbidden    = "FORBIDDEN"
 	ErrCodeConflict     = "CONFLICT"
+	ErrCodeRateLimited  = "RATE_LIMITED"
 )
 
 // AppError is the one error type handlers report through Fail(ctx, err). It
@@ -86,6 +87,12 @@ func ForbiddenErr(message string) *AppError {
 
 func ConflictErr(code, message string) *AppError {
 	return newAppError(http.StatusConflict, code, message)
+}
+
+// TooManyRequestsErr builds a 429 response for a client that has exceeded a
+// rate limit (see RateLimitMiddleware).
+func TooManyRequestsErr(message string) *AppError {
+	return newAppError(http.StatusTooManyRequests, ErrCodeRateLimited, message)
 }
 
 // InternalErr builds a sanitized 500 response for an unexpected failure. err

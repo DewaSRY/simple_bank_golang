@@ -1,6 +1,5 @@
 export type LoginRequest = {
   email: string;
-  password: string;
 };
 
 export type AuthResponse = {
@@ -12,8 +11,6 @@ export type AuthResponse = {
 export type RegisterRequest = {
   username: string;
   email: string;
-  password: string;
-  password_confirm: string;
 };
 
 export type ProfileResponse = {

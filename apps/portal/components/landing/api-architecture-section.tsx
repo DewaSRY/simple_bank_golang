@@ -83,7 +83,7 @@ export function ApiArchitectureSection() {
                     <div className="flex shrink-0 items-center gap-2">
                       <span
                         className={cn(
-                          "w-14 shrink-0 rounded-md px-2 py-0.5 text-center font-mono text-[11px] font-semibold",
+                          "w-14 shrink-0 rounded-xs px-2 py-0.5 text-center font-mono text-[11px] font-semibold",
                           METHOD_COLORS[endpoint.method],
                         )}
                       >

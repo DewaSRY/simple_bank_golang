@@ -84,11 +84,11 @@ type Transfer struct {
 
 // Table to store user accounts used for authentication
 type User struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	// Password hash generated with bcrypt, plaintext passwords are never stored
-	HashedPassword string    `json:"hashed_password"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID        int64     `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	// SHA-256 hex of the browser/device fingerprint bound to this account. Empty means unbound (pre-migration row) -- the next successful login binds it.
+	DeviceFingerprintHash string `json:"device_fingerprint_hash"`
 }

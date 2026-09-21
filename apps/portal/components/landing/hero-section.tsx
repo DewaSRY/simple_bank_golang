@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { AUTHOR } from "@/components/landing/author";
 import { GithubIcon, LinkedinIcon } from "@/components/landing/social-icons";
+import { SparkleIconLink } from "@/components/landing/sparkle-icon-link";
 
 export function HeroSection() {
   const { t } = useTranslation("landing");
@@ -105,24 +106,18 @@ export function HeroSection() {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="flex items-center gap-4"
         >
-          <a
+          <SparkleIconLink
             href={AUTHOR.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t("hero.social.github")}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <GithubIcon className="size-5" />
-          </a>
-          <a
+            ariaLabel={t("hero.social.github")}
+            icon={<GithubIcon className="size-5" />}
+            hoverRotate="left"
+          />
+          <SparkleIconLink
             href={AUTHOR.linkedinUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t("hero.social.linkedin")}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <LinkedinIcon className="size-5" />
-          </a>
+            ariaLabel={t("hero.social.linkedin")}
+            icon={<LinkedinIcon className="size-5" />}
+            hoverRotate="right"
+          />
         </motion.div>
       </div>
 

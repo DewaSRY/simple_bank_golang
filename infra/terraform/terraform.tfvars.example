@@ -12,3 +12,16 @@ cors_allowed_origins      = ""
 
 # Lock this down to your own IP (e.g. ["1.2.3.4/32"]) once you know it.
 ssh_cidr_blocks = ["0.0.0.0/0"]
+
+# nginx sits in front of core-service as the only public entrypoint (port
+# 80 by default) and rate-limits at the edge; core-service itself is not
+# published publicly. All of these have working defaults - uncomment to
+# override.
+# nginx_port              = 80
+# nginx_rate_limit_rps    = 10
+# nginx_rate_limit_burst  = 20
+
+# core-service's own in-process per-IP limiter, kept on behind nginx.
+# app_rate_limit_enabled = true
+# app_rate_limit_rps     = 5
+# app_rate_limit_burst   = 20

@@ -11,6 +11,10 @@ import (
 
 type Querier interface {
 	AccountEntriesByAccountId(ctx context.Context, id int64) (AccountEntriesByAccountIdRow, error)
+	// Binds an unbound (pre-migration, device_fingerprint_hash = '') user row to
+	// the fingerprint presented on its first login after the migration. Never
+	// overwrites an already-bound row.
+	BindUserDeviceFingerprint(ctx context.Context, arg BindUserDeviceFingerprintParams) (BindUserDeviceFingerprintRow, error)
 	CheckIsAccountWithIdExist(ctx context.Context, id int64) (bool, error)
 	CheckIsUsernameExist(ctx context.Context, username string) (bool, error)
 	CountAccountEntriesByAccountId(ctx context.Context, arg CountAccountEntriesByAccountIdParams) (int64, error)

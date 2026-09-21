@@ -10,6 +10,40 @@ import (
 	"time"
 )
 
+const bindUserDeviceFingerprint = `-- name: BindUserDeviceFingerprint :one
+UPDATE users
+SET device_fingerprint_hash = $2, updated_at = now()
+WHERE id = $1 AND device_fingerprint_hash = ''
+RETURNING id, username, email, created_at
+`
+
+type BindUserDeviceFingerprintParams struct {
+	ID                    int64  `json:"id"`
+	DeviceFingerprintHash string `json:"device_fingerprint_hash"`
+}
+
+type BindUserDeviceFingerprintRow struct {
+	ID        int64     `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Binds an unbound (pre-migration, device_fingerprint_hash = ”) user row to
+// the fingerprint presented on its first login after the migration. Never
+// overwrites an already-bound row.
+func (q *Queries) BindUserDeviceFingerprint(ctx context.Context, arg BindUserDeviceFingerprintParams) (BindUserDeviceFingerprintRow, error) {
+	row := q.queryRow(ctx, q.bindUserDeviceFingerprintStmt, bindUserDeviceFingerprint, arg.ID, arg.DeviceFingerprintHash)
+	var i BindUserDeviceFingerprintRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const checkIsUsernameExist = `-- name: CheckIsUsernameExist :one
 SELECT EXISTS (
     SELECT 1
@@ -29,7 +63,7 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username,
     email,
-    hashed_password
+    device_fingerprint_hash
 ) VALUES (
     $1, $2, $3
 )
@@ -37,9 +71,9 @@ RETURNING id, username, email, created_at
 `
 
 type CreateUserParams struct {
-	Username       string `json:"username"`
-	Email          string `json:"email"`
-	HashedPassword string `json:"hashed_password"`
+	Username              string `json:"username"`
+	Email                 string `json:"email"`
+	DeviceFingerprintHash string `json:"device_fingerprint_hash"`
 }
 
 type CreateUserRow struct {
@@ -50,7 +84,7 @@ type CreateUserRow struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.queryRow(ctx, q.createUserStmt, createUser, arg.Username, arg.Email, arg.HashedPassword)
+	row := q.queryRow(ctx, q.createUserStmt, createUser, arg.Username, arg.Email, arg.DeviceFingerprintHash)
 	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
@@ -62,17 +96,17 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, hashed_password, created_at
+SELECT id, username, email, device_fingerprint_hash, created_at
 FROM users
 WHERE email = $1
 `
 
 type GetUserByEmailRow struct {
-	ID             int64     `json:"id"`
-	Username       string    `json:"username"`
-	Email          string    `json:"email"`
-	HashedPassword string    `json:"hashed_password"`
-	CreatedAt      time.Time `json:"created_at"`
+	ID                    int64     `json:"id"`
+	Username              string    `json:"username"`
+	Email                 string    `json:"email"`
+	DeviceFingerprintHash string    `json:"device_fingerprint_hash"`
+	CreatedAt             time.Time `json:"created_at"`
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
@@ -82,7 +116,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.ID,
 		&i.Username,
 		&i.Email,
-		&i.HashedPassword,
+		&i.DeviceFingerprintHash,
 		&i.CreatedAt,
 	)
 	return i, err

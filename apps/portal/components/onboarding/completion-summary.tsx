@@ -79,7 +79,6 @@ export function CompletionSummary() {
 
       <OnboardingEntriesCard
         accountName={account.name}
-        accountId={account.id}
         currency={account.currency}
         entries={entries.map(toDisplayLedgerEntry)}
       />

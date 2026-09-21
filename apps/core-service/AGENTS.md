@@ -10,11 +10,38 @@ several docs haven't fully caught up with; see "Doc drift" at the end.
 
 A double-entry ledger / simple banking HTTP API: users register, own one or more
 accounts, and transfer money between accounts with full entry (ledger) history.
-Stack: Go 1.25, Gin (HTTP), PostgreSQL via `sqlc` (no ORM), JWT auth
-(`golang-jwt/jwt/v5`), `shopspring/decimal` for money math, `viper` for config,
+Stack: Go 1.25, Gin (HTTP), PostgreSQL via `sqlc` (no ORM), **passwordless**
+JWT auth bound to a device fingerprint (`golang-jwt/jwt/v5`), an in-process
+per-IP rate limiter, `shopspring/decimal` for money math, `viper` for config,
 `slog` for structured logging, `gomock` for store/handler unit tests, Swagger
 (`swaggo`) for API docs, `golang-migrate` for schema migrations, Terraform +
-Docker for deployment to EC2.
+Docker for deployment to EC2 behind an nginx reverse proxy that rate-limits
+at the edge (infra now lives at the repo root, `infra/terraform/` — not
+under this app).
+
+## Where to Look First (read this before exploring)
+
+Match your task to a row, go straight to that file — don't grep the whole
+repo first.
+
+| Task | Start here |
+|---|---|
+| New/changed HTTP endpoint on an existing resource | `internal/api/<domain>/handlers.go` (or `manage.go`/`transactions_handlers.go`); register in that domain's `RegisterRoutes` in `<domain>.go` |
+| New/changed multi-step business logic (>1 write, needs atomicity) | `internal/db/store/store_<name>_tx.go` (`FooTx`/`fooTx` + `execTx` shape); add method to `Storer` in `store.go` |
+| New/changed single SQL query | `internal/db/query/*.sql` → `make sqlc` → `make generate-mock` → `go build ./...` |
+| New/changed error → HTTP status mapping | domain's `apperror.go` (e.g. `transfer/apperror.go`); new sentinels go in `internal/db/store/errors.go` |
+| New/changed response JSON shape | domain's `response.go` (`toXResponse` mapper) |
+| Cross-cutting HTTP concern (middleware, response envelope, auth check) | `internal/api/core/*.go`; registration order is in `server.go` |
+| Config value | `internal/config/config.go` (mapstructure tag = env var name) |
+| Auth/login/session behavior | `internal/api/auth/*.go` (passwordless, device-fingerprint-bound — see below), `internal/token/` |
+| Rate limiting | `internal/rate-limiter/limiter.go` (generic token bucket), `internal/api/core/rate_limit_middleware.go` (Gin adapter) |
+| DB schema change | new pair in `internal/db/migrations/` via `make migrate-create name=...` |
+| Handler test | domain's `*_handler_test.go` (gomock `MockStorer`, no DB) |
+| Store/query test | `internal/db/sqlc/*_test.go` (real Postgres, `make db-up` first) |
+
+If your task isn't a clean fit for any row (new domain package, cross-domain
+refactor), read "How the Code Is Organized" and "How to Implement a New
+Feature" below before writing code.
 
 ## What the Architecture Looks Like
 
@@ -50,8 +77,8 @@ cmd/migration/         standalone CLI wrapping golang-migrate (create/up/down/fo
 internal/api/
   server.go            Server struct, NewServer (middleware chain, validator setup, CORS)
   router.go            bindRouters — the ONLY place route groups are composed
-  core/                shared kernel: AppError, response envelope, auth/logging/recovery/request-id middleware
-  auth/                login, register, profile (public + authorized routes)
+  core/                shared kernel: AppError, response envelope, auth/logging/recovery/request-id/rate-limit middleware
+  auth/                login, register, profile — passwordless, device-fingerprint-bound (public + authorized routes)
   account/             create/list/search/get/update/delete account
   transfer/            deposit, cross-account transfer, entries, transaction history
 internal/db/
@@ -61,10 +88,11 @@ internal/db/
   migrations/          golang-migrate up/down SQL pairs
   mock/querier.go       generated MockStorer (gomock) — DO NOT hand-edit
 internal/token/        JWT Maker interface + implementation, Payload struct
+internal/rate-limiter/ generic in-process per-key token-bucket limiter (no HTTP dependency)
 internal/config/       viper-based Config struct + LoadConfig
 internal/logger/       slog.Logger construction from Config (JSON/text/pretty)
 internal/domain/constant/  small shared enums (e.g. entry types)
-internal/util/         generic helpers (e.g. MapSlice, password hashing)
+internal/util/         generic helpers: array.go (MapSlice), fingerprint.go (device fingerprint hash), like.go (SQL LIKE escaping)
 internal/docs/         generated Swagger spec (DO NOT hand-edit)
 docs/                  design-decision write-ups per subsystem (see "Existing docs" below)
 ```
@@ -107,6 +135,23 @@ other way. `internal/db/store` depends only on `internal/db/sqlc`, never on
 - **`token.Maker` / `token.Payload`** (`internal/token/`) — JWT creation and
   verification; `Payload` is what `core.GetAuthPayload(ctx)` returns inside a
   handler behind `core.AuthMiddleware`.
+- **Device fingerprint auth** (`internal/api/auth/handler_utils.go`,
+  `internal/util/fingerprint.go`) — there is no password. `users.device_fingerprint_hash`
+  is a SHA-256 hash derived from `User-Agent`/`Accept-Language`/`Accept-Encoding`
+  headers via `util.ComputeDeviceFingerprint`. Register binds it; login rejects
+  with 403 (`core.ForbiddenErr`) if the caller's current fingerprint doesn't
+  match, unless the row is unbound (`""`, a pre-migration legacy row), in which
+  case login binds it. `Handler.TrustedIPs` (config `DEVICE_FINGERPRINT_TRUSTED_IPS`)
+  exempts specific IPs to a fixed mock fingerprint, purely so local tooling
+  (Swagger UI, curl) doesn't get locked out as headers vary — never set this
+  in production.
+- **`ratelimiter.Limiter`** (`internal/rate-limiter/limiter.go`) — a generic,
+  in-process per-key token bucket (no HTTP dependency, no shared store —
+  resets on restart, not shared across instances). `core.RateLimitMiddleware`
+  (`internal/api/core/rate_limit_middleware.go`) is the Gin adapter: keys it
+  by `ctx.ClientIP()`, applies globally before any auth check (public and
+  authorized routes alike), and is only registered when
+  `config.RateLimitEnabled` is true.
 - **`db.Querier`** (`internal/db/sqlc/querier.go`, generated) — one method per
   SQL query. This is the mockable seam for business-logic unit tests (see
   `docs/GOMOCK_TESTING.md`, though see the note on drift below).
@@ -123,7 +168,8 @@ other way. `internal/db/store` depends only on `internal/db/sqlc`, never on
 | Query layer | `sqlc` (generated, no ORM, no hand-written mapper package) |
 | Migrations | `golang-migrate`, invoked via `cmd/migration` |
 | Money type | `string` end-to-end, parsed with `shopspring/decimal` at point of use |
-| Auth | JWT (`golang-jwt/jwt/v5`), stateless, bearer token |
+| Auth | JWT (`golang-jwt/jwt/v5`), stateless, bearer token, **passwordless** (device-fingerprint-bound) |
+| Rate limiting | in-process per-IP token bucket (`golang.org/x/time/rate`), no shared store |
 | Config | `spf13/viper` + `go-viper/mapstructure` |
 | Logging | stdlib `log/slog` (JSON, text, or pretty-JSON handler) |
 | Validation | `go-playground/validator/v10` (via Gin binding) |
@@ -132,7 +178,7 @@ other way. `internal/db/store` depends only on `internal/db/sqlc`, never on
 | API docs | `swaggo/swag` + `gin-swagger`, generated into `internal/docs` |
 | CORS | `gin-contrib/cors`, origin-list based (never `*`) |
 | Containerization | Docker (`Dockerfile`, `Dockerfile.prod`) |
-| Infra | Terraform, targeting a single EC2 instance (see `docs/TERRAFORM_*.md`) |
+| Infra | Terraform, targeting a single EC2 instance behind an nginx reverse proxy/rate limiter — lives at the repo root now (`infra/terraform/`, not under this app; see `infra/terraform/docs/TERRAFORM_*.md`) |
 
 ## How the Code Is Organized
 
@@ -341,11 +387,11 @@ core.ErrorHandlerMiddleware — the ONLY place that calls ctx.JSON for an error
   as a local-debugging aid, not something to enable in production without
   checking for sensitive data exposure (see `internal/logger/redact.go` for
   existing redaction).
-- Middleware order matters: `RequestIDMiddleware` →
-  `LoggingMiddleware` → `corsMiddleware` → `ErrorHandlerMiddleware` →
-  `RecoveryMiddleware` (see the detailed comment in `server.go` on *why*
-  `ErrorHandlerMiddleware` must be registered before `RecoveryMiddleware` —
-  don't reorder without re-reading it).
+- Middleware order matters: `RequestIDMiddleware` → `LoggingMiddleware` →
+  `corsMiddleware` → `ErrorHandlerMiddleware` → `RateLimitMiddleware` (only if
+  `RateLimitEnabled`) → `RecoveryMiddleware` (see the detailed comment in
+  `server.go` on *why* `ErrorHandlerMiddleware`/`RateLimitMiddleware` must be
+  registered before `RecoveryMiddleware` — don't reorder without re-reading it).
 
 ## How Configuration Works
 
@@ -368,6 +414,12 @@ core.ErrorHandlerMiddleware — the ONLY place that calls ctx.JSON for an error
   disabled (no `Access-Control-*` headers at all), not "allow everything." A
   wildcard `*` doesn't actually work here because `AllowCredentials: true` is
   always set — see `docs/CORS.md`.
+- `RATE_LIMIT_ENABLED` (bool) gates whether `core.RateLimitMiddleware` is
+  registered at all; `RATE_LIMIT_REQUESTS_PER_SECOND` (float64) and
+  `RATE_LIMIT_BURST` (int) size the per-IP token bucket.
+- `DEVICE_FINGERPRINT_TRUSTED_IPS` is a comma-separated IP list; empty (the
+  default) disables the fingerprint bypass. See "Device fingerprint auth"
+  above — never set this in production.
 
 ## How to Write Tests
 
@@ -473,6 +525,11 @@ ran a generator against stale input, not that the generator is wrong.
   token is valid until `JWTAccessTokenDuration` expires; there's no
   server-side record of issued tokens. Don't build a feature that assumes
   tokens can be revoked without first adding server-side token tracking.
+- **There is no password, deliberately** — `users` has no password column
+  (dropped in migration `000013`); identity is email + device fingerprint
+  (see "Device fingerprint auth" above). Don't add a password field/flow back
+  in without an explicit ask — this was an intentional design change, not an
+  oversight.
 - **No role/permission system.** `token.Payload` carries no role/scope claim.
   All authorization is per-resource ownership comparison in the handler. If
   you add roles, look them up per-request from the DB — don't bake a role

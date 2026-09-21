@@ -886,7 +886,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Authenticate a user and return an access token",
+                "description": "Authenticate by email. There is no password: the caller's\nbrowser/device fingerprint (derived from request headers)\nmust match the one this account was registered/last bound\nwith, or the request is rejected with 403.",
                 "consumes": [
                     "application/json"
                 ],
@@ -935,6 +935,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/github_com_DewaSRY_core-service_internal_api_core.errorResponse"
                         }
@@ -1005,7 +1011,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "Register a new user and return an access token",
+                "description": "Register a new user and return an access token. There is no\npassword: the account is bound to the caller's current\nbrowser/device fingerprint, and future logins are only\naccepted from that same device.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1316,14 +1322,10 @@ const docTemplate = `{
         "api_auth.loginUserRequest": {
             "type": "object",
             "required": [
-                "email",
-                "password"
+                "email"
             ],
             "properties": {
                 "email": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }
@@ -1349,19 +1351,10 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "password",
-                "password_confirm",
                 "username"
             ],
             "properties": {
                 "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8
-                },
-                "password_confirm": {
                     "type": "string"
                 },
                 "username": {
