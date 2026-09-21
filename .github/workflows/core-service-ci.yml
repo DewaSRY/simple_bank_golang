@@ -120,7 +120,8 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd /opt/core-service
-            sed -i "s#image: .*core-service-dep.*#image: ${{ secrets.DOCKERHUB_USERNAME }}/core-service-dep:${{ github.sha }}#" docker-compose.yml
-            docker compose pull core-service
-            docker compose up -d core-service
+            sudo sed -i "s#image: .*core-service-dep.*#image: ${{ secrets.DOCKERHUB_USERNAME }}/core-service-dep:${{ github.sha }}#" docker-compose.yml
+            sudo docker compose pull core-service
+            sudo docker compose up -d core-service
