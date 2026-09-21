@@ -43,7 +43,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="gap-4 w-full! min-w-max">
+      <SidebarContent className="gap-4 px-1!">
         <Separator />
         <div className="flex flex-col gap-1 px-2">
           <CreateNewAccount />
