@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { AuthSuccessBanner } from "@/components/auth/auth-success-banner";
+import { AuthSuccessFlow } from "@/components/auth/auth-success-flow";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
 export default function AuthSuccessPage() {
-  return <AuthSuccessBanner />;
+  return <AuthSuccessFlow />;
 }

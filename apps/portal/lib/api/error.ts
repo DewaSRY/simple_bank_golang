@@ -12,6 +12,14 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
+export function getApiErrorCode(error: unknown): string | undefined {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    return error.response?.data?.error?.code;
+  }
+
+  return undefined;
+}
+
 export function getApiFieldErrors(
   error: unknown,
 ): Record<string, string> | undefined {
