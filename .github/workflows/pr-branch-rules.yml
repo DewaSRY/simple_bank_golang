@@ -39,4 +39,3 @@ jobs:
           fi
 
           echo "Branch rules satisfied."
-```
