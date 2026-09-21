@@ -17,7 +17,7 @@ export function FinalCtaSection() {
         <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
           {t("finalCta.title")}
         </h2>
-        <p className="max-w-md text-primary-foreground/70 text-balance">
+        <p className=" text-primary-foreground/70 text-balance">
           {t("finalCta.description")}
         </p>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
