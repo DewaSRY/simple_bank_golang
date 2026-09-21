@@ -61,7 +61,7 @@ export function HeroSection() {
             font-semibold tracking-tight
             text-balance
             sm:text-5xl sm:leading-[1.08]
-            lg:text-6xl
+            lg:text-5xl
           "
         >
           <span>{t("hero.titleBefore")} </span>
@@ -267,7 +267,7 @@ export function HeroSection() {
           text-[11px] font-medium
           text-muted-foreground
           transition-colors hover:text-foreground
-          sm:gap-1.5 sm:text-xs sm:bottom-24
+          sm:gap-1.5 sm:text-xs sm:bottom-18
         "
         aria-label={t("hero.scrollHint")}
       >

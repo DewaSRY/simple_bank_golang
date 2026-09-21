@@ -79,28 +79,27 @@ export function LoginFormScreen() {
   const isPending = loginMutation.isPending;
 
   return (
-    <div className="w-full flex items-center justify-center">
-      <Card className="w-full z-1 sm:px-4 py-10 sm:min-w-150 space-y-4">
+    <div className="flex w-full items-center justify-center">
+      <Card className="z-1 w-full max-w-2xl space-y-4 py-10 sm:min-w-150 sm:px-4">
         <CardHeader>
-          <div className="flex flex-col space-y-1 border border-brand-100 p-4 rounded-sm ">
-            <div className=" mb-2">
+          <div className="flex flex-col space-y-1 rounded-sm border border-brand-100 p-4">
+            <div className="mb-2">
               <BrandBanner />
             </div>
 
-            <div className="">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {step === "preview" ? t("loginPreviewTitle") : t("loginTitle")}
-              </h1>
-            </div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {step === "preview" ? t("loginPreviewTitle") : t("loginTitle")}
+            </h1>
           </div>
         </CardHeader>
-        <CardContent className="flex min-h-[50vh] flex-col">
+
+        <CardContent className="flex min-h-[50vh] flex-1 flex-col">
           {step === "form" && (
             <form
               onSubmit={goToPreview}
-              className="flex w-full flex-1 flex-col gap-4 justify-between"
+              className="flex h-full w-full flex-1 flex-col justify-between gap-4"
             >
-              <div className=" space-y-4">
+              <div className="space-y-4">
                 <InputField
                   control={form.control}
                   name="email"
@@ -109,6 +108,7 @@ export function LoginFormScreen() {
                   placeholder={t("email")}
                 />
               </div>
+
               <div className="flex flex-col gap-4">
                 {form.formState.errors.root?.message && (
                   <p className="text-sm text-destructive">
@@ -137,16 +137,19 @@ export function LoginFormScreen() {
               </div>
             </form>
           )}
+
           {step === "preview" && (
-            <div className="h-full flex w-full flex-col gap-4 justify-between">
-              <div className="space-y-4">
+            <div className="flex h-full w-full flex-1 flex-col gap-4">
+              {/* Content */}
+              <div className="flex-1 space-y-4">
                 <Card>
                   <CardContent className="space-y-3">
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-sm text-muted-foreground">
                         {t("email")}
                       </span>
-                      <p className="font-medium break-all text-right">
+
+                      <p className="break-all text-right font-medium">
                         {previewValues.email}
                       </p>
                     </div>
@@ -159,10 +162,12 @@ export function LoginFormScreen() {
                       className="mt-0.5 size-5 shrink-0 text-destructive"
                       aria-hidden
                     />
+
                     <div>
                       <p className="text-sm font-medium text-destructive">
                         {t("loginConflictTitle")}
                       </p>
+
                       <p className="text-sm text-muted-foreground">
                         {t("loginConflictDescription")}
                       </p>
@@ -174,6 +179,7 @@ export function LoginFormScreen() {
                       className="mt-0.5 size-5 shrink-0 text-brand-600"
                       aria-hidden
                     />
+
                     <p className="text-sm text-muted-foreground">
                       {t("loginPreviewDescription")}
                     </p>
@@ -181,13 +187,15 @@ export function LoginFormScreen() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-4">
+              {/* Bottom actions */}
+              <div className="mt-auto flex flex-col gap-4">
                 {form.formState.errors.root?.message && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-sm text-center text-destructive">
                     {form.formState.errors.root.message}
                   </p>
                 )}
-                <div className="flex gap-2 w-full">
+
+                <div className="flex w-full gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -201,6 +209,7 @@ export function LoginFormScreen() {
                   >
                     {tCommon("back")}
                   </Button>
+
                   <Button
                     type="button"
                     size="lg"
