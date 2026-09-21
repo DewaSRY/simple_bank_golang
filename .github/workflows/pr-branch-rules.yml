@@ -1,4 +1,4 @@
-name: PR branch rules
+name: PR Branch Rules
 
 on:
   pull_request:
@@ -9,7 +9,9 @@ on:
 
 jobs:
   validate-branches:
+    name: Validate PR Branches
     runs-on: ubuntu-latest
+
     steps:
       - name: Enforce PR source/target branch rules
         env:
@@ -24,9 +26,11 @@ jobs:
               echo "::error::Only the 'dev' branch is allowed to open a pull request into 'main'. This PR is from '$HEAD_REF'."
               exit 1
             fi
+
           elif [ "$BASE_REF" = "dev" ]; then
             case "$HEAD_REF" in
-              epic/*) ;;
+              epic/*)
+                ;;
               *)
                 echo "::error::Only branches matching 'epic/*' are allowed to open a pull request into 'dev'. This PR is from '$HEAD_REF'."
                 exit 1
