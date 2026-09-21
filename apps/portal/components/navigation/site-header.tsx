@@ -6,6 +6,9 @@ import { LogoutButton } from "@/components/auth/logout-button";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { siGithub } from "simple-icons";
 
 export function SiteHeader({ locale }: { locale: AppLocale }) {
   return (
@@ -25,6 +28,24 @@ export function SiteHeader({ locale }: { locale: AppLocale }) {
           />
           <LogoutButton locale={locale} />
         </div>
+
+        <Button variant="outline" size="icon">
+          <Link
+            href="https://github.com/yourusername/simple-bank"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View source code on GitHub"
+          >
+            <svg
+              role="img"
+              viewBox="0 0 24 24"
+              className="size-4"
+              fill="currentColor"
+            >
+              <path d={siGithub.path} />
+            </svg>
+          </Link>
+        </Button>
       </div>
     </header>
   );

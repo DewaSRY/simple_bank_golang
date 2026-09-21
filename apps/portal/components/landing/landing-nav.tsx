@@ -27,6 +27,8 @@ import {
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
+import { siGithub } from "simple-icons";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 export function LandingNav() {
   const { t } = useTranslation("common");
@@ -171,6 +173,37 @@ export function LandingNav() {
           <ThemeToggle />
 
           <div className="mx-1 h-5 w-px bg-border/70" />
+
+          {/* GitHub */}
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-9 rounded-xs text-muted-foreground hover:text-foreground"
+                nativeButton={false}
+                render={
+                  <a
+                    href="https://github.com/DewaSRY/simple_bank_golang"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                }
+              >
+                <svg
+                  role="img"
+                  viewBox="0 0 24 24"
+                  className="size-4"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d={siGithub.path} />
+                </svg>
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent>{tLanding("nav.viewSource")}</TooltipContent>
+          </Tooltip>
 
           {/* Try demo */}
           <div className="relative inline-flex rounded-xs p-[1px] overflow-hidden">
