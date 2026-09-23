@@ -9,7 +9,7 @@ on:
 
 jobs:
   validate-branches:
-    name: Validate PR Branches
+    name: Validate PR Branches # reverences of pr validation
     runs-on: ubuntu-latest
 
     steps:

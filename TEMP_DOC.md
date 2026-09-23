@@ -37,3 +37,5 @@ then there is a preview page
 when user click the login it will chek do there is other user use the account or not
 
 if not user will show the previw of the user, account list and its money amount.
+
+update
