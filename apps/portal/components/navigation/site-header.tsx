@@ -31,7 +31,7 @@ export function SiteHeader({ locale }: { locale: AppLocale }) {
 
         <Button variant="outline" size="icon">
           <Link
-            href="https://github.com/yourusername/simple-bank"
+            href="https://github.com/DewaSRY/simple-bank"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View source code on GitHub"
