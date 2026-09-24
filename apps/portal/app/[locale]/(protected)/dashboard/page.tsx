@@ -8,7 +8,7 @@ import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { AccountList } from "@/components/dashboard/account-list";
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
-import { unwrapActionResult } from "@/lib/api/action-result";
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
 interface props extends PageProps<"/[locale]/dashboard"> {
   searchParams: Promise<{ search?: string }>;
@@ -29,9 +29,9 @@ export default async function DashboardPage({ params }: props) {
   // exactly, since TanStack Query hashes the params object into the cache
   // key.
   const query = { page: 1, limit: 10 };
-  await queryClient.prefetchQuery({
+  await queryClient.query({
     queryKey: queryKeys.list(query),
-    queryFn: () => listMeAccountsAction(query).then(unwrapActionResult),
+    queryFn: () => listMeAccountsAction(query).then(unpackActionResult),
   });
 
   return (

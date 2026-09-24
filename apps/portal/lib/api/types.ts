@@ -1,3 +1,5 @@
+import { Packed } from "@/lib/masking-data/masking";
+
 export interface ApiFieldError {
   field: string;
   message: string;
@@ -24,3 +26,14 @@ export interface ApiSuccessResponse<TData = unknown> {
   message?: string;
   meta?: ApiMeta;
 }
+
+export type ActionErrorPayload = {
+  status?: number;
+  data?: ApiErrorResponse;
+};
+
+export type ActionResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: ActionErrorPayload };
+
+export type MaskingActionResult<T> = Packed<ActionResult<T>>;

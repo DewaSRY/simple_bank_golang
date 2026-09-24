@@ -14,7 +14,8 @@ import {
   queryKeys as accountTransactionQueryKeys,
   getAccountEntriesAction,
 } from "@/feature/account-transaction";
-import { unwrapActionResult } from "@/lib/api/action-result";
+
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
 import { AccountDetailView } from "@/components/account/account-detail-view";
 import { ParamsSearchParams, parseIntParam } from "@/feature/common";
@@ -47,7 +48,7 @@ export default async function AccountDetailPage({
 
   const queryClient = new QueryClient();
 
-  await queryClient.prefetchQuery({
+  await queryClient.query({
     queryKey: accountTransactionQueryKeys.entries(accountId, {
       limit: limit,
       page: page,
@@ -56,12 +57,12 @@ export default async function AccountDetailPage({
       getAccountEntriesAction(accountId, {
         limit: limit,
         page: page,
-      }).then(unwrapActionResult),
+      }).then(unpackActionResult),
   });
 
-  await queryClient.prefetchQuery({
+  await queryClient.query({
     queryKey: accountQueryKeys.manageAccount(accountId),
-    queryFn: () => detailAccountAction(accountId).then(unwrapActionResult),
+    queryFn: () => detailAccountAction(accountId).then(unpackActionResult),
   });
 
   return (

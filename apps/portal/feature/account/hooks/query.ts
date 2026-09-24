@@ -6,16 +6,17 @@ import type {
   SearchMeAccountsParams,
 } from "@/feature/account/type";
 import type { CommonSuccessResponse, PaginationParams } from "@/feature/common";
-import { unwrapActionResult } from "@/lib/api/action-result";
 import {
   createAccountAction,
   listMeAccountsAction,
   searchAccountByNumberAction,
 } from "../actions";
 
-/**
- * Centralized query keys for the account feature.
- */
+// Masking server action for handling API requests with packed results
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
+
+import { useDebounce } from "@/hooks/use-debaunch";
+
 export const queryKeys = {
   all: ["accounts"] as const,
   list: (params: Partial<PaginationParams> = {}) =>
@@ -25,9 +26,19 @@ export const queryKeys = {
 };
 
 export function useAccounts(params: SearchMeAccountsParams) {
+  const debouncedParams = useDebounce(params.name);
+
+  const queryParams = { ...params, name: debouncedParams };
+
   return useQuery({
-    queryKey: queryKeys.list(params),
-    queryFn: () => listMeAccountsAction(params).then(unwrapActionResult),
+    queryKey: queryKeys.list(queryParams),
+    queryFn: () => listMeAccountsAction(queryParams).then(unpackActionResult),
+
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+
+    enabled: debouncedParams === undefined || debouncedParams.length >= 2,
   });
 }
 
@@ -38,7 +49,7 @@ export const useCreateAccountMutation = () => {
     Error,
     RequestAccountbody
   >({
-    mutationFn: (body) => createAccountAction(body).then(unwrapActionResult),
+    mutationFn: (body) => createAccountAction(body).then(unpackActionResult),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.all,
@@ -51,9 +62,15 @@ export function useSearchAccountByNumber(
   params: SearchAccountsParams,
   options: { enabled?: boolean } = {},
 ) {
+  const debouncedParams = useDebounce(params.number);
+
+  const queryParams = { ...params, number: debouncedParams };
   return useQuery({
-    queryKey: queryKeys.searchByNumber(params),
-    queryFn: () => searchAccountByNumberAction(params).then(unwrapActionResult),
-    enabled: options.enabled ?? true,
+    queryKey: queryKeys.searchByNumber(queryParams),
+    queryFn: () =>
+      searchAccountByNumberAction(queryParams).then(unpackActionResult),
+    enabled:
+      (options.enabled ?? true) &&
+      (debouncedParams === undefined || debouncedParams.length >= 2),
   });
 }

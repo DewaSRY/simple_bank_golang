@@ -1,11 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { runServerAction, type ActionResult } from "@/lib/api/action-result";
-import type {
-  CommonSuccessResponse,
-  PaginationParams,
-} from "@/feature/common";
+import type { CommonSuccessResponse, PaginationParams } from "@/feature/common";
 import { accountTransactionClient } from "./client";
 import type {
   AccountEntriesResponse,
@@ -13,11 +9,17 @@ import type {
   DepositRequestBody,
 } from "./type";
 
+// Masking server action for handling API requests with packed results
+import { runMaskingServerAction } from "@/lib/api/pack-server-action";
+import type { MaskingActionResult } from "@/lib/api/types";
+
 export async function getAccountEntriesAction(
   accountId: number,
   params: Partial<PaginationParams>,
-): Promise<ActionResult<CommonSuccessResponse<AccountEntriesResponse[]>>> {
-  return runServerAction(async () => {
+): Promise<
+  MaskingActionResult<CommonSuccessResponse<AccountEntriesResponse[]>>
+> {
+  return runMaskingServerAction(async () => {
     const response = await accountTransactionClient.getAccountEntries(
       accountId,
       params,
@@ -29,8 +31,10 @@ export async function getAccountEntriesAction(
 export async function getRecentTransactionsAction(
   accountId: number,
   params: Partial<PaginationParams>,
-): Promise<ActionResult<CommonSuccessResponse<AccountPublicResponse[]>>> {
-  return runServerAction(async () => {
+): Promise<
+  MaskingActionResult<CommonSuccessResponse<AccountPublicResponse[]>>
+> {
+  return runMaskingServerAction(async () => {
     const response = await accountTransactionClient.getRecentTransactions(
       accountId,
       params,
@@ -42,8 +46,8 @@ export async function getRecentTransactionsAction(
 export async function depositAction(
   accountId: number,
   body: DepositRequestBody,
-): Promise<ActionResult<CommonSuccessResponse<AccountEntriesResponse>>> {
-  return runServerAction(async () => {
+): Promise<MaskingActionResult<CommonSuccessResponse<AccountEntriesResponse>>> {
+  return runMaskingServerAction(async () => {
     const response = await accountTransactionClient.deposit(accountId, body);
     revalidatePath("/[locale]/(protected)", "layout");
     return response.data;
