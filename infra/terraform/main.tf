@@ -161,6 +161,13 @@ resource "aws_instance" "core_service" {
 
   user_data = local.user_data
 
+  # The al2023 filter above also matches the "minimal" AMI, whose root volume
+  # is only 2 GB — too small to hold more than one or two image pulls.
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp3"
+  }
+
   tags = {
     Name = "core-service"
   }
