@@ -47,8 +47,8 @@ Feature code never touches axios directly and never branches on
 server-vs-client — that question is answered once, in `ApiInterceptor`. Full
 detail: `docs/SETUP_API_PROVIDER.md`.
 
-A second, parallel data path exists for the *first* render of a page: a
-Server Component (`page.tsx`/`layout.tsx`) calls `queryClient.prefetchQuery`
+A second, parallel data path exists for the _first_ render of a page: a
+Server Component (`page.tsx`/`layout.tsx`) calls `queryClient.query`
 with the **same** `queryKey`/fetch function a feature's hook uses, then hands
 the cache to the client via `<HydrationBoundary state={dehydrate(queryClient)}>`
 so the first paint already has data with no loading flash. See
@@ -127,8 +127,8 @@ docs/                     # deep-dive "as implemented" subsystem docs — read
   the shadcn CLI and now owned source. Every feature-domain component
   (`components/<domain>/`) and every modal wizard is built on top of these.
 - **Multi-step modal Zustand stores** (`components/{transfer-modal,
-  deposite-model, create-account-model, edit-account-model,
-  delete-account-model}/store.ts`) — local wizard-step state only (current
+deposite-model, create-account-model, edit-account-model,
+delete-account-model}/store.ts`) — local wizard-step state only (current
   step, in-progress form values across steps). They never hold server data;
   server data always stays in a TanStack Query hook. See
   `components/transfer-modal/store.ts` for the reference shape (`step`,
@@ -136,20 +136,20 @@ docs/                     # deep-dive "as implemented" subsystem docs — read
 
 ## What the Important Abstractions Are
 
-| Abstraction | Example | Role |
-|---|---|---|
-| Resource client | `AccountClient` (`feature/account/client.ts`) | Typed methods for one backend resource; owns endpoint shape, not transport |
-| Query key factory | `accountKeys`/`queryKeys` (`feature/*/hooks/query.ts`) | Shared cache-key builder used identically by server prefetch and client hooks |
-| Query/mutation hook | `useAccounts`, `useLoginMutation` | The actual TanStack Query wiring a component calls |
-| Zod schema | `feature/*/schema.ts`, `feature/auth/schemas.ts` | Client-side form validation; two different translation strategies exist — see the forms section |
-| DTO / response envelope | `CommonSuccessResponse<T>` (`feature/common/type.ts`), `ApiSuccessResponse<T>`/`ApiErrorResponse` (`lib/api/types.ts`) | Shape of every backend JSON response/error |
-| Shared UI primitive | `components/ui/button.tsx`, `dropdown-menu.tsx` | Owned shadcn/Base UI source, extended in place (not overridden from call sites) |
-| Shared form field | `components/form/input-field.tsx` | Wraps RHF `Controller` + `Field`/`Input`, wires error state automatically |
-| Middleware | `proxy.ts` | Edge-level locale detection + optimistic auth redirect |
-| DAL check | `feature/auth/dal.ts`'s `verifySession()` | Render-time, per-page auth re-check (cookie presence only) |
-| Client-side store | `components/*-modal/store.ts` (Zustand) | Local multi-step UI state, never server state |
-| Interceptor | `ApiInterceptor` (`lib/api/api-interceptor.ts`) | Cross-cutting concern applied to every request: auth header, timezone header, build-phase guard, logging, 401 handling |
-| Logger | `lib/logger.ts` (winston) | Structured, PII-redacting server-side logging |
+| Abstraction             | Example                                                                                                                | Role                                                                                                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Resource client         | `AccountClient` (`feature/account/client.ts`)                                                                          | Typed methods for one backend resource; owns endpoint shape, not transport                                             |
+| Query key factory       | `accountKeys`/`queryKeys` (`feature/*/hooks/query.ts`)                                                                 | Shared cache-key builder used identically by server prefetch and client hooks                                          |
+| Query/mutation hook     | `useAccounts`, `useLoginMutation`                                                                                      | The actual TanStack Query wiring a component calls                                                                     |
+| Zod schema              | `feature/*/schema.ts`, `feature/auth/schemas.ts`                                                                       | Client-side form validation; two different translation strategies exist — see the forms section                        |
+| DTO / response envelope | `CommonSuccessResponse<T>` (`feature/common/type.ts`), `ApiSuccessResponse<T>`/`ApiErrorResponse` (`lib/api/types.ts`) | Shape of every backend JSON response/error                                                                             |
+| Shared UI primitive     | `components/ui/button.tsx`, `dropdown-menu.tsx`                                                                        | Owned shadcn/Base UI source, extended in place (not overridden from call sites)                                        |
+| Shared form field       | `components/form/input-field.tsx`                                                                                      | Wraps RHF `Controller` + `Field`/`Input`, wires error state automatically                                              |
+| Middleware              | `proxy.ts`                                                                                                             | Edge-level locale detection + optimistic auth redirect                                                                 |
+| DAL check               | `feature/auth/dal.ts`'s `verifySession()`                                                                              | Render-time, per-page auth re-check (cookie presence only)                                                             |
+| Client-side store       | `components/*-modal/store.ts` (Zustand)                                                                                | Local multi-step UI state, never server state                                                                          |
+| Interceptor             | `ApiInterceptor` (`lib/api/api-interceptor.ts`)                                                                        | Cross-cutting concern applied to every request: auth header, timezone header, build-phase guard, logging, 401 handling |
+| Logger                  | `lib/logger.ts` (winston)                                                                                              | Structured, PII-redacting server-side logging                                                                          |
 
 ## What Technologies Are Used
 
@@ -176,7 +176,7 @@ New feature-specific code goes in `feature/<name>/`, following the existing
 four-file shape (`client.ts`, `hooks/query.ts`, `type.ts`, optionally
 `schema.ts`/`utils.ts`). UI goes in `components/<domain>/`, organized by
 what it's for, not by component type (there is no `components/molecules/`
-or similar). Anything that is transport-level and applies to *every*
+or similar). Anything that is transport-level and applies to _every_
 feature (not just one) belongs in `lib/api/`, not duplicated per client —
 see "Adding a new cross-cutting concern" in `docs/SETUP_API_PROVIDER.md`.
 
@@ -209,7 +209,7 @@ Client Components — they don't contain business logic themselves.
    `zodResolverTranslate` (`feature/account/form.ts`, despite its
    feature-scoped location it's schema/domain-agnostic) instead of the
    plain `zodResolver`. See `docs/FORM_ERROR_TRANSLATION.md`. (The older
-   `feature/auth/schemas.ts` pattern — a schema *factory* taking `t` and
+   `feature/auth/schemas.ts` pattern — a schema _factory_ taking `t` and
    rebuilt via `useMemo` — still exists and works, but new forms should
    prefer the static-schema + `zodResolverTranslate` approach.)
 5. Add any new translation keys to `messages/en/<namespace>.json` and
@@ -241,7 +241,7 @@ Client Components — they don't contain business logic themselves.
 ## How to Modify Existing Code
 
 - Business/validation logic → `feature/<name>/`. Transport-level concerns
-  that apply to *every* request → `lib/api/api-interceptor.ts`, not a single
+  that apply to _every_ request → `lib/api/api-interceptor.ts`, not a single
   client. Presentation-only concerns → `components/`.
 - Reuse `lib/api/error.ts`'s `getApiErrorMessage`/`getApiFieldErrors` to turn
   a caught Axios error into UI-facing messages — don't hand-parse
@@ -477,7 +477,7 @@ correctness, not that the feature works end-to-end.
   `shadcn init --force` can clobber hand-fixed parts, e.g. the
   `--font-sans` mapping — diff after any such re-init).
 - **The build-phase guard is load-bearing.** `isBuildPhase()`
-  (`lib/api/api-interceptor.ts`) throws `BuildPhaseSkippedError` for *every*
+  (`lib/api/api-interceptor.ts`) throws `BuildPhaseSkippedError` for _every_
   request made during `next build`'s static generation, app-wide. Don't
   bypass or remove this to "fix" a build-time fetch failure — the actual
   problem is almost always that a page shouldn't be statically generating a

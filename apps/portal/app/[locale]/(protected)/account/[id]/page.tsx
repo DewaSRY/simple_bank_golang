@@ -48,7 +48,7 @@ export default async function AccountDetailPage({
 
   const queryClient = new QueryClient();
 
-  await queryClient.prefetchQuery({
+  await queryClient.query({
     queryKey: accountTransactionQueryKeys.entries(accountId, {
       limit: limit,
       page: page,
@@ -60,7 +60,7 @@ export default async function AccountDetailPage({
       }).then(unpackActionResult),
   });
 
-  await queryClient.prefetchQuery({
+  await queryClient.query({
     queryKey: accountQueryKeys.manageAccount(accountId),
     queryFn: () => detailAccountAction(accountId).then(unpackActionResult),
   });

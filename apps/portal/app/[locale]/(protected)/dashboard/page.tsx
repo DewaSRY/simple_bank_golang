@@ -29,7 +29,7 @@ export default async function DashboardPage({ params }: props) {
   // exactly, since TanStack Query hashes the params object into the cache
   // key.
   const query = { page: 1, limit: 10 };
-  await queryClient.prefetchQuery({
+  await queryClient.query({
     queryKey: queryKeys.list(query),
     queryFn: () => listMeAccountsAction(query).then(unpackActionResult),
   });

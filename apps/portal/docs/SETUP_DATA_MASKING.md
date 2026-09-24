@@ -27,12 +27,12 @@ straight back. No field is redacted, no value is replaced with `****`, and
 nothing is encrypted. The full payload reaches the browser. It's just harder
 to read in the Network tab.
 
-| Approach | What leaves the server | Reversible by the browser? | Typical use |
-|---|---|---|---|
-| Plain Server Action return (before `e2eacad`) | React Flight-serialized JSON-like text | Yes, readable as-is | Default Next.js behavior |
-| **Encode + compress (this codebase)** | `Uint8Array` of zlib(msgpack(value)) | **Yes**: the decoder ships in the client bundle | Obfuscation, smaller payloads |
-| Field-level redaction (e.g. `**** 1234`) | A reduced/altered value | No, the original never leaves the server | Hiding PII the UI doesn't need |
-| Encryption with a server-held key | Ciphertext | No, not without the key | Only useful if the client never needs the plaintext |
+| Approach                                      | What leaves the server                 | Reversible by the browser?                      | Typical use                                         |
+| --------------------------------------------- | -------------------------------------- | ----------------------------------------------- | --------------------------------------------------- |
+| Plain Server Action return (before `e2eacad`) | React Flight-serialized JSON-like text | Yes, readable as-is                             | Default Next.js behavior                            |
+| **Encode + compress (this codebase)**         | `Uint8Array` of zlib(msgpack(value))   | **Yes**: the decoder ships in the client bundle | Obfuscation, smaller payloads                       |
+| Field-level redaction (e.g. `**** 1234`)      | A reduced/altered value                | No, the original never leaves the server        | Hiding PII the UI doesn't need                      |
+| Encryption with a server-held key             | Ciphertext                             | No, not without the key                         | Only useful if the client never needs the plaintext |
 
 ### The two libraries
 
@@ -52,7 +52,7 @@ boundary, so a `Uint8Array` works as a return value.
    the same `unpack` the app ships, or paste the bytes into any msgpack/zlib
    decoder. Section 2's callout covers this.
 2. **Only the Server Action wire response is masked.** The first-render data
-   that a Server Component prefetches is unpacked *on the server* and then
+   that a Server Component prefetches is unpacked _on the server_ and then
    dehydrated into the HTML/RSC payload in plain form. Section 5 explains
    why. Many readers assume the opposite.
 3. **The decoded value ends up in the React Query cache in plain form.**
@@ -75,15 +75,15 @@ Neither wrapper implements masking itself. Each one composes the existing
 error-as-value helpers from `lib/api/action-result.ts` with the codec in
 `lib/masking-data/masking.ts`.
 
-| Concern | Owner | Analogy |
-|---|---|---|
-| Codec (encode + compress / decompress + decode) | `lib/masking-data/masking.ts` | The zip utility |
-| Server-only entry point to the encoder | `lib/masking-data/masking-server.ts` | The "outbound mail" slot |
-| Expected-error → return-value conversion | `lib/api/action-result.ts` `runServerAction` | Turning a bounced letter into a reply slip |
-| Server side: run action, then pack | `lib/api/pack-server-action.ts` `runMaskingServerAction` | Seal the envelope |
-| Client side: unpack, then rethrow or return | `lib/api/unpac-server-resul.ts` `unpackActionResult` | Open the envelope and read the slip |
-| Wire type | `lib/api/types.ts:39` `MaskingActionResult<T>` | The envelope's label, which says what's inside |
-| Call sites | every `feature/*/actions.ts` + `feature/*/hooks/query.ts` + 3 Server Components | The mail senders/recipients |
+| Concern                                         | Owner                                                                           | Analogy                                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Codec (encode + compress / decompress + decode) | `lib/masking-data/masking.ts`                                                   | The zip utility                                |
+| Server-only entry point to the encoder          | `lib/masking-data/masking-server.ts`                                            | The "outbound mail" slot                       |
+| Expected-error → return-value conversion        | `lib/api/action-result.ts` `runServerAction`                                    | Turning a bounced letter into a reply slip     |
+| Server side: run action, then pack              | `lib/api/pack-server-action.ts` `runMaskingServerAction`                        | Seal the envelope                              |
+| Client side: unpack, then rethrow or return     | `lib/api/unpac-server-resul.ts` `unpackActionResult`                            | Open the envelope and read the slip            |
+| Wire type                                       | `lib/api/types.ts:39` `MaskingActionResult<T>`                                  | The envelope's label, which says what's inside |
+| Call sites                                      | every `feature/*/actions.ts` + `feature/*/hooks/query.ts` + 3 Server Components | The mail senders/recipients                    |
 
 **Why it's layered this way.** Masking was bolted onto the existing
 `ActionResult` flow rather than replacing it. `runMaskingServerAction` is
@@ -91,7 +91,7 @@ literally `runServerAction(fn).then(packResult)`, and `unpackActionResult` is
 literally `unwrapActionResult(unpack(result))`. The error-handling contract
 from the SSR migration is therefore unchanged: errors are still values, and
 the client still rethrows an axios-shaped error. There is one consequence to
-remember for Section 5. A Server Component *also* calls these actions, but
+remember for Section 5. A Server Component _also_ calls these actions, but
 as a direct in-process function call, not over the wire. The pack/unpack
 round-trip still happens there, but it protects nothing.
 
@@ -130,16 +130,17 @@ export function unpack<T>(payload: Packed<T>): T {
 > unchecked casts. `decode` returns `unknown`, so nothing validates that the
 > bytes actually match `T`.
 
-| Option / branch | What actually happens |
-|---|---|
-| `ENCODE_OPTIONS.ignoreUndefined: true` (`:6-9`) | Object keys whose value is `undefined` are **omitted**, the same way `JSON.stringify` behaves. Without it, msgpack would encode them as `nil`, and they'd come back as `null`. |
-| `NODE_ENV === "test"` passthrough (`:16-18`) | If the payload isn't a `Uint8Array` under test, it's returned as-is so tests can stub actions with plain objects. **No test framework exists in this app** (see `AGENTS.md`), so this branch is unreachable today. |
+| Option / branch                                 | What actually happens                                                                                                                                                                                              |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ENCODE_OPTIONS.ignoreUndefined: true` (`:6-9`) | Object keys whose value is `undefined` are **omitted**, the same way `JSON.stringify` behaves. Without it, msgpack would encode them as `nil`, and they'd come back as `null`.                                     |
+| `NODE_ENV === "test"` passthrough (`:16-18`)    | If the payload isn't a `Uint8Array` under test, it's returned as-is so tests can stub actions with plain objects. **No test framework exists in this app** (see `AGENTS.md`), so this branch is unreachable today. |
 
 > **A sharp edge to know about: "masking" is reversible by design.**
 > `masking.ts` has no `"server-only"` marker, and it has to stay that way,
 > because every client hook imports `unpack` from it through
 > `unpac-server-resul.ts:4`. So the decoder, `@msgpack/msgpack` and `fflate`
 > all ship in the client bundle. What you get today:
+>
 > - The Network tab shows binary instead of readable account names,
 >   balances and ledger entries. That deters casual shoulder-surfing and
 >   copy-paste.
@@ -156,7 +157,7 @@ export function unpack<T>(payload: Packed<T>): T {
   absent, which JSON.stringify would have dropped". That's backwards: the
   option causes keys to be absent rather than become `null`. The table above
   describes the actual behavior.
-- The file exports `pack` too (`:11`), so client code *can* import the
+- The file exports `pack` too (`:11`), so client code _can_ import the
   encoder. It's harmless, but the server-only wrapper in Section 3 is only a
   convention, not something the build enforces.
 
@@ -236,7 +237,7 @@ The call runs in this order:
 ### Client side: `unpackActionResult`
 
 ```ts
-// lib/api/unpac-server-resul.ts:6-8
+// lib/api/unpack-server-result.ts:6-8
 export function unpackActionResult<T>(result: MaskingActionResult<T>): T {
   return unwrapActionResult(unpack(result));
 }
@@ -262,10 +263,6 @@ error, not a runtime bug.
 
 **Rough edges**
 
-- **Typo in the filename:** `unpac-server-resul.ts` (not
-  `unpack-server-result.ts`). Every call site imports it by this spelling,
-  so grep for `unpac-server-resul`, and rename across all 8 importers at
-  once if you fix it.
 - **Duplicate types.** `ActionErrorPayload` and `ActionResult<T>` are now
   declared twice, in `lib/api/types.ts:30-37` and `lib/api/action-result.ts:4-11`.
   They're structurally identical, so nothing breaks today. The
@@ -293,17 +290,17 @@ uses the masking wrappers without being protected by them.
 
 Three Server Components call the masked actions directly during render:
 
-| File | Prefetched query | Line |
-|---|---|---|
-| `app/[locale]/(protected)/layout.tsx` | `queryKeys.list({ page: 1, limit: 10, name: "" })` via `listMeAccountsAction` | `:43-46` |
-| `app/[locale]/(protected)/dashboard/page.tsx` | `queryKeys.list({ page: 1, limit: 10 })` via `listMeAccountsAction` | `:32-35` |
+| File                                             | Prefetched query                                                                          | Line     |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------- | -------- |
+| `app/[locale]/(protected)/layout.tsx`            | `queryKeys.list({ page: 1, limit: 10, name: "" })` via `listMeAccountsAction`             | `:43-46` |
+| `app/[locale]/(protected)/dashboard/page.tsx`    | `queryKeys.list({ page: 1, limit: 10 })` via `listMeAccountsAction`                       | `:32-35` |
 | `app/[locale]/(protected)/account/[id]/page.tsx` | account entries + `manageAccount(id)` via `getAccountEntriesAction`/`detailAccountAction` | `:51-66` |
 
 Each of them does this:
 
 ```ts
 // app/[locale]/(protected)/dashboard/page.tsx:32-35
-await queryClient.prefetchQuery({
+await queryClient.query({
   queryKey: queryKeys.list(query),
   queryFn: () => listMeAccountsAction(query).then(unpackActionResult),
 });
@@ -314,6 +311,7 @@ await queryClient.prefetchQuery({
 > **This trips people up: first-render data is not masked.** When a Server
 > Component calls a `"use server"` function, it's an ordinary in-process
 > call with no RPC. So the sequence is:
+>
 > 1. the action packs the result,
 > 2. `unpackActionResult` immediately unpacks it **on the server**,
 > 3. the plain `CommonSuccessResponse` is stored in the server `QueryClient`,
@@ -340,13 +338,13 @@ Every `feature/*/actions.ts` swapped `runServerAction` →
 `feature/*/hooks/query.ts` swapped `unwrapActionResult` → `unpackActionResult`.
 No action or hook calls the older unmasked pair directly any more.
 
-| Feature | Masked actions (`actions.ts`) | Hook call sites (`hooks/query.ts`) |
-|---|---|---|
-| `account` | `listMeAccountsAction` `:21`, `searchAccountByNumberAction` `:30`, `createAccountAction` `:39` | `:33`, `:63`, `:48` |
-| `account-manage` | `detailAccountAction` `:20`, `updateAccountAction` `:30`, `deleteAccountAction` `:40` | `:21`, `:29`, `:42` |
-| `account-transaction` | `getAccountEntriesAction` `:22`, `getRecentTransactionsAction` `:37`, `depositAction` `:50` | `:46`, `:61`, `:69` |
-| `auth` | `loginAction` `:22`, `registerAction` `:35`, `getProfileAction` `:48` | `:26`, `:32`, `:39` |
-| `transfer` | `createTransferAction` `:15` | `:17` |
+| Feature               | Masked actions (`actions.ts`)                                                                  | Hook call sites (`hooks/query.ts`) |
+| --------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `account`             | `listMeAccountsAction` `:21`, `searchAccountByNumberAction` `:30`, `createAccountAction` `:39` | `:33`, `:63`, `:48`                |
+| `account-manage`      | `detailAccountAction` `:20`, `updateAccountAction` `:30`, `deleteAccountAction` `:40`          | `:21`, `:29`, `:42`                |
+| `account-transaction` | `getAccountEntriesAction` `:22`, `getRecentTransactionsAction` `:37`, `depositAction` `:50`    | `:46`, `:61`, `:69`                |
+| `auth`                | `loginAction` `:22`, `registerAction` `:35`, `getProfileAction` `:48`                          | `:26`, `:32`, `:39`                |
+| `transfer`            | `createTransferAction` `:15`                                                                   | `:17`                              |
 
 **Divergences worth knowing**
 
@@ -402,7 +400,7 @@ blank line and no behavior change.
 
 Not part of this flow, despite similar names:
 
-- **`lib/logger.ts`'s `maskSensitiveData`** does the *real* redaction
+- **`lib/logger.ts`'s `maskSensitiveData`** does the _real_ redaction
   (replacing values of `SENSITIVE_KEYS`) for **server logs**. It has nothing
   to do with the Server Action wire format. See `SETUP_LOGGING.md`.
 - **`lib/mask-result.ts`**: dead code, see Section 3.
@@ -456,15 +454,15 @@ action → runServerAction → non-Axios / no-response error → rethrow (action
 This feature adds no backend endpoints. Its surface is the set of helper
 functions and types below.
 
-| Symbol | Location | Side | Purpose | Status |
-|---|---|---|---|---|
-| `Packed<T>` | `lib/masking-data/masking.ts:4` | both | Phantom-typed `Uint8Array` | Used |
-| `pack` | `lib/masking-data/masking.ts:11` | both (intended server) | msgpack encode + zlib compress | Used via `packResult` |
-| `unpack` | `lib/masking-data/masking.ts:15` | client + server | zlib decompress + msgpack decode | Used |
-| `packResult` | `lib/masking-data/masking-server.ts:5` | server-only | Guarded entry to `pack` | Used |
-| `runMaskingServerAction` | `lib/api/pack-server-action.ts:6` | server | `runServerAction` + pack | Used by all 13 wrapped actions |
-| `unpackActionResult` | `lib/api/unpac-server-resul.ts:6` | client + server | unpack + `unwrapActionResult` | Used by all hooks + 3 Server Components |
-| `MaskingActionResult<T>` | `lib/api/types.ts:39` | type | `Packed<ActionResult<T>>` | Used |
-| `ActionResult<T>` / `ActionErrorPayload` | `lib/api/types.ts:30-37` **and** `lib/api/action-result.ts:4-11` | type | Error-as-value envelope | Duplicated |
-| `runServerAction` / `unwrapActionResult` | `lib/api/action-result.ts:13`, `:29` | server / client | Error-as-value helpers | Used only through the masking wrappers now |
-| `pack` / `unpack` / `packResult` (copy) | `lib/mask-result.ts` | server-only | Earlier all-in-one version | **Unused, dead code** |
+| Symbol                                   | Location                                                         | Side                   | Purpose                          | Status                                     |
+| ---------------------------------------- | ---------------------------------------------------------------- | ---------------------- | -------------------------------- | ------------------------------------------ |
+| `Packed<T>`                              | `lib/masking-data/masking.ts:4`                                  | both                   | Phantom-typed `Uint8Array`       | Used                                       |
+| `pack`                                   | `lib/masking-data/masking.ts:11`                                 | both (intended server) | msgpack encode + zlib compress   | Used via `packResult`                      |
+| `unpack`                                 | `lib/masking-data/masking.ts:15`                                 | client + server        | zlib decompress + msgpack decode | Used                                       |
+| `packResult`                             | `lib/masking-data/masking-server.ts:5`                           | server-only            | Guarded entry to `pack`          | Used                                       |
+| `runMaskingServerAction`                 | `lib/api/pack-server-action.ts:6`                                | server                 | `runServerAction` + pack         | Used by all 13 wrapped actions             |
+| `unpackActionResult`                     | `lib/api/unpac-server-resul.ts:6`                                | client + server        | unpack + `unwrapActionResult`    | Used by all hooks + 3 Server Components    |
+| `MaskingActionResult<T>`                 | `lib/api/types.ts:39`                                            | type                   | `Packed<ActionResult<T>>`        | Used                                       |
+| `ActionResult<T>` / `ActionErrorPayload` | `lib/api/types.ts:30-37` **and** `lib/api/action-result.ts:4-11` | type                   | Error-as-value envelope          | Duplicated                                 |
+| `runServerAction` / `unwrapActionResult` | `lib/api/action-result.ts:13`, `:29`                             | server / client        | Error-as-value helpers           | Used only through the masking wrappers now |
+| `pack` / `unpack` / `packResult` (copy)  | `lib/mask-result.ts`                                             | server-only            | Earlier all-in-one version       | **Unused, dead code**                      |

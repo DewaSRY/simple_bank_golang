@@ -270,7 +270,7 @@ destructures the envelope's `.data` once to reach `data.access_token`, not
 **Deliberately no server prefetch here.** Login/register/profile are all
 interaction-or-session driven, not part of a page's initial render the way
 the dashboard's account list is — there's no `page.tsx` awaiting
-`queryClient.prefetchQuery` for any of these three.
+`queryClient.query` for any of these three.
 
 ### Rough edges
 
@@ -303,7 +303,7 @@ cache ownership to the client.
 // app/[locale]/(protected)/dashboard/page.tsx:29-34, 48-50
 const accountParams = { page: 1, limit: 10 };
 const queryClient = new QueryClient();
-await queryClient.prefetchQuery({
+await queryClient.query({
   queryKey: accountKeys.list(accountParams),
   queryFn: () => fetchAccounts(accountParams),
 });
@@ -332,7 +332,7 @@ flash instead of instant data, with no error or warning.
 
 ```
 Server Component (dashboard/page.tsx)
-   │  queryClient.prefetchQuery(...) — same accountClient call as before
+   │  queryClient.query(...) — same accountClient call as before
    ▼
 dehydrate(queryClient) → <HydrationBoundary state={...}>
    │  ships the already-fetched data down in the initial HTML/RSC payload
