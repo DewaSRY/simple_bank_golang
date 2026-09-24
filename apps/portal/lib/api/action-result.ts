@@ -1,17 +1,6 @@
 import axios from "axios";
 import type { ApiErrorResponse } from "./types";
 
-// Next.js redacts a Server Action's thrown error in production (see
-// docs/MIGRATION_TO_FULL_SSR.md and node_modules/next/dist/docs/01-app/
-// 01-getting-started/10-error-handling.md: "avoid try/catch ... model
-// expected errors as return values"). A raw AxiosError thrown from an
-// action would arrive on the client as a generic, stripped Error, so
-// lib/api/error.ts's getApiErrorMessage/getApiFieldErrors would never see
-// `response.data.error`. Every feature action wraps its call in
-// runServerAction so an expected API failure travels back as a normal
-// (serializable) return value instead, and the client-side hook rethrows it
-// via unwrapActionResult — reconstructing an axios-like error so every
-// existing onError/getApiFieldErrors call site keeps working unchanged.
 export type ActionErrorPayload = {
   status?: number;
   data?: ApiErrorResponse;
@@ -33,11 +22,6 @@ export async function runServerAction<T>(
         error: { status: error.response.status, data: error.response.data },
       };
     }
-
-    // Not a "shaped" API error (network failure, a redirect()/notFound()
-    // control-flow throw, BuildPhaseSkippedError, a real bug) — let it
-    // propagate and go through Next's normal handling instead of forcing it
-    // into a shape getApiErrorMessage can't parse anyway.
     throw error;
   }
 }

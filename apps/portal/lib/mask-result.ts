@@ -1,0 +1,28 @@
+import "server-only";
+import { decode, encode } from "@msgpack/msgpack";
+import { unzlibSync, zlibSync } from "fflate";
+
+export type Packed<T> = Uint8Array & { readonly __payload?: T };
+
+const ENCODE_OPTIONS = {
+  // `null` instead of being absent, which JSON.stringify would have dropped.
+  ignoreUndefined: true,
+} as const;
+
+function pack<T>(value: T): Packed<T> {
+  return zlibSync(encode(value, ENCODE_OPTIONS)) as Packed<T>;
+}
+
+// use it on client
+export function unpack<T>(payload: Packed<T>): T {
+  if (process.env.NODE_ENV === "test" && !(payload instanceof Uint8Array)) {
+    return payload as T;
+  }
+
+  return decode(unzlibSync(payload)) as T;
+}
+
+// use it on server
+export function packResult<T>(result: T): Packed<T> {
+  return pack(result);
+}

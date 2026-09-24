@@ -8,7 +8,7 @@ import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { AccountList } from "@/components/dashboard/account-list";
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
-import { unwrapActionResult } from "@/lib/api/action-result";
+import { unpackActionResult } from "@/lib/api/unpac-server-resul";
 
 interface props extends PageProps<"/[locale]/dashboard"> {
   searchParams: Promise<{ search?: string }>;
@@ -31,7 +31,7 @@ export default async function DashboardPage({ params }: props) {
   const query = { page: 1, limit: 10 };
   await queryClient.prefetchQuery({
     queryKey: queryKeys.list(query),
-    queryFn: () => listMeAccountsAction(query).then(unwrapActionResult),
+    queryFn: () => listMeAccountsAction(query).then(unpackActionResult),
   });
 
   return (

@@ -1,8 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys as accountQueryKeys } from "@/feature/account";
 import type { PaginationParams } from "@/feature/common";
-import { unwrapActionResult } from "@/lib/api/action-result";
-import type { AccountEntriesResponse, DepositRequestBody, DisplayLedgerEntry } from "../type";
+import type {
+  AccountEntriesResponse,
+  DepositRequestBody,
+  DisplayLedgerEntry,
+} from "../type";
 import { isIncomingEntry } from "../utils";
 import {
   depositAction,
@@ -10,7 +13,12 @@ import {
   getRecentTransactionsAction,
 } from "../actions";
 
-function toDisplayLedgerEntry(entry: AccountEntriesResponse): DisplayLedgerEntry {
+// Masking server action for handling API requests with packed results
+import { unpackActionResult } from "@/lib/api/unpac-server-resul";
+
+function toDisplayLedgerEntry(
+  entry: AccountEntriesResponse,
+): DisplayLedgerEntry {
   return {
     ...entry,
     direction: isIncomingEntry(entry) ? "incoming" : "outgoing",
@@ -35,7 +43,7 @@ export function useAccountEntries(
   return useQuery({
     queryKey: queryKeys.entries(accountId, params),
     queryFn: () =>
-      getAccountEntriesAction(accountId, params).then(unwrapActionResult),
+      getAccountEntriesAction(accountId, params).then(unpackActionResult),
     select: (response) => ({
       ...response,
       data: response.data.map((entry) => toDisplayLedgerEntry(entry)),
@@ -50,7 +58,7 @@ export function useRecentTransactions(
   return useQuery({
     queryKey: queryKeys.recentTransactions(accountId, params),
     queryFn: () =>
-      getRecentTransactionsAction(accountId, params).then(unwrapActionResult),
+      getRecentTransactionsAction(accountId, params).then(unpackActionResult),
   });
 }
 
@@ -58,7 +66,7 @@ export function useDeposit(accountId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: DepositRequestBody) =>
-      depositAction(accountId, body).then(unwrapActionResult),
+      depositAction(accountId, body).then(unpackActionResult),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.entries(accountId, {

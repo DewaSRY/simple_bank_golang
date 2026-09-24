@@ -14,7 +14,8 @@ import { AppSidebar } from "@/components/navigation/app-sidebar";
 import { SiteHeader } from "@/components/navigation/site-header";
 
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
-import { unwrapActionResult } from "@/lib/api/action-result";
+
+import { unpackActionResult } from "@/lib/api/unpac-server-resul";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -41,7 +42,7 @@ export default async function ProtectedLayout({
   };
   await queryClient.prefetchQuery({
     queryKey: queryKeys.list(query),
-    queryFn: () => listMeAccountsAction(query).then(unwrapActionResult),
+    queryFn: () => listMeAccountsAction(query).then(unpackActionResult),
   });
 
   return (

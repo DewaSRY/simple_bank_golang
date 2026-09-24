@@ -6,13 +6,16 @@ import type {
   SearchMeAccountsParams,
 } from "@/feature/account/type";
 import type { CommonSuccessResponse, PaginationParams } from "@/feature/common";
-import { unwrapActionResult } from "@/lib/api/action-result";
 import {
   createAccountAction,
   listMeAccountsAction,
   searchAccountByNumberAction,
 } from "../actions";
 
+// Masking server action for handling API requests with packed results
+import { unpackActionResult } from "@/lib/api/unpac-server-resul";
+
+// unpac
 /**
  * Centralized query keys for the account feature.
  */
@@ -27,7 +30,11 @@ export const queryKeys = {
 export function useAccounts(params: SearchMeAccountsParams) {
   return useQuery({
     queryKey: queryKeys.list(params),
-    queryFn: () => listMeAccountsAction(params).then(unwrapActionResult),
+    queryFn: () => listMeAccountsAction(params).then(unpackActionResult),
+
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -38,7 +45,7 @@ export const useCreateAccountMutation = () => {
     Error,
     RequestAccountbody
   >({
-    mutationFn: (body) => createAccountAction(body).then(unwrapActionResult),
+    mutationFn: (body) => createAccountAction(body).then(unpackActionResult),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.all,
@@ -53,7 +60,7 @@ export function useSearchAccountByNumber(
 ) {
   return useQuery({
     queryKey: queryKeys.searchByNumber(params),
-    queryFn: () => searchAccountByNumberAction(params).then(unwrapActionResult),
+    queryFn: () => searchAccountByNumberAction(params).then(unpackActionResult),
     enabled: options.enabled ?? true,
   });
 }
