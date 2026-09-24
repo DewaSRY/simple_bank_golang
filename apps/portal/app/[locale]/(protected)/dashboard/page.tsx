@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import {
   QueryClient,
   HydrationBoundary,
@@ -22,6 +23,10 @@ export default async function DashboardPage({ params }: props) {
   }
 
   const { t } = await getTranslation(locale, "common");
+
+  // Per-user data: opt out of build-time prerendering so the prefetch below
+  // only runs at request time (see BuildPhaseSkippedError).
+  await connection();
 
   const queryClient = new QueryClient();
 
