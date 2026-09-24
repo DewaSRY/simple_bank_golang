@@ -7,7 +7,7 @@ import { createTransferAction } from "../actions";
 import type { CreateTransferBody } from "../type";
 
 // Masking server action for handling API requests with packed results
-import { unpackActionResult } from "@/lib/api/unpac-server-resul";
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
 export function useCreateTransfer() {
   const queryClient = useQueryClient();

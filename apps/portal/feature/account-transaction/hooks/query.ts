@@ -14,7 +14,7 @@ import {
 } from "../actions";
 
 // Masking server action for handling API requests with packed results
-import { unpackActionResult } from "@/lib/api/unpac-server-resul";
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
 function toDisplayLedgerEntry(
   entry: AccountEntriesResponse,

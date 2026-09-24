@@ -4,7 +4,6 @@ import { unzlibSync, zlibSync } from "fflate";
 export type Packed<T> = Uint8Array & { readonly __payload?: T };
 
 const ENCODE_OPTIONS = {
-  // `null` instead of being absent, which JSON.stringify would have dropped.
   ignoreUndefined: true,
 } as const;
 

@@ -15,7 +15,7 @@ import { SiteHeader } from "@/components/navigation/site-header";
 
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
 
-import { unpackActionResult } from "@/lib/api/unpac-server-resul";
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

@@ -8,7 +8,7 @@ import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { AccountList } from "@/components/dashboard/account-list";
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
-import { unpackActionResult } from "@/lib/api/unpac-server-resul";
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
 interface props extends PageProps<"/[locale]/dashboard"> {
   searchParams: Promise<{ search?: string }>;

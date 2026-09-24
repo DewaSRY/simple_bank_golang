@@ -15,7 +15,7 @@ import {
   getAccountEntriesAction,
 } from "@/feature/account-transaction";
 
-import { unpackActionResult } from "@/lib/api/unpac-server-resul";
+import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
 import { AccountDetailView } from "@/components/account/account-detail-view";
 import { ParamsSearchParams, parseIntParam } from "@/feature/common";

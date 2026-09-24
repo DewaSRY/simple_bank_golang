@@ -23,6 +23,7 @@ adding one).
 | [SETUP_FAVICON.md](SETUP_FAVICON.md) | Favicon/icon/apple-icon file conventions, the web app manifest, favicon.io asset provenance |
 | [SEO_GUIDE.md](SEO_GUIDE.md) | Current SEO gap audit (metadata, robots/sitemap, hreflang, noindex) and an implementation playbook to close them |
 | [CREATE_ACCOUNT_MODAL.md](CREATE_ACCOUNT_MODAL.md) | `components/create-account-model/*`: the two-step create-account wizard, its Zustand store, and its navigation-guard wiring |
+| [SETUP_DATA_MASKING.md](SETUP_DATA_MASKING.md) | msgpack + zlib packing of Server Action results (`runMaskingServerAction`/`unpackActionResult`): what it does and doesn't hide, the unmasked SSR prefetch path, dead/duplicate code |
 | [MIGRATION_TO_FULL_SSR.md](MIGRATION_TO_FULL_SSR.md) | Not-yet-implemented plan for moving all backend calls (mutations + interactive reads) server-side via Server Actions, so the browser never talks to `../core-service` directly, and the session cookie can become `httpOnly` |
 
 ## Meta
