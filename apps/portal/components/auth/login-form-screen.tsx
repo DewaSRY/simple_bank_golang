@@ -49,6 +49,7 @@ export function LoginFormScreen() {
   const onConfirmLogin = () => {
     setDeviceConflict(false);
     const values = form.getValues();
+
     loginMutation.mutate(values, {
       onSuccess: () => {
         router.push("/auth-success");

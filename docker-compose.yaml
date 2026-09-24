@@ -20,32 +20,24 @@ services:
       timeout: 5s
       retries: 5
 
-  # Not published on the host — only reachable through nginx below, same as
-  # the production EC2 deploy (see infra/terraform). Runtime config comes
-  # entirely from .env (copy .env.example -> .env) so nothing here is
-  # hardcoded and nothing gets baked into the image.
-  core-services:
-    image: ${CORE_SERVICE_IMAGE}
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
+  # core-services:
+  #   image: ${CORE_SERVICE_IMAGE}
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 
-  # Reverse proxy + rate limiter in front of core-services. Keeps port 8080
-  # as the address clients already use (apps/portal's default
-  # NEXT_PUBLIC_API_URL) — nginx just takes over that port instead of
-  # core-services publishing it directly.
-  nginx:
-    image: nginx:1.27-alpine
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-    volumes:
-      - ./apps/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - core-services
+  # nginx:
+  #   image: nginx:1.27-alpine
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8080:80"
+  #   volumes:
+  #     - ./apps/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #   depends_on:
+  #     - core-services
 
 volumes:
   simple_bank_postgres_data:
