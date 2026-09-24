@@ -15,10 +15,8 @@ import {
 // Masking server action for handling API requests with packed results
 import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
-// unpac
-/**
- * Centralized query keys for the account feature.
- */
+import { useDebounce } from "@/hooks/use-debaunch";
+
 export const queryKeys = {
   all: ["accounts"] as const,
   list: (params: Partial<PaginationParams> = {}) =>
@@ -28,13 +26,19 @@ export const queryKeys = {
 };
 
 export function useAccounts(params: SearchMeAccountsParams) {
+  const debouncedParams = useDebounce(params.name);
+
+  const queryParams = { ...params, name: debouncedParams };
+
   return useQuery({
-    queryKey: queryKeys.list(params),
-    queryFn: () => listMeAccountsAction(params).then(unpackActionResult),
+    queryKey: queryKeys.list(queryParams),
+    queryFn: () => listMeAccountsAction(queryParams).then(unpackActionResult),
 
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+
+    enabled: debouncedParams === undefined || debouncedParams.length >= 2,
   });
 }
 
@@ -58,9 +62,15 @@ export function useSearchAccountByNumber(
   params: SearchAccountsParams,
   options: { enabled?: boolean } = {},
 ) {
+  const debouncedParams = useDebounce(params.number);
+
+  const queryParams = { ...params, number: debouncedParams };
   return useQuery({
-    queryKey: queryKeys.searchByNumber(params),
-    queryFn: () => searchAccountByNumberAction(params).then(unpackActionResult),
-    enabled: options.enabled ?? true,
+    queryKey: queryKeys.searchByNumber(queryParams),
+    queryFn: () =>
+      searchAccountByNumberAction(queryParams).then(unpackActionResult),
+    enabled:
+      (options.enabled ?? true) &&
+      (debouncedParams === undefined || debouncedParams.length >= 2),
   });
 }
