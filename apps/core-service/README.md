@@ -20,22 +20,22 @@ quick-start / orientation version.
 
 ## Tech Stack
 
-| Concern | Technology |
-|---|---|
-| Language | Go 1.25 |
-| HTTP framework | [Gin](https://github.com/gin-gonic/gin) |
-| Database | PostgreSQL (`lib/pq`) |
-| Query layer | [sqlc](https://sqlc.dev) (generated, no ORM) |
-| Migrations | [golang-migrate](https://github.com/golang-migrate/migrate) |
-| Money type | `string`, parsed with [`shopspring/decimal`](https://github.com/shopspring/decimal) |
-| Auth | JWT (`golang-jwt/jwt/v5`), stateless bearer tokens |
-| Config | [`spf13/viper`](https://github.com/spf13/viper) |
-| Logging | stdlib `log/slog` |
-| Validation | `go-playground/validator/v10` |
-| Testing | [`go.uber.org/mock`](https://github.com/uber-go/mock) (unit), real Postgres + `testify` (integration) |
-| API docs | `swaggo/swag` + `gin-swagger` |
-| Containerization | Docker |
-| Infra | Terraform (single EC2 instance) |
+| Concern          | Technology                                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------------------------- |
+| Language         | Go 1.25                                                                                               |
+| HTTP framework   | [Gin](https://github.com/gin-gonic/gin)                                                               |
+| Database         | PostgreSQL (`lib/pq`)                                                                                 |
+| Query layer      | [sqlc](https://sqlc.dev) (generated, no ORM)                                                          |
+| Migrations       | [golang-migrate](https://github.com/golang-migrate/migrate)                                           |
+| Money type       | `string`, parsed with [`shopspring/decimal`](https://github.com/shopspring/decimal)                   |
+| Auth             | JWT (`golang-jwt/jwt/v5`), stateless bearer tokens                                                    |
+| Config           | [`spf13/viper`](https://github.com/spf13/viper)                                                       |
+| Logging          | stdlib `log/slog`                                                                                     |
+| Validation       | `go-playground/validator/v10`                                                                         |
+| Testing          | [`go.uber.org/mock`](https://github.com/uber-go/mock) (unit), real Postgres + `testify` (integration) |
+| API docs         | `swaggo/swag` + `gin-swagger`                                                                         |
+| Containerization | Docker                                                                                                |
+| Infra            | Terraform (single EC2 instance)                                                                       |
 
 ## Architecture
 
@@ -114,24 +114,24 @@ go test ./internal/db/store/...       # one package
 All routes are under `/api/v1`. Routes marked 🔒 require
 `Authorization: Bearer <token>`.
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/auth/register` | Register a new user |
-| POST | `/auth/login` | Log in, receive an access token |
-| GET 🔒 | `/auth/profile` | Get the current user's profile |
-| POST 🔒 | `/accounts` | Create an account |
-| GET 🔒 | `/accounts/me` | List the current user's accounts |
-| GET 🔒 | `/accounts/search-by-number` | Look up an account by account number |
-| GET 🔒 | `/accounts/:id` | Get account detail |
-| PUT 🔒 | `/accounts/:id` | Update an account |
-| DELETE 🔒 | `/accounts/:id` | Soft-delete an account (sweeps balance if non-main) |
-| POST 🔒 | `/accounts/:id/deposit` | Deposit into an account |
-| GET 🔒 | `/accounts/:id/entries` | List ledger entries for an account |
-| GET 🔒 | `/accounts/:id/recent-destinations` | Recent transfer destinations |
-| GET 🔒 | `/accounts/:id/transactions` | Transaction history for an account |
-| POST 🔒 | `/transactions/transfer` | Transfer between two accounts |
-| GET | `/health` | Health check |
-| GET | `/swagger/*any` | Swagger UI |
+| Method    | Path                                | Description                                         |
+| --------- | ----------------------------------- | --------------------------------------------------- |
+| POST      | `/auth/register`                    | Register a new user                                 |
+| POST      | `/auth/login`                       | Log in, receive an access token                     |
+| GET 🔒    | `/auth/profile`                     | Get the current user's profile                      |
+| POST 🔒   | `/accounts`                         | Create an account                                   |
+| GET 🔒    | `/accounts/me`                      | List the current user's accounts                    |
+| GET 🔒    | `/accounts/search-by-number`        | Look up an account by account number                |
+| GET 🔒    | `/accounts/:id`                     | Get account detail                                  |
+| PUT 🔒    | `/accounts/:id`                     | Update an account                                   |
+| DELETE 🔒 | `/accounts/:id`                     | Soft-delete an account (sweeps balance if non-main) |
+| POST 🔒   | `/accounts/:id/deposit`             | Deposit into an account                             |
+| GET 🔒    | `/accounts/:id/entries`             | List ledger entries for an account                  |
+| GET 🔒    | `/accounts/:id/recent-destinations` | Recent transfer destinations                        |
+| GET 🔒    | `/accounts/:id/transactions`        | Transaction history for an account                  |
+| POST 🔒   | `/transactions/transfer`            | Transfer between two accounts                       |
+| GET       | `/health`                           | Health check                                        |
+| GET       | `/swagger/*any`                     | Swagger UI                                          |
 
 Every success response is `{"data": ..., "message": "...", "meta": ...}`
 (`meta` omitted when absent); every error is
@@ -143,18 +143,18 @@ Manual `.http` request examples for exercising the API live in
 
 ## Common Make Targets
 
-| Target | What it does |
-|---|---|
-| `make db-up` / `make db-down` | Start/stop local Postgres, apply migrations |
-| `make server` | Run the API server |
-| `make test` / `make test-failed` / `make test-coverage` | Run tests |
-| `make migrate-create name=...` | Create a new migration pair |
-| `make migrate-up` / `make migrate-down` | Apply / roll back migrations |
-| `make sqlc` | Regenerate `internal/db/sqlc` from `internal/db/query/*.sql` |
-| `make generate-mock` | Regenerate `internal/db/mock/querier.go` from `Storer` |
-| `make swag-gen` | Regenerate Swagger docs from handler annotations |
-| `make docker-build` / `make docker-run` / `make docker-stop` | Local Docker image lifecycle |
-| `make tf-plan` / `make tf-apply` | Terraform plan/apply for the EC2 deployment |
+| Target                                                       | What it does                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `make db-up` / `make db-down`                                | Start/stop local Postgres, apply migrations                  |
+| `make server`                                                | Run the API server                                           |
+| `make test` / `make test-failed` / `make test-coverage`      | Run tests                                                    |
+| `make migrate-create name=...`                               | Create a new migration pair                                  |
+| `make migrate-up` / `make migrate-down`                      | Apply / roll back migrations                                 |
+| `make sqlc`                                                  | Regenerate `internal/db/sqlc` from `internal/db/query/*.sql` |
+| `make generate-mock`                                         | Regenerate `internal/db/mock/querier.go` from `Storer`       |
+| `make swag-gen`                                              | Regenerate Swagger docs from handler annotations             |
+| `make docker-build` / `make docker-run` / `make docker-stop` | Local Docker image lifecycle                                 |
+| `make tf-plan` / `make tf-apply`                             | Terraform plan/apply for the EC2 deployment                  |
 
 `make sqlc` and `make generate-mock` are effectively one step — always run
 `sqlc` first, `generate-mock` second, since the mock is generated from the
@@ -186,7 +186,7 @@ Design-decision write-ups per subsystem live in [docs/](docs/):
 
 > **Note on doc drift:** this repo went through a per-domain refactor of
 > `internal/api`. Some `docs/*.md` files predate it and reference stale file
-> paths or function names. Their *design rationale* is still reliable; verify
+> paths or function names. Their _design rationale_ is still reliable; verify
 > file/function names against the current code. See
 > [AGENTS.md's "Doc drift" section](AGENTS.md#doc-drift--read-this-before-trusting-claudemd-or-docsmd-blindly)
 > for specifics.
@@ -196,3 +196,13 @@ Design-decision write-ups per subsystem live in [docs/](docs/):
 `app.env`, `app.prod.env`, and `core-service-key.pem` in the repo root contain
 or can contain secrets. Never commit real secrets in `app.env`, and don't add
 new plaintext secret files alongside them.
+
+## Copilot / Agent Instructions
+
+Task-specific Copilot instructions (auto-discovered by description, no need
+to attach them manually) live at the monorepo root under
+[`.github/instructions/`](../../.github/instructions/):
+
+- [core-service.instructions.md](../../.github/instructions/core-service.instructions.md) — always-relevant fast-lookup rules for this app (layering, hard constraints, error handling, commands)
+- [core-service-new-model.instructions.md](../../.github/instructions/core-service-new-model.instructions.md) — creating a new DB entity: migration → query → sqlc → mock → store `*Tx`
+- [core-service-new-module.instructions.md](../../.github/instructions/core-service-new-module.instructions.md) — creating a new HTTP API domain package: Handler, routes, DTOs, error mapping, Swagger, tests

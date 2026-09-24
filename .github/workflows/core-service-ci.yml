@@ -123,5 +123,7 @@ jobs:
             set -e
             cd /opt/core-service
             sudo sed -i "s#image: .*core-service-dep.*#image: ${{ secrets.DOCKERHUB_USERNAME }}/core-service-dep:${{ github.sha }}#" docker-compose.yml
+            sudo docker image prune -af
             sudo docker compose pull core-service
             sudo docker compose up -d core-service
+            sudo docker image prune -af
