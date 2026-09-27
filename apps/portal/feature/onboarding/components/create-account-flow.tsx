@@ -22,7 +22,7 @@ import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { MoneyInputField } from "@/components/form/money-input-field";
 import { PreviewRow } from "@/components/common/preview-row";
-import { AccountSummaryCard } from "@/feature/account/components/account-summary-card";
+import { AccountSummaryCard } from "@/feature/account-manage/components/account-summary-card";
 import { formatAccountAmount } from "@/lib/number";
 import {
   delay,

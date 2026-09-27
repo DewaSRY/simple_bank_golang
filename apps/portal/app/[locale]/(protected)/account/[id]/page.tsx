@@ -17,7 +17,7 @@ import {
 
 import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
-import { AccountDetailView } from "@/feature/account/components/account-detail-view";
+import { AccountDetailView } from "@/feature/account-manage/components/account-detail-view";
 import { ParamsSearchParams, parseIntParam } from "@/feature/common";
 
 interface params extends PageProps<"/[locale]/account/[id]"> {

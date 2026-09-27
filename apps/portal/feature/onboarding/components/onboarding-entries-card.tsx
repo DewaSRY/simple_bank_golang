@@ -22,7 +22,7 @@ import {
 import {
   accountEntriesTableFeatures,
   getAccountEntriesColumns,
-} from "@/feature/account/components/account-entries-columns";
+} from "@/feature/account-manage/components/account-entries-columns";
 import type { DisplayLedgerEntry } from "@/feature/account-transaction";
 
 interface Props {

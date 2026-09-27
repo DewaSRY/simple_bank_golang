@@ -6,7 +6,7 @@ import { ArrowRight, PartyPopper, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AccountSummaryCard } from "@/feature/account/components/account-summary-card";
+import { AccountSummaryCard } from "@/feature/account-manage/components/account-summary-card";
 import { AnimatedNumber } from "./animated-number";
 import { OnboardingEntriesCard } from "./onboarding-entries-card";
 import { StepGuard } from "./step-guard";

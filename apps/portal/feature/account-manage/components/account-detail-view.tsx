@@ -12,8 +12,8 @@ import { AccountSummaryCard } from "./account-summary-card";
 import { AccountDetailsCard } from "./account-details-card";
 import { AccountEntriesCard } from "./account-entries-card";
 import { Button } from "@/components/ui/button";
-import { EditAccountDialog } from "@/components/edit-account-model/edit-account-dialog";
-import { DeleteAccountDialog } from "@/components/delete-account-model/delete-account-dialog";
+import { EditAccountDialog } from "./edit-account-dialog";
+import { DeleteAccountDialog } from "@/feature/account-manage/components/delete-account-dialog";
 
 export function AccountDetailView({ accountId }: { accountId: number }) {
   const { t } = useTranslation("account");
