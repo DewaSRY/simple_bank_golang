@@ -109,7 +109,7 @@ resource "aws_security_group" "core_service" {
 #     instance base64-encoded inside user_data (see Section on user_data.sh.tpl) ---
 
 locals {
-  nginx_conf = templatefile("${path.module}/nginx.conf.tpl", {
+  nginx_conf = templatefile("${path.module}/nginx.conf", {
     nginx_port       = var.nginx_port
     app_port         = var.app_port
     rate_limit_rps   = var.nginx_rate_limit_rps
