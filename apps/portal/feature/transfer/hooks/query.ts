@@ -15,6 +15,10 @@ export function useCreateTransfer() {
   return useMutation({
     mutationFn: (body: CreateTransferBody) =>
       createTransferAction(body).then(unpackActionResult),
+    meta: {
+      successMessage: { key: "transfer:toast.success" },
+      errorMessage: { key: "transfer:transferError" },
+    },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: accountQueryKeys.all });
       queryClient.invalidateQueries({

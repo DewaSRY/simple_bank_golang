@@ -25,5 +25,8 @@
   "transferring": "Transferring...",
   "amountRequired": "Amount is required",
   "amountInvalid": "Enter a valid amount",
-  "descriptionRequired": "Description is required"
+  "descriptionRequired": "Description is required",
+  "toast": {
+    "success": "Transfer successful"
+  }
 }

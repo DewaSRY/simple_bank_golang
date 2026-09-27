@@ -19,6 +19,7 @@ export function useAccountDetail(number: number) {
   return useQuery({
     queryKey: queryKeys.manageAccount(number),
     queryFn: () => detailAccountAction(number).then(unpackActionResult),
+    meta: { errorMessage: { key: "account:loadErrorTitle" } },
   });
 }
 
@@ -27,6 +28,10 @@ export function useUpdateAccount(number: number) {
   return useMutation({
     mutationFn: (body: RequestAccountbody) =>
       updateAccountAction(number, body).then(unpackActionResult),
+    meta: {
+      successMessage: { key: "account:toast.updated" },
+      errorMessage: { key: "account:updateError" },
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.manageAccount(number),
@@ -40,6 +45,10 @@ export const useDeleteAccount = (number: number) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => deleteAccountAction(number).then(unpackActionResult),
+    meta: {
+      successMessage: { key: "account:toast.deleted" },
+      errorMessage: { key: "account:deleteError" },
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.manageAccount(number),

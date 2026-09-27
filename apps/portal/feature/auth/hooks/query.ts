@@ -24,12 +24,20 @@ export const authQueryKeys = {
 export const useLoginMutation = () => {
   return useMutation<null, Error, LoginRequest>({
     mutationFn: (body) => loginAction(body).then(unpackActionResult),
+    meta: {
+      successMessage: { key: "auth:toast.loginSuccess" },
+      errorMessage: { key: "auth:loginError" },
+    },
   });
 };
 
 export const useRegisterMutation = () => {
   return useMutation<null, Error, RegisterRequest>({
     mutationFn: (body) => registerAction(body).then(unpackActionResult),
+    meta: {
+      successMessage: { key: "auth:toast.registerSuccess" },
+      errorMessage: { key: "auth:registerError" },
+    },
   });
 };
 
@@ -37,11 +45,16 @@ export const useProfileQuery = () => {
   return useQuery<CommonSuccessResponse<ProfileResponse>, Error>({
     queryKey: authQueryKeys.profile(),
     queryFn: () => getProfileAction().then(unpackActionResult),
+    meta: { errorMessage: { key: "auth:toast.profileError" } },
   });
 };
 
 export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: (locale: AppLocale) => logoutAction(locale),
+    meta: {
+      successMessage: { key: "auth:toast.logoutSuccess" },
+      errorMessage: { key: "auth:toast.logoutError" },
+    },
   });
 };

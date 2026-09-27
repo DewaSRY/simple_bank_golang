@@ -38,6 +38,7 @@ export function useAccounts(params: SearchMeAccountsParams) {
     refetchOnReconnect: false,
 
     enabled: debouncedParams === "" || debouncedParams.length >= 2,
+    meta: { errorMessage: { key: "common:loadAccountsError" } },
   });
 }
 
@@ -49,6 +50,13 @@ export const useCreateAccountMutation = () => {
     RequestAccountbody
   >({
     mutationFn: (body) => createAccountAction(body).then(unpackActionResult),
+    meta: {
+      successMessage: (response: CommonSuccessResponse<AccountResponse>) => ({
+        key: "account:toast.created",
+        values: { name: response.data.name },
+      }),
+      errorMessage: { key: "account:registerError" },
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.all,
@@ -71,5 +79,6 @@ export function useSearchAccountByNumber(
     enabled:
       (options.enabled ?? true) &&
       (debouncedParams === "" || debouncedParams.length >= 2),
+    meta: { errorMessage: { key: "account:toast.searchError" } },
   });
 }

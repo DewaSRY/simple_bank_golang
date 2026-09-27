@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { InlineScript } from "@/components/inline-script";
 import { TopProgressBar } from "@/components/common/top-progress-bar";
 import { NavigationGuardProvider } from "@/components/common/navigation-guard/provider";
+import { ToastViewport } from "@/components/common/toast-viewport";
 import { TimezoneSync } from "@/lib/timezone-sync";
 import { SITE_URL } from "@/lib/seo/metadata";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -70,6 +71,7 @@ export default async function RootLayout({
                 <TopProgressBar />
                 {children}
                 <NavigationGuardProvider />
+                <ToastViewport />
               </QueryProvider>
             </TranslationsProvider>
           </ThemeProvider>

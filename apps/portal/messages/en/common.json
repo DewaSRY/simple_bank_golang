@@ -41,5 +41,9 @@
     "title": "Something went wrong",
     "description": "An unexpected error occurred. Please try again.",
     "dashboardDescription": "Failed to load your accounts."
+  },
+  "toast": {
+    "loadFailed": "Failed to load data",
+    "requestFailed": "Request failed"
   }
 }

@@ -23,13 +23,13 @@ import { TextareaField } from "@/components/form/textarea-field";
 import { MoneyInputField } from "@/components/form/money-input-field";
 import { PreviewRow } from "@/components/common/preview-row";
 import { AccountSummaryCard } from "@/feature/account-manage/components/account-summary-card";
+import { useToastStore } from "@/lib/toast/store";
 import { formatAccountAmount } from "@/lib/number";
 import {
   delay,
   onboardingCreateAccountSchema,
   toAccountWithUserName,
   useOnboardingStore,
-  useOnboardingToastStore,
   type OnboardingCreateAccountFormValues,
 } from "@/feature/onboarding";
 import { zodResolverTranslate, scrollToFirstError } from "@/lib/form";
@@ -42,7 +42,7 @@ export function CreateAccountFlow() {
   const { t: tCommon } = useTranslation("common");
   const account = useOnboardingStore((s) => s.account);
   const createAccount = useOnboardingStore((s) => s.createAccount);
-  const pushToast = useOnboardingToastStore((s) => s.push);
+  const pushToast = useToastStore((s) => s.push);
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("form");

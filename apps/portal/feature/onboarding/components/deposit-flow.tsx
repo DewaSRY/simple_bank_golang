@@ -19,11 +19,8 @@ import {
   depositSchema,
   type DepositFormValues,
 } from "@/feature/account-transaction";
-import {
-  delay,
-  useOnboardingStore,
-  useOnboardingToastStore,
-} from "@/feature/onboarding";
+import { delay, useOnboardingStore } from "@/feature/onboarding";
+import { useToastStore } from "@/lib/toast/store";
 import { formatAccountAmount } from "@/lib/number";
 import { zodResolverTranslate, scrollToFirstError } from "@/lib/form";
 
@@ -39,7 +36,7 @@ export function DepositFlow() {
   const account = useOnboardingStore((s) => s.account);
   const entries = useOnboardingStore((s) => s.entries);
   const deposit = useOnboardingStore((s) => s.deposit);
-  const pushToast = useOnboardingToastStore((s) => s.push);
+  const pushToast = useToastStore((s) => s.push);
 
   const [step, setStep] = useState<Step>("details");
   const [details, setDetails] = useState<{

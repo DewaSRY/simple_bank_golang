@@ -52,5 +52,11 @@
   "toAccountNumber": "To account {{number}}",
   "fromAccountNumber": "From account {{number}}",
   "namePlaceholder": "Enter the account name",
-  "descriptionPlaceholder": "Enter the account description"
+  "descriptionPlaceholder": "Enter the account description",
+  "toast": {
+    "created": "Account \"{{name}}\" created",
+    "updated": "Account updated",
+    "deleted": "Account deleted",
+    "searchError": "Unable to search accounts"
+  }
 }

@@ -27,9 +27,9 @@ import {
   InsufficientFundsError,
   delay,
   useOnboardingStore,
-  useOnboardingToastStore,
   type DirectoryContact,
 } from "@/feature/onboarding";
+import { useToastStore } from "@/lib/toast/store";
 import { formatAccountAmount } from "@/lib/number";
 import { zodResolverTranslate, scrollToFirstError } from "@/lib/form";
 
@@ -43,7 +43,7 @@ export function TransferFlow() {
   const account = useOnboardingStore((s) => s.account);
   const entries = useOnboardingStore((s) => s.entries);
   const transfer = useOnboardingStore((s) => s.transfer);
-  const pushToast = useOnboardingToastStore((s) => s.push);
+  const pushToast = useToastStore((s) => s.push);
 
   const [step, setStep] = useState<Step>("destination");
   const [contact, setContact] = useState<DirectoryContact | null>(null);
