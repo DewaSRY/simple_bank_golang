@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
+import { StepIndicator } from "@/components/common/step-indicator";
 import {
   createAccountSchema,
   type AccountWithUserName,
@@ -94,8 +95,13 @@ export function EditAccountDialog({ account, open, setOpen }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="p-4 lg:min-w-4xl space-y-4">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
+          <StepIndicator
+            current={step === "form" ? 1 : 2}
+            total={2}
+            className="mb-2"
+          />
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { PreviewRow } from "@/components/common/preview-row";
+import { PreviewList, PreviewRow } from "@/components/common/preview-row";
+import { InlineAlert } from "@/components/common/inline-alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useDeposit } from "@/feature/account-transaction";
 import { formatAccountAmount } from "@/lib/number";
@@ -49,23 +49,25 @@ export function PreviewStep({ form, onSuccess }: Props) {
   if (!selectedAccount || !details) return null;
 
   return (
-    <div>
-      <Card className="mb-4">
-        <CardContent className="space-y-3">
-          <PreviewRow
-            label={t("account")}
-            value={selectedAccount.name}
-            subValue={selectedAccount.number}
-          />
-          <PreviewRow
-            label={t("amount")}
-            value={formatAccountAmount(String(details.amount))}
-          />
-          <PreviewRow label={t("description")} value={details.description} />
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <PreviewList>
+        <PreviewRow
+          label={t("account")}
+          value={selectedAccount.name}
+          subValue={selectedAccount.number}
+        />
+        <PreviewRow label={t("description")} value={details.description} />
+        <PreviewRow
+          label={t("amount")}
+          emphasis
+          value={formatAccountAmount(
+            String(details.amount),
+            selectedAccount.currency,
+          )}
+        />
+      </PreviewList>
 
-      {error && <p className="mb-2 text-sm text-destructive">{error}</p>}
+      {error && <InlineAlert>{error}</InlineAlert>}
 
       <DialogFooter>
         <Button
@@ -76,7 +78,7 @@ export function PreviewStep({ form, onSuccess }: Props) {
         >
           {tCommon("back")}
         </Button>
-        <Button type="button" onClick={handleConfirm} disabled={isPending}>
+        <Button type="button" onClick={handleConfirm} loading={isPending}>
           {isPending ? t("depositing") : t("confirmDeposit")}
         </Button>
       </DialogFooter>

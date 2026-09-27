@@ -58,5 +58,8 @@
     "updated": "Rekening berhasil diperbarui",
     "deleted": "Rekening berhasil dihapus",
     "searchError": "Gagal mencari rekening"
-  }
+  },
+  "newAccount": "Akun baru",
+  "accountNumber": "Nomor rekening",
+  "openedOn": "Dibuka pada"
 }

@@ -47,5 +47,24 @@
     "requestFailed": "Permintaan gagal"
   },
   "noAccountsFound": "Tidak ada akun ditemukan",
-  "noAccountsFoundDescription": "Coba sesuaikan pencarian Anda atau buat akun baru."
+  "noAccountsFoundDescription": "Coba sesuaikan pencarian Anda atau buat akun baru.",
+  "dashboardDescription": "Ringkasan saldo dan akun Anda.",
+  "noAccountsDescription": "Buat akun pertama Anda untuk mulai menyetor dan mentransfer dana.",
+  "quickActions": "Aksi cepat",
+  "viewSource": "Lihat kode sumber di GitHub",
+  "totalBalance": "Total saldo",
+  "acrossAccounts_one": "Dari {{count}} akun",
+  "acrossAccounts_other": "Dari {{count}} akun",
+  "accountsCount_one": "{{count}} akun",
+  "accountsCount_other": "{{count}} akun",
+  "breadcrumb": "Navigasi remah roti",
+  "moreActions": "Aksi lainnya",
+  "copied": "Disalin ke papan klip",
+  "copyFailed": "Gagal menyalin ke papan klip",
+  "copyAccountNumber": "Salin nomor rekening",
+  "clearSearch": "Hapus pencarian",
+  "stepOf": "Langkah {{current}} dari {{total}}",
+  "pagination": "Paginasi",
+  "rowsPerPage": "Baris per halaman",
+  "paginationRange": "{{from}}–{{to}} dari {{count}}"
 }

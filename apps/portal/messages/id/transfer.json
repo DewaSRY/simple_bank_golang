@@ -28,5 +28,6 @@
   "descriptionRequired": "Deskripsi wajib diisi",
   "toast": {
     "success": "Transfer berhasil"
-  }
+  },
+  "noRecentTransactionsHint": "Cari berdasarkan nomor rekening untuk menemukan penerima."
 }

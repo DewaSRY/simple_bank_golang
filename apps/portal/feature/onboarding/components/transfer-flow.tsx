@@ -12,8 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SearchInput } from "@/components/common/search-input";
 import { MoneyInputField } from "@/components/form/money-input-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { PreviewRow } from "@/components/common/preview-row";
-import { AccountCard } from "@/feature/transfer/components/account-card";
+import { PreviewList, PreviewRow } from "@/components/common/preview-row";
+import { AccountOption } from "@/components/common/account-option";
 import { AnimatedNumber } from "./animated-number";
 import { RecentActivity } from "./recent-activity";
 import { StepGuard } from "./step-guard";
@@ -181,7 +181,7 @@ export function TransferFlow() {
                 <div className="space-y-2 py-2">
                   {recentContacts.length > 0 ? (
                     recentContacts.map((c) => (
-                      <AccountCard
+                      <AccountOption
                         key={c.id}
                         name={c.name}
                         number={c.number}
@@ -211,7 +211,7 @@ export function TransferFlow() {
                     </p>
                   ) : searchResults.length > 0 ? (
                     searchResults.map((c) => (
-                      <AccountCard
+                      <AccountOption
                         key={c.id}
                         name={c.name}
                         number={c.number}
@@ -242,11 +242,13 @@ export function TransferFlow() {
           >
             <Card>
               <CardContent className="space-y-4">
-                <PreviewRow
-                  label={t("to")}
-                  value={contact.name}
-                  subValue={contact.number}
-                />
+                <PreviewList>
+                  <PreviewRow
+                    label={t("to")}
+                    value={contact.name}
+                    subValue={contact.number}
+                  />
+                </PreviewList>
                 <MoneyInputField
                   name="amount"
                   label={t("amount")}
@@ -287,8 +289,7 @@ export function TransferFlow() {
             exit={{ opacity: 0, x: -12 }}
             transition={{ duration: 0.3 }}
           >
-            <Card>
-              <CardContent className="space-y-3">
+            <PreviewList>
                 <PreviewRow
                   label={t("from")}
                   value={account.name}
@@ -301,6 +302,7 @@ export function TransferFlow() {
                 />
                 <PreviewRow
                   label={t("amount")}
+                  emphasis
                   value={formatAccountAmount(
                     String(details.amount),
                     account.currency,
@@ -310,8 +312,7 @@ export function TransferFlow() {
                   label={t("description")}
                   value={details.description}
                 />
-              </CardContent>
-            </Card>
+            </PreviewList>
             {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
             <div className="mt-4 flex justify-end gap-2">
               <Button
@@ -341,7 +342,7 @@ export function TransferFlow() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex items-center justify-between gap-3 rounded-sm bg-success/10 p-4"
+          className="flex items-center justify-between gap-3 rounded-lg bg-success/10 p-4"
         >
           <div className="flex items-center gap-2 text-sm font-medium text-success">
             <Check className="size-4" aria-hidden />

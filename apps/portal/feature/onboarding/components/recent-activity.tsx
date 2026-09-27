@@ -42,7 +42,7 @@ export function RecentActivity({ entries, limit = 4 }: Props) {
                 initial={{ opacity: 0, y: -10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-center gap-3 rounded-xs border px-3 py-2.5"
+                className="flex items-center gap-3 rounded-md border px-3 py-2.5"
               >
                 <span
                   className={`flex size-8 shrink-0 items-center justify-center rounded-full ${iconWrapperClassName}`}

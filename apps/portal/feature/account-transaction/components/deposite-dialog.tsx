@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -12,6 +14,7 @@ import {
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
 import { depositSchema } from "@/feature/account-transaction";
 import { zodResolverTranslate } from "@/lib/form";
+import { StepIndicator } from "@/components/common/step-indicator";
 
 import { AccountStep } from "./account-step";
 import { DetailsStep } from "./details-step";
@@ -37,7 +40,7 @@ export type DepositeForm = ReturnType<typeof useDepositeDetailsForm>;
 
 export function DepositeDialog({ open, setOpen }: Props) {
   const { t } = useTranslation("deposit");
-  const { step, reset, selectedAccount } = useDepositeStore();
+  const { step, reset } = useDepositeStore();
 
   const form = useDepositeDetailsForm(t);
   const isDirty = form.formState.isDirty;
@@ -54,10 +57,10 @@ export function DepositeDialog({ open, setOpen }: Props) {
         reset();
       },
     });
-    return () => {
-      setGuard(false);
-      reset();
-    };
+    // Only release the guard here. Resetting the wizard in this cleanup
+    // wiped the selected account every time `isDirty` flipped; the store is
+    // reset when the dialog is opened (quick-action store) or on success.
+    return () => setGuard(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isDirty, setGuard, form]);
 
@@ -77,6 +80,7 @@ export function DepositeDialog({ open, setOpen }: Props) {
   } as const;
 
   const { title, description } = STEP_COPY[step];
+  const STEPS = ["account", "details", "preview"] as const;
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -94,9 +98,14 @@ export function DepositeDialog({ open, setOpen }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="p-4 lg:min-w-4xl space-y-4">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
+          <StepIndicator
+            current={STEPS.indexOf(step) + 1}
+            total={STEPS.length}
+            className="mb-2"
+          />
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 

@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { History, SearchX, UserSearch } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { SearchInput } from "@/components/common/search-input";
+import {
+  AccountOption,
+  AccountOptionSkeleton,
+} from "@/components/common/account-option";
+import EmptyState from "@/components/ui/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchAccountByNumber } from "@/feature/account";
 import { useRecentTransactions } from "@/feature/account-transaction";
 
-import { AccountCard } from "./account-card";
 import { useTransferStore } from "./store";
 import type { DestinationAccount } from "./type";
 
@@ -19,15 +24,20 @@ export function DestinationStep() {
     useTransferStore();
   const [number, setNumber] = useState("");
 
-  const { data: recent } = useRecentTransactions(sourceAccount?.id ?? 0, {
-    page: 1,
-    limit: 10,
-  });
-
-  const { data: searchResults } = useSearchAccountByNumber(
-    { number, page: 1, limit: 10 },
-    { enabled: number.trim().length > 0 },
+  const { data: recent, isLoading: isRecentPending } = useRecentTransactions(
+    sourceAccount?.id ?? 0,
+    {
+      page: 1,
+      limit: 10,
+    },
   );
+
+  const hasQuery = number.trim().length > 0;
+  const { data: searchResults, isFetching: isSearching } =
+    useSearchAccountByNumber(
+      { number, page: 1, limit: 10 },
+      { enabled: hasQuery },
+    );
 
   function handleSelect(account: DestinationAccount) {
     setDestinationAccount(account);
@@ -43,18 +53,36 @@ export function DestinationStep() {
   );
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
+      {sourceAccount ? (
+        <p className="text-sm text-muted-foreground">
+          {t("from")}:{" "}
+          <span className="font-medium text-foreground">
+            {sourceAccount.name}
+          </span>{" "}
+          · {sourceAccount.number}
+        </p>
+      ) : null}
+
       <Tabs defaultValue="recent">
-        <TabsList>
-          <TabsTrigger value="recent">{t("recentTab")}</TabsTrigger>
-          <TabsTrigger value="search">{t("searchByNumberTab")}</TabsTrigger>
+        <TabsList className="w-full">
+          <TabsTrigger value="recent">
+            <History aria-hidden />
+            {t("recentTab")}
+          </TabsTrigger>
+          <TabsTrigger value="search">
+            <UserSearch aria-hidden />
+            {t("searchByNumberTab")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="recent">
-          <div className="max-h-80 space-y-2 overflow-y-auto py-2">
-            {recentResults.length > 0 ? (
+          <div className="-mx-1 max-h-80 space-y-2 overflow-y-auto px-1 py-2">
+            {isRecentPending ? (
+              <AccountOptionSkeleton />
+            ) : recentResults.length > 0 ? (
               recentResults.map((account, idx) => (
-                <AccountCard
+                <AccountOption
                   key={`recent-${account.id}-${idx}`}
                   name={account.name}
                   number={account.number}
@@ -64,27 +92,35 @@ export function DestinationStep() {
                 />
               ))
             ) : (
-              <p className="py-4 text-center text-sm text-muted-foreground">
-                {t("noRecentTransactions")}
-              </p>
+              <EmptyState
+                size="sm"
+                icon={History}
+                title={t("noRecentTransactions")}
+                description={t("noRecentTransactionsHint")}
+              />
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="search">
+        <TabsContent value="search" className="space-y-2 pt-1">
           <SearchInput
             search={number}
             onSearch={setNumber}
             placeholder={t("searchByNumberPlaceholder")}
+            autoFocus
           />
-          <div className="max-h-80 space-y-2 overflow-y-auto py-2">
-            {number.trim().length === 0 ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">
-                {t("enterAccountNumberPrompt")}
-              </p>
+          <div className="-mx-1 max-h-72 space-y-2 overflow-y-auto px-1 py-1">
+            {!hasQuery ? (
+              <EmptyState
+                size="sm"
+                icon={UserSearch}
+                title={t("enterAccountNumberPrompt")}
+              />
+            ) : isSearching && numberResults.length === 0 ? (
+              <AccountOptionSkeleton count={2} />
             ) : numberResults.length > 0 ? (
               numberResults.map((account, idx) => (
-                <AccountCard
+                <AccountOption
                   key={`search-${account.id}-${idx}`}
                   name={account.name}
                   number={account.number}
@@ -94,9 +130,11 @@ export function DestinationStep() {
                 />
               ))
             ) : (
-              <p className="py-4 text-center text-sm text-muted-foreground">
-                {t("noAccountsFound")}
-              </p>
+              <EmptyState
+                size="sm"
+                icon={SearchX}
+                title={t("noAccountsFound")}
+              />
             )}
           </div>
         </TabsContent>

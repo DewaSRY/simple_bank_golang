@@ -44,6 +44,10 @@ function TextareaField<T extends FieldValues>({
         const length = (value ?? "").length;
         const counterText = maxLength ? `${length}/${maxLength}` : `${length}`;
 
+        const bottomCounter = counter && counterPosition === "bottom";
+
+        // A plain <textarea> isn't a Base UI Field.Control, so the label
+        // association and invalid state have to be wired by hand here.
         return (
           <Field
             name={name}
@@ -54,39 +58,46 @@ function TextareaField<T extends FieldValues>({
           >
             {label || (counter && counterPosition === "top") ? (
               <div className="flex w-full items-center justify-between">
-                {label ? <FieldLabel>{label}</FieldLabel> : <span />}
+                {label ? <FieldLabel htmlFor={name}>{label}</FieldLabel> : <span />}
                 {counter && counterPosition === "top" ? (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground tabular-nums">
                     {counterText}
                   </span>
                 ) : null}
               </div>
             ) : null}
-            <div className="relative w-full pb-6">
+            <div className="relative w-full">
               <Textarea
                 id={name}
                 {...textareaProps}
                 {...field}
+                aria-invalid={invalid || undefined}
                 value={value ?? ""}
                 maxLength={maxLength}
                 className={
-                  counter && counterPosition === "inside" ? "" : undefined
+                  counter && counterPosition === "inside" ? "pb-7" : undefined
                 }
               />
               {counter && counterPosition === "inside" ? (
-                <span className="pointer-events-none absolute bottom-2 right-2.5 text-xs text-muted-foreground">
+                <span className="pointer-events-none absolute right-2.5 bottom-2 text-xs text-muted-foreground tabular-nums">
                   {counterText}
                 </span>
               ) : null}
-              <FieldError match={!!error}>{error?.message}</FieldError>
             </div>
-            {description ? (
-              <FieldDescription>{description}</FieldDescription>
-            ) : null}
-            {counter && counterPosition === "bottom" ? (
-              <span className="block w-full text-right text-xs text-muted-foreground">
-                {counterText}
-              </span>
+            {description || error || bottomCounter ? (
+              <div className="flex w-full items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <FieldError match={!!error}>{error?.message}</FieldError>
+                  {description && !error ? (
+                    <FieldDescription>{description}</FieldDescription>
+                  ) : null}
+                </div>
+                {bottomCounter ? (
+                  <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                    {counterText}
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </Field>
         );

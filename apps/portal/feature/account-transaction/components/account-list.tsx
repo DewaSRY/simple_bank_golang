@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SearchX, Wallet } from "lucide-react";
+
 import { AccountWithUserName, useAccounts } from "@/feature/account";
 import { SearchInput } from "@/components/common/search-input";
-
-import { AccountCard } from "./account-card";
+import {
+  AccountOption,
+  AccountOptionSkeleton,
+} from "@/components/common/account-option";
+import EmptyState from "@/components/ui/empty-state";
+import { formatAccountAmount } from "@/lib/number";
 
 import { useDepositeStore } from "./store";
-import { useState } from "react";
 import { DepositeForm } from "./deposite-dialog";
-import EmptyState from "@/components/ui/empty-state";
 
 interface Props {
   form: DepositeForm;
@@ -19,15 +24,11 @@ export function AccountList({ form }: Props) {
 
   const [name, setName] = useState("");
 
-  const { data: accounts } = useAccounts({
+  const { data: accounts, isLoading } = useAccounts({
     name: name,
     page: 1,
     limit: 10,
   });
-
-  function handleSearch(value: string) {
-    setName(value);
-  }
 
   function handleSelectAccount(account: AccountWithUserName) {
     setSelectedAccount(account);
@@ -36,30 +37,31 @@ export function AccountList({ form }: Props) {
 
   const accountsList = accounts?.data ?? [];
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Sticky Search */}
-      <div className="sticky top-0 bg-muted z-10 ">
-        <SearchInput
-          search={name}
-          onSearch={handleSearch}
-          placeholder={t("searchPlaceholder")}
-        />
-      </div>
+    <div className="flex min-h-0 flex-col gap-3">
+      <SearchInput
+        search={name}
+        onSearch={setName}
+        placeholder={t("searchAccountsPlaceholder")}
+      />
 
-      {/* Scrollable Account List */}
-      <div className="min-h-0 flex-1 overflow-y-auto space-y-2 py-2">
-        {accountsList.length > 0 ? (
+      <div className="-mx-1 max-h-80 min-h-0 flex-1 space-y-2 overflow-y-auto px-1 py-1">
+        {isLoading ? (
+          <AccountOptionSkeleton />
+        ) : accountsList.length > 0 ? (
           accountsList.map((account, idx) => (
-            <AccountCard
+            <AccountOption
               key={`account-${account.id}-${idx}`}
               name={account.name}
               number={account.number}
+              balance={formatAccountAmount(account.balance, account.currency)}
               selected={selectedAccount?.id === account.id}
               onClick={() => handleSelectAccount(account)}
             />
           ))
         ) : (
           <EmptyState
+            size="sm"
+            icon={name ? SearchX : Wallet}
             title={t("noAccountsFound")}
             description={t("noAccountsFoundDescription")}
           />

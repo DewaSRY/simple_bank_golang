@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { InlineAlert } from "@/components/common/inline-alert";
 import { useDeleteAccount } from "@/feature/account-manage";
 import { getApiErrorMessage } from "@/lib/api/error";
 import type { AccountWithUserName } from "@/feature/account";
@@ -52,15 +54,21 @@ export function DeleteAccountDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm px-4">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="gap-3">
+          <span
+            className="flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive"
+            aria-hidden
+          >
+            <TriangleAlert className="size-5" />
+          </span>
           <DialogTitle>{t("deleteAccountTitle")}</DialogTitle>
           <DialogDescription>
             {t("deleteAccountDescription", { name: account.name })}
           </DialogDescription>
         </DialogHeader>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <InlineAlert>{error}</InlineAlert>}
 
         <DialogFooter>
           <Button
@@ -73,9 +81,9 @@ export function DeleteAccountDialog({
           </Button>
           <Button
             type="button"
-            variant="destructive"
+            variant="destructive-solid"
             onClick={handleConfirm}
-            disabled={isPending}
+            loading={isPending}
           >
             {isPending ? t("deleting") : t("deleteAccountTitle")}
           </Button>

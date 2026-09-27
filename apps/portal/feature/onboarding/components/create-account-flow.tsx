@@ -21,7 +21,7 @@ import {
 import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { MoneyInputField } from "@/components/form/money-input-field";
-import { PreviewRow } from "@/components/common/preview-row";
+import { PreviewList, PreviewRow } from "@/components/common/preview-row";
 import { AccountSummaryCard } from "@/feature/account-manage/components/account-summary-card";
 import { useToastStore } from "@/lib/toast/store";
 import { formatAccountAmount } from "@/lib/number";
@@ -165,7 +165,7 @@ export function CreateAccountFlow() {
       </AnimatePresence>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="p-4 lg:min-w-4xl">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {step === "form"
@@ -220,8 +220,7 @@ export function CreateAccountFlow() {
 
           {step === "preview" && values && (
             <div>
-              <Card className="mb-4">
-                <CardContent className="space-y-3">
+              <PreviewList className="mb-4">
                   <PreviewRow label={t("name")} value={values.name} />
                   <PreviewRow
                     label={t("description")}
@@ -229,13 +228,13 @@ export function CreateAccountFlow() {
                   />
                   <PreviewRow
                     label={t("openingBalance")}
+                    emphasis
                     value={formatAccountAmount(
                       values.openingBalance || "0",
                       values.currency,
                     )}
                   />
-                </CardContent>
-              </Card>
+                </PreviewList>
               <DialogFooter>
                 <Button
                   type="button"

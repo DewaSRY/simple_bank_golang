@@ -28,5 +28,6 @@
   "descriptionRequired": "Description is required",
   "toast": {
     "success": "Transfer successful"
-  }
+  },
+  "noRecentTransactionsHint": "Search by account number to find a recipient."
 }

@@ -15,10 +15,8 @@ export function AccountStep({ form }: Props) {
   const { selectedAccount, setStep } = useDepositeStore();
 
   return (
-    <div>
-      <div className="max-h-80 overflow-y-auto">
-        <AccountList form={form} />
-      </div>
+    <div className="space-y-4">
+      <AccountList form={form} />
 
       <DialogFooter>
         <DialogClose

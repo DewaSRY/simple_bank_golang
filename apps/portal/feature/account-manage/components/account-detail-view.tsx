@@ -1,25 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowLeftRight,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useRouter } from "@/i18n/navigation";
 
 import { useAccountDetail } from "@/feature/account-manage";
 
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { PageContainer, PageHeader } from "@/components/common/page-header";
+import { useQuickActionStore } from "@/components/navigation/quick-action-store";
+
 import { AccountStateMessage } from "./account-state-message";
 import { AccountSummaryCard } from "./account-summary-card";
 import { AccountDetailsCard } from "./account-details-card";
 import { AccountEntriesCard } from "./account-entries-card";
-import { Button } from "@/components/ui/button";
 import { EditAccountDialog } from "./edit-account-dialog";
 import { DeleteAccountDialog } from "@/feature/account-manage/components/delete-account-dialog";
 
 export function AccountDetailView({ accountId }: { accountId: number }) {
   const { t } = useTranslation("account");
+  const { t: tCommon } = useTranslation("common");
+  const { t: tTransfer } = useTranslation("transfer");
+  const { t: tDeposit } = useTranslation("deposit");
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const { openDeposit, openTransfer } = useQuickActionStore();
 
   const { data: accountDetail } = useAccountDetail(accountId);
 
@@ -34,53 +55,95 @@ export function AccountDetailView({ accountId }: { accountId: number }) {
     );
   }
 
+  const preselected = {
+    id: account.id,
+    name: account.name,
+    number: account.number,
+    currency: account.currency,
+  };
+
   return (
-    <main className="flex flex-1 flex-col bg-background px-4 py-6 sm:px-6">
-      <div className="mx-auto w-full max-w-[84rem] space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+    <PageContainer>
+      <PageHeader
+        breadcrumbLabel={tCommon("breadcrumb")}
+        breadcrumbs={[
           <Link
+            key="dashboard"
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-sm transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ArrowLeft className="size-4" aria-hidden />
-            {t("backToDashboard")}
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
-              <Pencil aria-hidden />
-              {t("edit")}
+            {tCommon("dashboardTitle")}
+          </Link>,
+        ]}
+        title={account.name}
+        titleAddon={
+          account.is_main ? (
+            <Badge variant="warning">{t("mainAccount")}</Badge>
+          ) : null
+        }
+        actions={
+          <>
+            <Button variant="outline" onClick={() => openDeposit(preselected)}>
+              <ArrowDownToLine aria-hidden />
+              {tDeposit("depositAction")}
             </Button>
-            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-              <Trash2 aria-hidden />
-              {t("delete")}
+            <Button onClick={() => openTransfer(preselected)}>
+              <ArrowLeftRight aria-hidden />
+              {tTransfer("transferAction")}
             </Button>
-          </div>
-        </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label={tCommon("moreActions")}
+                  />
+                }
+              >
+                <MoreHorizontal aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                  <Pencil aria-hidden />
+                  {t("edit")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  <Trash2 aria-hidden />
+                  {t("delete")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        }
+      />
 
-        <EditAccountDialog
-          account={account}
-          open={editOpen}
-          setOpen={setEditOpen}
-        />
-        <DeleteAccountDialog
-          account={account}
-          open={deleteOpen}
-          setOpen={setDeleteOpen}
-          onDeleted={() => router.push("/dashboard")}
-        />
+      <EditAccountDialog
+        account={account}
+        open={editOpen}
+        setOpen={setEditOpen}
+      />
+      <DeleteAccountDialog
+        account={account}
+        open={deleteOpen}
+        setOpen={setDeleteOpen}
+        onDeleted={() => router.push("/dashboard")}
+      />
 
-        <section className="grid gap-4 lg:grid-cols-[1fr_280px]">
-          <AccountSummaryCard account={account} />
-          <AccountDetailsCard account={account} />
-        </section>
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <AccountSummaryCard account={account} />
+        <AccountDetailsCard account={account} />
+      </section>
 
-        <AccountEntriesCard
-          accountName={account.name}
-          accountId={accountId}
-          currency={account.currency}
-        />
-      </div>
-    </main>
+      <AccountEntriesCard
+        accountName={account.name}
+        accountId={accountId}
+        currency={account.currency}
+      />
+    </PageContainer>
   );
 }

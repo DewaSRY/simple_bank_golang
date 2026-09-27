@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { PreviewRow } from "@/components/common/preview-row";
+import { PreviewList, PreviewRow } from "@/components/common/preview-row";
+import { InlineAlert } from "@/components/common/inline-alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
 import { formatAccountAmount } from "@/lib/number";
 import { useCreateTransfer } from "@/feature/transfer";
@@ -60,28 +60,30 @@ export function PreviewStep({ form, onSuccess }: Props) {
   if (!sourceAccount || !destinationAccount || !details) return null;
 
   return (
-    <div>
-      <Card className="mb-4">
-        <CardContent className="space-y-3">
-          <PreviewRow
-            label={t("from")}
-            value={sourceAccount.name}
-            subValue={sourceAccount.number}
-          />
-          <PreviewRow
-            label={t("to")}
-            value={destinationAccount.name}
-            subValue={destinationAccount.number}
-          />
-          <PreviewRow
-            label={t("amount")}
-            value={formatAccountAmount(String(details.amount))}
-          />
-          <PreviewRow label={t("description")} value={details.description} />
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <PreviewList>
+        <PreviewRow
+          label={t("from")}
+          value={sourceAccount.name}
+          subValue={sourceAccount.number}
+        />
+        <PreviewRow
+          label={t("to")}
+          value={destinationAccount.name}
+          subValue={destinationAccount.number}
+        />
+        <PreviewRow label={t("description")} value={details.description} />
+        <PreviewRow
+          label={t("amount")}
+          emphasis
+          value={formatAccountAmount(
+            String(details.amount),
+            sourceAccount.currency,
+          )}
+        />
+      </PreviewList>
 
-      {error && <p className="mb-2 text-sm text-destructive">{error}</p>}
+      {error && <InlineAlert>{error}</InlineAlert>}
 
       <DialogFooter>
         <Button
@@ -92,7 +94,7 @@ export function PreviewStep({ form, onSuccess }: Props) {
         >
           {tCommon("back")}
         </Button>
-        <Button type="button" onClick={handleConfirm} disabled={isPending}>
+        <Button type="button" onClick={handleConfirm} loading={isPending}>
           {isPending ? t("transferring") : t("confirmTransfer")}
         </Button>
       </DialogFooter>

@@ -28,7 +28,7 @@ export function ToastViewport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-sm bg-popover p-3.5 pr-2.5 text-popover-foreground shadow-lg ring-1 ring-foreground/10"
+            className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-popover p-3.5 pr-2.5 text-popover-foreground shadow-lg ring-1 ring-foreground/10"
           >
             {toast.variant === "success" ? (
               <CheckCircle2
@@ -52,7 +52,7 @@ export function ToastViewport() {
             <button
               type="button"
               onClick={() => dismiss(toast.id)}
-              className="shrink-0 rounded-xs p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <X className="size-3.5" aria-hidden />
               <span className="sr-only">{t("close")}</span>

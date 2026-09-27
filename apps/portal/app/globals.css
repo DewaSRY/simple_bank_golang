@@ -226,7 +226,17 @@
     @apply font-sans;
     scroll-behavior: smooth !important;
   }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto !important;
+    }
+  }
 }
+
+/* Radius scale used across the app (derived from --radius above):
+   rounded-md → controls (buttons, inputs, tabs, menu items, skeletons)
+   rounded-lg → inline panels, option rows, icon tiles
+   rounded-xl → surfaces (cards, dialogs, toasts, the inset app shell) */
 
 @keyframes logout-progress {
   from {

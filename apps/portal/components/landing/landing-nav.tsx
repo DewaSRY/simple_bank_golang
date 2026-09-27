@@ -70,7 +70,7 @@ export function LandingNav() {
           <motion.span
             whileHover={{ rotate: -8, scale: 1.08 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="relative flex size-8 items-center justify-center overflow-hidden rounded-xs bg-primary text-primary-foreground shadow-sm"
+            className="relative flex size-8 items-center justify-center overflow-hidden rounded-md bg-primary text-primary-foreground shadow-sm"
           >
             <Wallet className="relative z-10 size-4" aria-hidden />
 
@@ -94,7 +94,7 @@ export function LandingNav() {
               render={
                 <Button
                   variant="ghost"
-                  className="group relative h-9 gap-1.5 rounded-xs px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                  className="group relative h-9 gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                 />
               }
             >
@@ -113,11 +113,11 @@ export function LandingNav() {
                 align="start"
                 sideOffset={10}
               >
-                <Popover.Popup className="w-[390px] origin-(--transform-origin) overflow-hidden rounded-xs border border-border/60 bg-popover/95 p-2 text-popover-foreground shadow-2xl shadow-black/10 backdrop-blur-xl duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+                <Popover.Popup className="w-[390px] origin-(--transform-origin) overflow-hidden rounded-md border border-border/60 bg-popover/95 p-2 text-popover-foreground shadow-2xl shadow-black/10 backdrop-blur-xl duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
                   {/* Header */}
                   <div className="px-3 pb-2 pt-2">
                     <div className="flex items-center gap-2">
-                      <span className="flex size-7 items-center justify-center rounded-xs bg-primary/10 text-primary">
+                      <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
                         <Sparkles className="size-3.5" />
                       </span>
 
@@ -140,11 +140,11 @@ export function LandingNav() {
                         render={
                           <a
                             href={item.href}
-                            className="group flex items-center gap-3 rounded-xs p-3 transition-all duration-200 hover:bg-muted"
+                            className="group flex items-center gap-3 rounded-md p-3 transition-all duration-200 hover:bg-muted"
                           />
                         }
                       >
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary transition-transform duration-200 group-hover:scale-105 group-hover:bg-primary group-hover:text-primary-foreground">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-transform duration-200 group-hover:scale-105 group-hover:bg-primary group-hover:text-primary-foreground">
                           <item.icon className="size-4" aria-hidden />
                         </span>
 
@@ -180,7 +180,7 @@ export function LandingNav() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-9 rounded-xs text-muted-foreground hover:text-foreground"
+                className="size-9 rounded-md text-muted-foreground hover:text-foreground"
                 nativeButton={false}
                 render={
                   <a
@@ -206,7 +206,7 @@ export function LandingNav() {
           </Tooltip>
 
           {/* Try demo */}
-          <div className="relative inline-flex rounded-xs p-[1px] overflow-hidden">
+          <div className="relative inline-flex rounded-md p-[1px] overflow-hidden">
             <div className="absolute inset-[-100%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,var(--brand)_50%,transparent_60%,transparent_100%)]" />
 
             <Link
@@ -220,7 +220,7 @@ export function LandingNav() {
           {/* Login */}
           <Link
             href="/login"
-            className="relative flex h-9 items-center rounded-xs px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="relative flex h-9 items-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {tAuth("login")}
           </Link>
@@ -228,7 +228,7 @@ export function LandingNav() {
           {/* CTA */}
           <div className="relative ml-1">
             <motion.div
-              className="absolute -inset-[1px] rounded-xs bg-primary/50 blur-sm"
+              className="absolute -inset-[1px] rounded-md bg-primary/50 blur-sm"
               animate={{
                 opacity: [0.35, 0.7, 0.35],
               }}
@@ -241,7 +241,7 @@ export function LandingNav() {
 
             <Button
               size="sm"
-              className="relative h-9 rounded-xs px-4 shadow-sm"
+              className="relative h-9 rounded-md px-4 shadow-sm"
               nativeButton={false}
               render={<Link href="/register" />}
             >
@@ -257,7 +257,7 @@ export function LandingNav() {
           <Button
             variant="ghost"
             size="icon"
-            className="size-9 rounded-xs md:hidden"
+            className="size-9 rounded-md md:hidden"
             aria-label={tLanding("nav.menuToggle")}
             onClick={() => setMobileOpen(true)}
           >
@@ -270,7 +270,7 @@ export function LandingNav() {
           >
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
-                <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">
+                <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
                   <Wallet className="size-4" />
                 </span>
 
@@ -290,11 +290,11 @@ export function LandingNav() {
                   render={
                     <a
                       href={item.href}
-                      className="group flex items-center gap-3 rounded-xs p-3 transition-colors hover:bg-muted"
+                      className="group flex items-center gap-3 rounded-md p-3 transition-colors hover:bg-muted"
                     />
                   }
                 >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <item.icon className="size-4" aria-hidden />
                   </span>
 
@@ -306,7 +306,7 @@ export function LandingNav() {
             </div>
 
             <div className="mt-auto flex flex-col gap-3 border-t border-border/50 p-4">
-              <div className="flex items-center justify-between rounded-xs border bg-muted/30 p-2">
+              <div className="flex items-center justify-between rounded-md border bg-muted/30 p-2">
                 <LocaleSwitcher />
                 <ThemeToggle />
               </div>
@@ -314,7 +314,7 @@ export function LandingNav() {
               <SheetClose
                 nativeButton={false}
                 render={<Link href="/onboarding" />}
-                className="flex h-10 items-center justify-center rounded-xs text-sm font-medium transition-colors hover:bg-muted"
+                className="flex h-10 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted"
               >
                 {tLanding("nav.tryDemo")}
               </SheetClose>
@@ -323,7 +323,7 @@ export function LandingNav() {
                 nativeButton={false}
                 render={<Link href="/login" />}
                 className={cn(
-                  "flex h-10 items-center justify-center rounded-xs text-sm font-medium transition-colors hover:bg-muted",
+                  "flex h-10 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted",
                 )}
               >
                 {tAuth("login")}
@@ -332,7 +332,7 @@ export function LandingNav() {
               <Button
                 nativeButton={false}
                 render={<Link href="/register" />}
-                className="h-10 w-full rounded-xs"
+                className="h-10 w-full rounded-md"
               >
                 {tLanding("nav.getStarted")}
                 <ArrowUpRight className="ml-1 size-4" />

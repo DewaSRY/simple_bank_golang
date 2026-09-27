@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -11,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
+import { StepIndicator } from "@/components/common/step-indicator";
 
 import { FormStep } from "./form-step";
 import { PreviewStep } from "./preview-step";
@@ -35,7 +38,7 @@ export type CreateForm = ReturnType<typeof useCreateAccountForm>;
 
 export function CreateAccountDialog({ open, setOpen }: props) {
   const { t } = useTranslation("account");
-  const { step, reset, values } = useCreateAccountStore();
+  const { step, reset } = useCreateAccountStore();
 
   const form = useCreateAccountForm(t);
   const isDirty = form.formState.isDirty;
@@ -85,9 +88,14 @@ export function CreateAccountDialog({ open, setOpen }: props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="lg:min-w-4xl px-4 space-y-4">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
+          <StepIndicator
+            current={step === "form" ? 1 : 2}
+            total={2}
+            className="mb-2"
+          />
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 

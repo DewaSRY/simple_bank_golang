@@ -1,28 +1,32 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { IconWallet } from "@tabler/icons-react";
+import { LayoutDashboard } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { siGithub } from "simple-icons";
 
+import { Link, usePathname } from "@/i18n/navigation";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { NavAccountList } from "./nav-account-list";
-import { Separator } from "@base-ui/react";
+import { SidebarQuickActions } from "./quick-actions";
 
-import { CreateNewAccount } from "@/feature/account/components/create-new-account";
-import { DepositeSideModel } from "@/feature/account-transaction/components/deposite-side-model";
-import { TransferSideModel } from "@/feature/transfer/components/transfer-side-model";
+const SOURCE_URL = "https://github.com/DewaSRY/simple_bank_golang";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { t, i18n } = useTranslation("common");
+  const { t } = useTranslation("common");
+  const pathname = usePathname();
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -30,11 +34,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-4! p-2!"
-              render={<Link href={`/${i18n.language}/dashboard`} />}
+              size="lg"
+              render={<Link href="/dashboard" />}
+              aria-label={t("appName")}
             >
-              <span className="flex size-7 items-center justify-center rounded-xs bg-primary text-primary-foreground">
-                <IconWallet className="size-4!" />
+              <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
+                <IconWallet className="size-4!" aria-hidden />
               </span>
               <span className="text-base font-semibold tracking-tight">
                 {t("appName")}
@@ -43,18 +48,57 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="gap-4 px-1!">
-        <Separator />
-        <div className="flex flex-col gap-1 px-2">
-          <CreateNewAccount />
-          <DepositeSideModel />
-          <TransferSideModel />
-        </div>
 
-        <Separator />
+      <SidebarContent className="gap-0">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={pathname === "/dashboard"}
+                  render={<Link href="/dashboard" />}
+                >
+                  <LayoutDashboard aria-hidden />
+                  <span>{t("dashboardTitle")}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarQuickActions />
+        <SidebarSeparator className="my-1" />
         <NavAccountList />
       </SidebarContent>
-      <SidebarFooter></SidebarFooter>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="sm"
+              className="text-sidebar-foreground/70"
+              render={
+                <a
+                  href={SOURCE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              }
+            >
+              <svg
+                role="img"
+                aria-hidden
+                viewBox="0 0 24 24"
+                className="size-3.5"
+                fill="currentColor"
+              >
+                <path d={siGithub.path} />
+              </svg>
+              <span>{t("viewSource")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

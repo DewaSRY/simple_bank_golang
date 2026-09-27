@@ -18,9 +18,9 @@ export function BrandBanner() {
           <GuardedLink
             href="/"
             aria-label={tCommon("backToHome")}
-            className="flex items-center gap-2 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xs"
+            className="flex items-center gap-2 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
           >
-            <span className="flex size-8 items-center justify-center rounded-xs bg-primary text-primary-foreground">
+            <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Wallet className="size-4" aria-hidden />
             </span>
             <span className="flex flex-col">

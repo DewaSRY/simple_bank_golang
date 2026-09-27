@@ -2,12 +2,8 @@
 
 import { Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { CopyButton } from "@/components/common/copy-button";
 import type { AccountWithUserName } from "@/feature/account";
 import { formatAccountAmount } from "@/lib/number";
 
@@ -20,35 +16,36 @@ export function AccountSummaryCard({
   const { t: tCommon } = useTranslation("common");
 
   return (
-    <Card className="overflow-hidden border-0 bg-brand-surface text-brand-surface-foreground shadow-lg">
-      <CardHeader className="gap-6 p-6 sm:p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-sm bg-brand-surface-foreground/15">
-              <Wallet className="size-5" aria-hidden />
-            </span>
-            <div>
-              <CardTitle className="text-xl">{account.name}</CardTitle>
-              <CardDescription className="mt-1 text-brand-surface-foreground/75">
-                {account.number}
-              </CardDescription>
-            </div>
-          </div>
-          {account.is_main && (
-            <span className="rounded-full bg-brand-surface-foreground/15 px-3 py-1 text-xs font-medium">
-              {t("mainAccount")}
-            </span>
-          )}
-        </div>
-        <div>
-          <p className="text-sm text-brand-surface-foreground/75">
-            {tCommon("availableBalance")}
+    <Card className="justify-between gap-8 border-0 bg-brand-surface p-6 text-brand-surface-foreground shadow-md ring-0 sm:p-8">
+      <div className="flex items-center gap-3">
+        <span
+          className="flex size-10 items-center justify-center rounded-lg bg-brand-surface-foreground/15"
+          aria-hidden
+        >
+          <Wallet className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs text-brand-surface-foreground/75">
+            {t("accountNumber")}
           </p>
-          <p className="mt-1 font-mono text-4xl font-semibold tracking-tight">
-            {formatAccountAmount(account.balance, account.currency)}
+          <p className="flex items-center gap-1 font-mono text-sm font-medium tracking-wide">
+            <span className="truncate">{account.number}</span>
+            <CopyButton
+              value={account.number}
+              label={tCommon("copyAccountNumber")}
+              className="hover:bg-brand-surface-foreground/15"
+            />
           </p>
         </div>
-      </CardHeader>
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm text-brand-surface-foreground/75">
+          {tCommon("availableBalance")}
+        </p>
+        <p className="mt-1 truncate font-mono text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
+          {formatAccountAmount(account.balance, account.currency)}
+        </p>
+      </div>
     </Card>
   );
 }

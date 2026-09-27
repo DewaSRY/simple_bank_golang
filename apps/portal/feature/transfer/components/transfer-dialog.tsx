@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -12,6 +14,7 @@ import {
 import { useNavigationGuardStore } from "@/components/common/navigation-guard/store";
 import { transferDetailsSchema } from "@/feature/transfer";
 import { zodResolverTranslate } from "@/lib/form";
+import { StepIndicator } from "@/components/common/step-indicator";
 
 import { DestinationStep } from "./destination-step";
 import { DetailsStep } from "./details-step";
@@ -80,6 +83,7 @@ export function TransferDialog({ open, setOpen }: Props) {
   } as const;
 
   const { title, description } = STEP_COPY[step];
+  const STEPS = ["source", "destination", "details", "preview"] as const;
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -97,8 +101,13 @@ export function TransferDialog({ open, setOpen }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="p-4 lg:min-w-4xl">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
+          <StepIndicator
+            current={STEPS.indexOf(step) + 1}
+            total={STEPS.length}
+            className="mb-2"
+          />
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { PreviewRow } from "@/components/common/preview-row";
+import { PreviewList, PreviewRow } from "@/components/common/preview-row";
+import { InlineAlert } from "@/components/common/inline-alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useCreateAccountMutation } from "@/feature/account";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/api/error";
@@ -46,15 +46,13 @@ export function PreviewStep({ onSuccess, form }: Props) {
   if (!values) return null;
 
   return (
-    <div>
-      <Card className="mb-4">
-        <CardContent className="space-y-3">
-          <PreviewRow label={t("name")} value={values.name} />
-          <PreviewRow label={t("description")} value={values.description} />
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <PreviewList>
+        <PreviewRow label={t("name")} value={values.name} />
+        <PreviewRow label={t("description")} value={values.description} />
+      </PreviewList>
 
-      {error && <p className="mb-2 text-sm text-destructive">{error}</p>}
+      {error && <InlineAlert>{error}</InlineAlert>}
 
       <DialogFooter>
         <Button
@@ -65,7 +63,7 @@ export function PreviewStep({ onSuccess, form }: Props) {
         >
           {tCommon("back")}
         </Button>
-        <Button type="button" onClick={handleConfirm} disabled={isPending}>
+        <Button type="button" onClick={handleConfirm} loading={isPending}>
           {isPending ? t("submitting") : tCommon("confirm")}
         </Button>
       </DialogFooter>

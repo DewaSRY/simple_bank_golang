@@ -20,6 +20,7 @@ import {
 } from "@/lib/api/error";
 import { zodResolverTranslate } from "@/lib/form";
 
+import { InlineAlert } from "@/components/common/inline-alert";
 import { BrandBanner } from "./brand-banner";
 
 type LoginStep = "form" | "preview";
@@ -80,21 +81,19 @@ export function LoginFormScreen() {
   const isPending = loginMutation.isPending;
 
   return (
-    <div className="flex w-full items-center justify-center">
-      <Card className="z-1 w-full max-w-2xl space-y-4 py-10 sm:min-w-150 sm:px-4">
+    <div className="flex w-full items-center justify-center px-4 py-8">
+      <Card className="z-1 w-full max-w-md gap-6 py-8 shadow-lg sm:px-2">
         <CardHeader>
-          <div className="flex flex-col space-y-1 rounded-sm border border-primary/20 p-4">
-            <div className="mb-2">
-              <BrandBanner />
-            </div>
+          <div className="flex flex-col gap-5">
+            <BrandBanner />
 
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
               {step === "preview" ? t("loginPreviewTitle") : t("loginTitle")}
             </h1>
           </div>
         </CardHeader>
 
-        <CardContent className="flex min-h-[50vh] flex-1 flex-col">
+        <CardContent className="flex flex-col">
           {step === "form" && (
             <form
               onSubmit={goToPreview}
@@ -112,15 +111,12 @@ export function LoginFormScreen() {
 
               <div className="flex flex-col gap-4">
                 {form.formState.errors.root?.message && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.root.message}
-                  </p>
+                  <InlineAlert>{form.formState.errors.root.message}</InlineAlert>
                 )}
 
                 <Button
                   type="submit"
                   size="lg"
-                  className="h-11"
                   disabled={!form.formState.isDirty}
                 >
                   {tCommon("continue")}
@@ -158,7 +154,7 @@ export function LoginFormScreen() {
                 </Card>
 
                 {deviceConflict ? (
-                  <div className="flex gap-3 rounded-sm border border-destructive/40 bg-destructive/5 p-3">
+                  <div className="flex gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-3">
                     <ShieldAlert
                       className="mt-0.5 size-5 shrink-0 text-destructive"
                       aria-hidden
@@ -175,7 +171,7 @@ export function LoginFormScreen() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex gap-3 rounded-sm border border-border p-3">
+                  <div className="flex gap-3 rounded-lg border border-border p-3">
                     <Smartphone
                       className="mt-0.5 size-5 shrink-0 text-primary"
                       aria-hidden
@@ -191,9 +187,7 @@ export function LoginFormScreen() {
               {/* Bottom actions */}
               <div className="mt-auto flex flex-col gap-4">
                 {form.formState.errors.root?.message && (
-                  <p className="text-sm text-center text-destructive">
-                    {form.formState.errors.root.message}
-                  </p>
+                  <InlineAlert>{form.formState.errors.root.message}</InlineAlert>
                 )}
 
                 <div className="flex w-full gap-2">
@@ -201,7 +195,7 @@ export function LoginFormScreen() {
                     type="button"
                     variant="outline"
                     size="lg"
-                    className="h-11 flex-1"
+                    className="flex-1"
                     onClick={() => {
                       setDeviceConflict(false);
                       setStep("form");
@@ -214,9 +208,10 @@ export function LoginFormScreen() {
                   <Button
                     type="button"
                     size="lg"
-                    className="h-11 flex-1"
+                    className="flex-1"
                     onClick={onConfirmLogin}
-                    disabled={isPending || deviceConflict}
+                    loading={isPending}
+                    disabled={deviceConflict}
                   >
                     {isPending ? t("loggingIn") : t("login")}
                   </Button>

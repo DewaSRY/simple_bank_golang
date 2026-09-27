@@ -96,7 +96,7 @@ export default async function OnboardingStartPage({
         {steps.map((step, index) => (
           <Card key={step.title}>
             <CardContent className="flex items-start gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-sm font-semibold text-primary">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-sm font-semibold text-primary">
                 {index + 1}
               </span>
               <div>

@@ -12,6 +12,8 @@ import { getEntryVisual } from "./entry-visual";
 
 type AccountEntryColumnMeta = {
   align?: "left" | "right";
+  /** Low-value columns dropped on narrow screens to avoid sideways scroll. */
+  hideOnMobile?: boolean;
 };
 
 export const accountEntriesTableFeatures = tableFeatures({
@@ -33,8 +35,11 @@ export function getAccountEntriesColumns({
   return columnHelper.columns([
     columnHelper.accessor("id", {
       header: t("entryColumn"),
+      meta: { hideOnMobile: true },
       cell: ({ getValue }) => (
-        <span className="text-sm text-muted-foreground">#{getValue()}</span>
+        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+          #{getValue()}
+        </span>
       ),
     }),
     columnHelper.display({
@@ -47,14 +52,18 @@ export function getAccountEntriesColumns({
         return (
           <div className="flex items-center gap-3">
             <span
-              className={`flex size-8 items-center justify-center rounded-full ${iconWrapperClassName}`}
+              className={`flex size-8 shrink-0 items-center justify-center rounded-full ${iconWrapperClassName}`}
             >
               <Icon className="size-4" aria-hidden />
             </span>
-            <div>
-              <p className="font-medium">{getEntryLabel(entry, t)}</p>
-              <p className="text-xs capitalize text-muted-foreground">
+            <div className="min-w-0">
+              <p className="truncate font-medium">{getEntryLabel(entry, t)}</p>
+              <p className="hidden text-xs capitalize text-muted-foreground sm:block">
                 {entry.type}
+              </p>
+              {/* The description column is hidden on phones; surface it here. */}
+              <p className="line-clamp-1 text-xs text-muted-foreground sm:hidden">
+                {entry.description || entry.type}
               </p>
             </div>
           </div>
@@ -64,6 +73,7 @@ export function getAccountEntriesColumns({
     columnHelper.display({
       id: "details",
       header: t("description"),
+      meta: { hideOnMobile: true },
       cell: ({ row }) => {
         const entry = row.original;
         const isIncoming = entry.direction === "incoming";
@@ -79,14 +89,16 @@ export function getAccountEntriesColumns({
         return (
           <div className="space-y-0.5">
             {isTransfer && counterpartyNumber ? (
-              <p className="font-mono  font-semibold text-muted-foreground">
+              <p className="font-mono text-xs text-muted-foreground">
                 {t(isIncoming ? "fromAccountNumber" : "toAccountNumber", {
                   number: counterpartyNumber,
                 })}
               </p>
             ) : null}
             {entry.description ? (
-              <p className=" text-muted-foreground">{entry.description}</p>
+              <p className="line-clamp-2 text-foreground/80">
+                {entry.description}
+              </p>
             ) : null}
           </div>
         );
@@ -102,7 +114,9 @@ export function getAccountEntriesColumns({
         const { amountClassName } = getEntryVisual(entry.type);
 
         return (
-          <span className={`font-mono font-medium ${amountClassName}`}>
+          <span
+            className={`font-mono font-semibold whitespace-nowrap tabular-nums ${amountClassName}`}
+          >
             {formatAccountAmount(entry.amount, currency, isIncoming)}
           </span>
         );

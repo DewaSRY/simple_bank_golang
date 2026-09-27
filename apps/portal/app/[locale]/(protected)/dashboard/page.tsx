@@ -10,6 +10,8 @@ import { getTranslation } from "@/i18n/server";
 import { AccountList } from "@/feature/account/components/account-list";
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
 import { unpackActionResult } from "@/lib/api/unpack-server-result";
+import { PageContainer, PageHeader } from "@/components/common/page-header";
+import { DashboardQuickActions } from "@/components/navigation/quick-actions";
 
 interface props extends PageProps<"/[locale]/dashboard"> {
   searchParams: Promise<{ search?: string }>;
@@ -30,35 +32,26 @@ export default async function DashboardPage({ params }: props) {
 
   const queryClient = new QueryClient();
 
-  // Matches AccountList's own useAccounts({ page: 1, limit: 10 }) call
-  // exactly, since TanStack Query hashes the params object into the cache
-  // key.
-  const query = { page: 1, limit: 10 };
+  // Matches AccountList's own useAccounts({ page: 1, limit: 10, name: "" })
+  // call exactly (including the empty `name`), since TanStack Query hashes
+  // the params object into the cache key.
+  const query = { page: 1, limit: 10, name: "" };
   await queryClient.query({
     queryKey: queryKeys.list(query),
     queryFn: () => listMeAccountsAction(query).then(unpackActionResult),
   });
 
   return (
-    <div className="flex flex-1 flex-col bg-background px-4 py-6 font-sans sm:px-6">
-      <div className="mx-auto w-full max-w-[84rem]">
-        <div className="flex w-full items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {t("dashboardTitle")}
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t("yourAccounts")}
-            </p>
-          </div>
-        </div>
+    <PageContainer>
+      <PageHeader
+        title={t("dashboardTitle")}
+        description={t("dashboardDescription")}
+        actions={<DashboardQuickActions />}
+      />
 
-        <div className="mt-6">
-          <HydrationBoundary state={dehydrate(queryClient)}>
-            <AccountList />
-          </HydrationBoundary>
-        </div>
-      </div>
-    </div>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <AccountList />
+      </HydrationBoundary>
+    </PageContainer>
   );
 }

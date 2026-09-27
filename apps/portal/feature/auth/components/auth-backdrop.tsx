@@ -1,10 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 
 export function AuthBackdrop({ children }: { children: ReactNode }) {
+  // reducedMotion="user": the ambient orbs freeze for people who've asked
+  // their OS for less motion.
   return (
+    <MotionConfig reducedMotion="user">
     <div className="relative flex min-h-screen flex-1 items-center justify-center overflow-hidden bg-background">
       {/* Main ambient gradient */}
       <motion.div
@@ -136,5 +139,6 @@ export function AuthBackdrop({ children }: { children: ReactNode }) {
       {/* Content */}
       <div className="relative z-10 w-full">{children}</div>
     </div>
+    </MotionConfig>
   );
 }

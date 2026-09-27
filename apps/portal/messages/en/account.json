@@ -42,7 +42,7 @@
   "noEntriesTitle": "No entries yet",
   "noEntriesDescription": "Transactions for this account will appear here.",
   "entryColumn": "Entry",
-  "transactionType": "Treansaction Type",
+  "transactionType": "Transaction type",
   "amountColumn": "Amount",
   "mainAccount": "Main account",
   "deposit": "Deposit",
@@ -58,5 +58,8 @@
     "updated": "Account updated",
     "deleted": "Account deleted",
     "searchError": "Unable to search accounts"
-  }
+  },
+  "newAccount": "New account",
+  "accountNumber": "Account number",
+  "openedOn": "Opened on"
 }
