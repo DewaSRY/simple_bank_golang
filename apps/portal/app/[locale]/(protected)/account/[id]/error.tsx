@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { AccountStateMessage } from "@/components/account/account-state-message";
+import { AccountStateMessage } from "@/feature/account/components/account-state-message";
 
 export default function AccountDetailError({
   error,

@@ -22,7 +22,7 @@ import {
 import {
   accountEntriesTableFeatures,
   getAccountEntriesColumns,
-} from "@/components/account/account-entries-columns";
+} from "@/feature/account/components/account-entries-columns";
 import type { DisplayLedgerEntry } from "@/feature/account-transaction";
 
 interface Props {
@@ -31,7 +31,11 @@ interface Props {
   entries: DisplayLedgerEntry[];
 }
 
-export function OnboardingEntriesCard({ accountName, currency, entries }: Props) {
+export function OnboardingEntriesCard({
+  accountName,
+  currency,
+  entries,
+}: Props) {
   const { t } = useTranslation("account");
 
   const columns = useMemo(

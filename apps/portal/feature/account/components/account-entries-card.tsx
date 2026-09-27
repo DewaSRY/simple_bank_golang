@@ -21,13 +21,14 @@ import {
 import {
   accountEntriesTableFeatures,
   getAccountEntriesColumns,
-} from "@/components/account/account-entries-columns";
+} from "./account-entries-columns";
 import {
   useAccountEntries,
   type DisplayLedgerEntry,
 } from "@/feature/account-transaction";
 import { useQueryStates, parseAsString, parseAsInteger } from "nuqs";
-import Pagination from "../ui/pagination";
+
+import Pagination from "@/components/ui/pagination";
 
 const EMPTY_ENTRIES: DisplayLedgerEntry[] = [];
 

@@ -6,12 +6,16 @@ import { ArrowRight, PartyPopper, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AccountSummaryCard } from "@/components/account/account-summary-card";
+import { AccountSummaryCard } from "@/feature/account/components/account-summary-card";
 import { AnimatedNumber } from "@/components/onboarding/animated-number";
 import { OnboardingEntriesCard } from "@/components/onboarding/onboarding-entries-card";
 import { StepGuard } from "@/components/onboarding/step-guard";
 import { Link, useRouter } from "@/i18n/navigation";
-import { toAccountWithUserName, toDisplayLedgerEntry, useOnboardingStore } from "@/feature/onboarding";
+import {
+  toAccountWithUserName,
+  toDisplayLedgerEntry,
+  useOnboardingStore,
+} from "@/feature/onboarding";
 
 function StatTile({ label, value }: { label: string; value: number }) {
   return (
@@ -64,8 +68,12 @@ export function CompletionSummary() {
         <span className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
           <PartyPopper className="size-7" aria-hidden />
         </span>
-        <h2 className="text-xl font-semibold tracking-tight">{t("complete.title")}</h2>
-        <p className="max-w-md text-sm text-muted-foreground">{t("complete.description")}</p>
+        <h2 className="text-xl font-semibold tracking-tight">
+          {t("complete.title")}
+        </h2>
+        <p className="max-w-md text-sm text-muted-foreground">
+          {t("complete.description")}
+        </p>
       </motion.div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -93,7 +101,11 @@ export function CompletionSummary() {
           <RotateCcw className="size-4" aria-hidden />
           {t("complete.ctaRestart")}
         </Button>
-        <Button nativeButton={false} render={<Link href="/register" />} className="gap-1.5">
+        <Button
+          nativeButton={false}
+          render={<Link href="/register" />}
+          className="gap-1.5"
+        >
           {t("complete.ctaRegister")}
           <ArrowRight className="size-4" aria-hidden />
         </Button>

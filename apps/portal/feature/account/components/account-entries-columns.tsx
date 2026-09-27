@@ -8,7 +8,7 @@ import {
 import type { DisplayLedgerEntry } from "@/feature/account-transaction";
 import { getEntryLabel } from "@/feature/account-transaction";
 import { formatAccountAmount } from "@/lib/number";
-import { getEntryVisual } from "@/components/account/entry-visual";
+import { getEntryVisual } from "./entry-visual";
 
 type AccountEntryColumnMeta = {
   align?: "left" | "right";

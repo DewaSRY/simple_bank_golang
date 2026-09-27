@@ -8,7 +8,7 @@ import {
   type OnboardingEntry,
 } from "@/feature/onboarding";
 import { formatAccountAmount } from "@/lib/number";
-import { getEntryVisual } from "@/components/account/entry-visual";
+import { getEntryVisual } from "@/feature/account/components/entry-visual";
 
 interface Props {
   entries: OnboardingEntry[];

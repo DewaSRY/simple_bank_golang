@@ -22,7 +22,7 @@ import { InputField } from "@/components/form/input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { MoneyInputField } from "@/components/form/money-input-field";
 import { PreviewRow } from "@/components/common/preview-row";
-import { AccountSummaryCard } from "@/components/account/account-summary-card";
+import { AccountSummaryCard } from "@/feature/account/components/account-summary-card";
 import { formatAccountAmount } from "@/lib/number";
 import {
   delay,
@@ -46,14 +46,18 @@ export function CreateAccountFlow() {
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("form");
-  const [values, setValues] = useState<OnboardingCreateAccountFormValues | null>(
-    null,
-  );
+  const [values, setValues] =
+    useState<OnboardingCreateAccountFormValues | null>(null);
   const [isPending, setIsPending] = useState(false);
 
   const form = useForm({
     resolver: zodResolverTranslate(onboardingCreateAccountSchema, t),
-    defaultValues: { name: "", description: "", currency: "IDR", openingBalance: "" },
+    defaultValues: {
+      name: "",
+      description: "",
+      currency: "IDR",
+      openingBalance: "",
+    },
   });
 
   function handleOpenChange(next: boolean) {
@@ -86,7 +90,9 @@ export function CreateAccountFlow() {
     setOpen(false);
     pushToast({
       title: tOnboarding("toast.accountCreated"),
-      description: tOnboarding("toast.accountCreatedDescription", { name: created.name }),
+      description: tOnboarding("toast.accountCreatedDescription", {
+        name: created.name,
+      }),
       variant: "success",
     });
   }
@@ -108,12 +114,17 @@ export function CreateAccountFlow() {
                   <Wallet className="size-6" aria-hidden />
                 </span>
                 <div>
-                  <p className="font-medium">{tOnboarding("createAccount.emptyTitle")}</p>
+                  <p className="font-medium">
+                    {tOnboarding("createAccount.emptyTitle")}
+                  </p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {tOnboarding("createAccount.emptyDescription")}
                   </p>
                 </div>
-                <Button onClick={() => handleOpenChange(true)} className="mt-2 gap-1.5">
+                <Button
+                  onClick={() => handleOpenChange(true)}
+                  className="mt-2 gap-1.5"
+                >
                   <PlusCircle className="size-4" aria-hidden />
                   {tOnboarding("createAccount.createButton")}
                 </Button>
@@ -140,7 +151,11 @@ export function CreateAccountFlow() {
               transition={{ delay: 0.3, duration: 0.4 }}
               className="flex justify-end"
             >
-              <Button nativeButton={false} render={<Link href="/onboarding/deposit" />} className="gap-1.5">
+              <Button
+                nativeButton={false}
+                render={<Link href="/onboarding/deposit" />}
+                className="gap-1.5"
+              >
                 {tOnboarding("createAccount.continueCta")}
                 <ArrowRight className="size-4" aria-hidden />
               </Button>
@@ -153,10 +168,14 @@ export function CreateAccountFlow() {
         <DialogContent className="p-4 lg:min-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              {step === "form" ? t("createAccountTitle") : t("reviewAccountTitle")}
+              {step === "form"
+                ? t("createAccountTitle")
+                : t("reviewAccountTitle")}
             </DialogTitle>
             <DialogDescription>
-              {step === "form" ? t("createAccountDescription") : t("reviewAccountDescription")}
+              {step === "form"
+                ? t("createAccountDescription")
+                : t("reviewAccountDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -189,7 +208,11 @@ export function CreateAccountFlow() {
                 />
               </div>
               <DialogFooter>
-                <DialogClose render={<Button variant="outline">{tCommon("cancel")}</Button>} />
+                <DialogClose
+                  render={
+                    <Button variant="outline">{tCommon("cancel")}</Button>
+                  }
+                />
                 <Button type="submit">{tCommon("continue")}</Button>
               </DialogFooter>
             </form>
@@ -200,7 +223,10 @@ export function CreateAccountFlow() {
               <Card className="mb-4">
                 <CardContent className="space-y-3">
                   <PreviewRow label={t("name")} value={values.name} />
-                  <PreviewRow label={t("description")} value={values.description} />
+                  <PreviewRow
+                    label={t("description")}
+                    value={values.description}
+                  />
                   <PreviewRow
                     label={t("openingBalance")}
                     value={formatAccountAmount(
@@ -219,7 +245,11 @@ export function CreateAccountFlow() {
                 >
                   {tCommon("back")}
                 </Button>
-                <Button type="button" onClick={handleConfirm} disabled={isPending}>
+                <Button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={isPending}
+                >
                   {isPending ? t("submitting") : tCommon("confirm")}
                 </Button>
               </DialogFooter>
