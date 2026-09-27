@@ -19,7 +19,7 @@ import { Separator } from "@base-ui/react";
 
 import { CreateNewAccount } from "../create-account-model/create-new-account";
 import { DepositeSideModel } from "@/components/deposite-model/deposite-side-model";
-import { TransferSideModel } from "@/components/transfer-modal/transfer-side-model";
+import { TransferSideModel } from "@/feature/transfer/components/transfer-side-model";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t, i18n } = useTranslation("common");
