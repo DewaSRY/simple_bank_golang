@@ -83,7 +83,7 @@ export function LoginFormScreen() {
     <div className="flex w-full items-center justify-center">
       <Card className="z-1 w-full max-w-2xl space-y-4 py-10 sm:min-w-150 sm:px-4">
         <CardHeader>
-          <div className="flex flex-col space-y-1 rounded-sm border border-brand-100 p-4">
+          <div className="flex flex-col space-y-1 rounded-sm border border-primary/20 p-4">
             <div className="mb-2">
               <BrandBanner />
             </div>
@@ -177,7 +177,7 @@ export function LoginFormScreen() {
                 ) : (
                   <div className="flex gap-3 rounded-sm border border-border p-3">
                     <Smartphone
-                      className="mt-0.5 size-5 shrink-0 text-brand-600"
+                      className="mt-0.5 size-5 shrink-0 text-primary"
                       aria-hidden
                     />
 

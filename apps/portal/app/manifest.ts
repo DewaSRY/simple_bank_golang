@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Ledger-based core banking demo — account management and account-to-account transfers.",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ffffff",
+    background_color: "#f8fafc",
+    theme_color: "#f8fafc",
     icons: [
       {
         src: "/icons/android-chrome-192x192.png",

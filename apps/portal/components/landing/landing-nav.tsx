@@ -75,7 +75,7 @@ export function LandingNav() {
             <Wallet className="relative z-10 size-4" aria-hidden />
 
             <motion.span
-              className="absolute inset-0 bg-white/20"
+              className="absolute inset-0 bg-primary-foreground/20"
               initial={{ x: "-100%" }}
               whileHover={{ x: "100%" }}
               transition={{ duration: 0.5 }}
@@ -207,7 +207,7 @@ export function LandingNav() {
 
           {/* Try demo */}
           <div className="relative inline-flex rounded-xs p-[1px] overflow-hidden">
-            <div className="absolute inset-[-100%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,#6dec2e_50%,transparent_60%,transparent_100%)]" />
+            <div className="absolute inset-[-100%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,var(--brand)_50%,transparent_60%,transparent_100%)]" />
 
             <Link
               href="/onboarding"

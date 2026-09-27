@@ -35,23 +35,20 @@ export default function EmptyState({
         />
       )}
       <p className="font-bold text-center text-lg">{title}</p>
-      <p className="text-sm text-center text-gray-500">{description}</p>
+      <p className="text-sm text-center text-muted-foreground">{description}</p>
       {(primaryAction || secondaryAction) && (
         <div className="mt-6">
           {secondaryAction && (
             <Button
               variant="outline"
               onClick={secondaryAction.onClick}
-              className="mr-3 border-gray-300"
+              className="mr-3"
             >
               {secondaryAction.label}
             </Button>
           )}
           {primaryAction && (
-            <Button
-              onClick={primaryAction.onClick}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
+            <Button onClick={primaryAction.onClick}>
               {primaryAction.icon && (
                 <primaryAction.icon className="h-4 w-4 mr-2" />
               )}

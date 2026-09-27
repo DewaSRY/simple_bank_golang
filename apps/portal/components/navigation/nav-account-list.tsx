@@ -90,7 +90,7 @@ export function NavAccountList() {
                   className={cn(
                     "rounded-xs p-3 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                     isActive &&
-                      "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
+                      "bg-sidebar-primary/10 font-medium text-sidebar-accent-foreground ring-1 ring-sidebar-primary/25 hover:bg-sidebar-primary/15",
                   )}
                 >
                   <div className="flex min-w-0 flex-col space-y-1.5">
@@ -117,6 +117,12 @@ export function NavAccountList() {
                           </TooltipContent>
                         </Tooltip>
                       )}
+                    </div>
+                    <div className="flex shrink-0 items-baseline gap-1 font-mono text-xs text-muted-foreground">
+                      <span className="truncate">
+                        {formatBalance(account.balance)}
+                      </span>
+                      <span>{account.currency}</span>
                     </div>
                   </div>
                 </Link>

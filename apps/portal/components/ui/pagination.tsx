@@ -88,7 +88,7 @@ const Pagination: React.FC<PaginationProps> = ({
             data-testid={`select_${pageName}_rows_per_page`}
             value={rowsPerPage}
             onChange={(e) => onRowsPerPageChange?.(Number(e.target.value))}
-            className="h-8 rounded-xs border border-brand-500  pl-3 pr-8 py-1 text-sm text-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent appearance-none"
+            className="h-8 rounded-xs border border-input bg-card pl-3 pr-8 py-1 text-sm text-foreground transition-colors hover:border-primary/50 focus:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 appearance-none"
           >
             {rowsPerPageOptions.map((option) => (
               <option
@@ -100,9 +100,9 @@ const Pagination: React.FC<PaginationProps> = ({
               </option>
             ))}
           </select>
-          <ChevronDown className="h-4 w-4 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-brand-500" />
+          <ChevronDown className="h-4 w-4 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
         </div>
-        <span className="text-sm text-gray-400 whitespace-nowrap">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
           {t("paginationRowsInfo", { count: totalRows })}
         </span>
       </div>
@@ -111,7 +111,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => handlePageClick(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-brand-500  text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-input bg-card text-foreground hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-50 disabled:hover:bg-card disabled:hover:border-input disabled:hover:text-foreground disabled:cursor-not-allowed transition-colors"
           aria-label={t("previousPage")}
           data-testid={pageName ? `btn_${pageName}_previous_page` : undefined}
         >
@@ -123,7 +123,7 @@ const Pagination: React.FC<PaginationProps> = ({
             return (
               <div
                 key={`${page}-${index}`}
-                className="h-8 w-8 shrink-0 flex items-center justify-center text-gray-500"
+                className="h-8 w-8 shrink-0 flex items-center justify-center text-muted-foreground"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </div>
@@ -136,8 +136,8 @@ const Pagination: React.FC<PaginationProps> = ({
               onClick={() => handlePageClick(page)}
               className={`h-8 min-w-2 px-3 shrink-0 rounded-xs flex items-center justify-center text-sm font-medium transition-colors ${
                 currentPage === page
-                  ? "bg-brand-500 text-white hover:bg-brand"
-                  : " text-gray-700 hover:bg-gray-50"
+                  ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary-hover"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
               aria-label={t("pageNumber", { page })}
               aria-current={currentPage === page ? "page" : undefined}
@@ -153,7 +153,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => handlePageClick(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-brand-500  text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-input bg-card text-foreground hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-50 disabled:hover:bg-card disabled:hover:border-input disabled:hover:text-foreground disabled:cursor-not-allowed transition-colors"
           aria-label={t("nextPage")}
           data-testid={pageName ? `btn_${pageName}_next_page` : undefined}
         >

@@ -25,11 +25,11 @@ export default function ErrorState({
       className={`flex flex-col items-center justify-center flex-1 py-12 text-center ${className}`}
       data-testid="error-state"
     >
-      <Icon className="mx-auto h-12 w-12 text-gray-400" />
-      <h3 className="mt-2 text-sm font-medium text-gray-900">
+      <Icon className="mx-auto h-12 w-12 text-destructive/70" />
+      <h3 className="mt-2 text-sm font-medium text-foreground">
         {resolvedTitle}
       </h3>
-      <p className="mt-1 text-sm text-gray-500">{resolvedDescription}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{resolvedDescription}</p>
     </div>
   );
 }

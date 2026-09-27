@@ -91,7 +91,7 @@ export function RegisterFormScreen() {
     <div className="w-full flex items-center justify-center">
       <Card className="w-full z-1  sm:px-4 py-10 sm:min-w-150  max-w-2xl space-y-4">
         <CardHeader>
-          <div className="flex flex-col space-y-1 border border-brand-100 p-4 rounded-sm ">
+          <div className="flex flex-col space-y-1 border border-primary/20 p-4 rounded-sm ">
             <div className=" mb-2">
               <BrandBanner />
             </div>
@@ -118,7 +118,7 @@ export function RegisterFormScreen() {
                 <div className="space-y-3">
                   <div className="flex gap-3 rounded-sm border border-border p-3">
                     <Smartphone
-                      className="mt-0.5 size-5 shrink-0 text-brand-600"
+                      className="mt-0.5 size-5 shrink-0 text-primary"
                       aria-hidden
                     />
                     <div>
@@ -133,7 +133,7 @@ export function RegisterFormScreen() {
 
                   <div className="flex gap-3 rounded-sm border border-border p-3">
                     <ShieldCheck
-                      className="mt-0.5 size-5 shrink-0 text-brand-600"
+                      className="mt-0.5 size-5 shrink-0 text-primary"
                       aria-hidden
                     />
                     <div>
@@ -148,7 +148,7 @@ export function RegisterFormScreen() {
 
                   <div className="flex gap-3 rounded-sm border border-border p-3">
                     <KeyRound
-                      className="mt-0.5 size-5 shrink-0 text-brand-600"
+                      className="mt-0.5 size-5 shrink-0 text-primary"
                       aria-hidden
                     />
                     <div>
@@ -261,7 +261,7 @@ export function RegisterFormScreen() {
                       {t("deviceBound")}
                     </span>
                     <p className="font-medium flex items-center gap-1">
-                      <Check className="size-4 text-brand-600" />
+                      <Check className="size-4 text-primary" />
                       {t("deviceBoundDescription")}
                     </p>
                   </div>

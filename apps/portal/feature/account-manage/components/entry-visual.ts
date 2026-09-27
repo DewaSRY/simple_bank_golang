@@ -26,8 +26,8 @@ const RECEIVED_VISUAL: EntryVisual = {
 
 const DEPOSIT_VISUAL: EntryVisual = {
   Icon: ArrowDownToLine,
-  iconWrapperClassName: "bg-blue-500/10 text-blue-500",
-  amountClassName: "text-blue-500",
+  iconWrapperClassName: "bg-info/10 text-info",
+  amountClassName: "text-info",
 };
 
 const WITHDRAW_VISUAL: EntryVisual = {

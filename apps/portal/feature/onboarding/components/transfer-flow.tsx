@@ -137,16 +137,16 @@ export function TransferFlow() {
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-0 bg-primary text-primary-foreground shadow-lg">
+      <Card className="overflow-hidden border-0 bg-brand-surface text-brand-surface-foreground shadow-lg">
         <CardContent className="flex items-center justify-between gap-4 p-6">
           <div>
-            <p className="text-sm text-primary-foreground/65">{account.name}</p>
-            <p className="text-xs text-primary-foreground/50">
+            <p className="text-sm text-brand-surface-foreground/75">{account.name}</p>
+            <p className="text-xs text-brand-surface-foreground/60">
               {account.number}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-primary-foreground/65">
+            <p className="text-xs text-brand-surface-foreground/75">
               {tCommon("availableBalance")}
             </p>
             <AnimatedNumber
