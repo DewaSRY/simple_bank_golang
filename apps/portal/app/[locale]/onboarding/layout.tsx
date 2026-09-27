@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
-import { OnboardingHeader } from "@/components/onboarding/onboarding-header";
-import { OnboardingToastViewport } from "@/components/onboarding/onboarding-toast-viewport";
+import { OnboardingHeader } from "@/feature/onboarding/components/onboarding-header";
+import { OnboardingToastViewport } from "@/feature/onboarding/components/onboarding-toast-viewport";
 
 export default async function OnboardingLayout({
   children,

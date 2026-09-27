@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
-import { DepositFlow } from "@/components/onboarding/deposit-flow";
+import { DepositFlow } from "@/feature/onboarding/components/deposit-flow";
 
 export async function generateMetadata({
   params,
@@ -40,9 +40,15 @@ export default async function OnboardingDepositPage({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-primary">{t("deposit.eyebrow")}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t("deposit.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("deposit.description")}</p>
+        <p className="text-sm font-medium text-primary">
+          {t("deposit.eyebrow")}
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          {t("deposit.title")}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t("deposit.description")}
+        </p>
       </div>
 
       <DepositFlow />

@@ -11,9 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MoneyInputField } from "@/components/form/money-input-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { PreviewRow } from "@/components/common/preview-row";
-import { AnimatedNumber } from "@/components/onboarding/animated-number";
-import { RecentActivity } from "@/components/onboarding/recent-activity";
-import { StepGuard } from "@/components/onboarding/step-guard";
+import { AnimatedNumber } from "./animated-number";
+import { RecentActivity } from "./recent-activity";
+import { StepGuard } from "./step-guard";
 import { Link } from "@/i18n/navigation";
 import {
   depositSchema,
