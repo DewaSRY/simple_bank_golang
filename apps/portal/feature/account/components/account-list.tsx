@@ -17,7 +17,7 @@ export function AccountList() {
     data: accounts,
     error,
     isPending,
-  } = useAccounts({ page: 1, limit: 10 });
+  } = useAccounts({ page: 1, limit: 10, name: "" });
 
   if (isPending) {
     return <AccountCardSkeleton />;

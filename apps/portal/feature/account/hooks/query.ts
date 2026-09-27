@@ -26,7 +26,7 @@ export const queryKeys = {
 };
 
 export function useAccounts(params: SearchMeAccountsParams) {
-  const debouncedParams = useDebounce(params.name);
+  const debouncedParams = useDebounce(params.name ?? "");
 
   const queryParams = { ...params, name: debouncedParams };
 
@@ -34,11 +34,10 @@ export function useAccounts(params: SearchMeAccountsParams) {
     queryKey: queryKeys.list(queryParams),
     queryFn: () => listMeAccountsAction(queryParams).then(unpackActionResult),
 
-    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
 
-    enabled: debouncedParams === undefined || debouncedParams.length >= 2,
+    enabled: debouncedParams === "" || debouncedParams.length >= 2,
   });
 }
 
@@ -62,7 +61,7 @@ export function useSearchAccountByNumber(
   params: SearchAccountsParams,
   options: { enabled?: boolean } = {},
 ) {
-  const debouncedParams = useDebounce(params.number);
+  const debouncedParams = useDebounce(params.number ?? "");
 
   const queryParams = { ...params, number: debouncedParams };
   return useQuery({
@@ -71,6 +70,6 @@ export function useSearchAccountByNumber(
       searchAccountByNumberAction(queryParams).then(unpackActionResult),
     enabled:
       (options.enabled ?? true) &&
-      (debouncedParams === undefined || debouncedParams.length >= 2),
+      (debouncedParams === "" || debouncedParams.length >= 2),
   });
 }
