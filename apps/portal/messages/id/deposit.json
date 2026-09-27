@@ -16,5 +16,9 @@
   "depositing": "Menyetor...",
   "amountRequired": "Jumlah wajib diisi",
   "amountInvalid": "Masukkan jumlah yang valid",
-  "descriptionRequired": "Deskripsi wajib diisi"
+  "descriptionRequired": "Deskripsi wajib diisi",
+  "toast": {
+    "success": "Setoran berhasil",
+    "loadEntriesError": "Gagal memuat transaksi"
+  }
 }

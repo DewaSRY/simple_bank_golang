@@ -13,11 +13,11 @@ export function FinalCtaSection() {
 
   return (
     <section className="px-4 py-16 sm:px-6 sm:py-24">
-      <ScrollReveal className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 rounded-3xl bg-primary px-6 py-14 text-center text-primary-foreground sm:px-16">
+      <ScrollReveal className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 rounded-3xl bg-brand-surface px-6 py-14 text-center text-brand-surface-foreground shadow-lg sm:px-16">
         <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
           {t("finalCta.title")}
         </h2>
-        <p className=" text-primary-foreground/70 text-balance">
+        <p className="text-brand-surface-foreground/75 text-balance">
           {t("finalCta.description")}
         </p>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
@@ -33,7 +33,7 @@ export function FinalCtaSection() {
           <Button
             size="lg"
             variant="outline"
-            className="h-12 border-primary-foreground/30 bg-transparent px-8 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            className="h-12 border-brand-surface-foreground/30 bg-transparent px-8 text-base text-brand-surface-foreground shadow-none hover:bg-brand-surface-foreground/10 hover:text-brand-surface-foreground dark:border-brand-surface-foreground/30 dark:bg-transparent dark:hover:bg-brand-surface-foreground/10"
             nativeButton={false}
             render={<Link href="/onboarding" />}
           >
@@ -42,7 +42,7 @@ export function FinalCtaSection() {
           <Button
             size="lg"
             variant="ghost"
-            className="h-12 gap-2 px-8 text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            className="h-12 gap-2 px-8 text-base text-brand-surface-foreground hover:bg-brand-surface-foreground/10 hover:text-brand-surface-foreground dark:hover:bg-brand-surface-foreground/10"
             nativeButton={false}
             render={
               <a href={REPO_URL} target="_blank" rel="noopener noreferrer" />

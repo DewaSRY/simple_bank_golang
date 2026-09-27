@@ -52,5 +52,14 @@
   "toAccountNumber": "Ke rekening {{number}}",
   "fromAccountNumber": "Dari rekening {{number}}",
   "namePlaceholder": "Masukkan nama rekening",
-  "descriptionPlaceholder": "Masukkan deskripsi rekening"
+  "descriptionPlaceholder": "Masukkan deskripsi rekening",
+  "toast": {
+    "created": "Rekening \"{{name}}\" berhasil dibuat",
+    "updated": "Rekening berhasil diperbarui",
+    "deleted": "Rekening berhasil dihapus",
+    "searchError": "Gagal mencari rekening"
+  },
+  "newAccount": "Akun baru",
+  "accountNumber": "Nomor rekening",
+  "openedOn": "Dibuka pada"
 }

@@ -214,7 +214,7 @@ function TableHead({
     <th
       data-slot="table-head"
       className={cn(
-        "text-foreground h-10 px-3.5 text-left align-middle whitespace-nowrap font-semibold bg-background",
+        "text-foreground h-10 px-3.5 text-left align-middle whitespace-nowrap font-semibold bg-card",
         className,
       )}
       {...props}
@@ -235,25 +235,25 @@ function TableHead({
           {tooltip && (
             <Tooltip>
               <TooltipTrigger>
-                <Info className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               </TooltipTrigger>
-              <TooltipContent className="bg-black fill-black">
+              <TooltipContent>
                 {tooltip}
               </TooltipContent>
             </Tooltip>
           )}
 
           {getSortDirection?.(sortBy || "") === "asc" && (
-            <ChevronUp strokeWidth={2} className="size-3.5 text-blue-500" />
+            <ChevronUp strokeWidth={2} className="size-3.5 text-primary" />
           )}
           {getSortDirection?.(sortBy || "") === "desc" && (
-            <ChevronDown strokeWidth={2} className="size-3.5 text-blue-500" />
+            <ChevronDown strokeWidth={2} className="size-3.5 text-primary" />
           )}
 
           {getSortDirection?.(sortBy || "") === "none" && (
             <ChevronsUpDown
               strokeWidth={2}
-              className="size-3.5 text-gray-400"
+              className="size-3.5 text-muted-foreground/70"
             />
           )}
         </div>
@@ -263,9 +263,9 @@ function TableHead({
           {tooltip && (
             <Tooltip>
               <TooltipTrigger>
-                <Info className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               </TooltipTrigger>
-              <TooltipContent className="bg-black fill-black">
+              <TooltipContent>
                 {tooltip}
               </TooltipContent>
             </Tooltip>
@@ -292,7 +292,7 @@ function TableCell({
       className={cn("px-3.5 py-3 align-middle whitespace-nowrap", className)}
       {...props}
     >
-      {isLoading ? <Skeleton className="w-full h-5 rounded-xs" /> : children}
+      {isLoading ? <Skeleton className="w-full h-5 rounded-md" /> : children}
     </td>
   );
 }

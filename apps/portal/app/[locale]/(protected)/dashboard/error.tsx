@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { AccountListMessage } from "@/components/dashboard/account-list-message";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import ErrorState from "@/components/ui/error-state";
+import { PageContainer } from "@/components/common/page-header";
 
 export default function DashboardError({
   error,
@@ -21,13 +21,14 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="flex my-2 flex-1 flex-col gap-4 bg-background px-6 font-sans">
-      <AccountListMessage icon={AlertCircle} className="text-destructive">
-        {t("error.dashboardDescription")}
-      </AccountListMessage>
-      <Button onClick={reset} className="self-center">
-        {t("tryAgain")}
-      </Button>
-    </div>
+    <PageContainer>
+      <Card>
+        <ErrorState
+          title={t("error.title")}
+          description={t("error.dashboardDescription")}
+          onRetry={reset}
+        />
+      </Card>
+    </PageContainer>
   );
 }

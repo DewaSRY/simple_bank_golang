@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 interface PaginationProps {
   currentPage: number;
@@ -74,73 +75,93 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   const pageNumbers = getPageNumbers();
+  const firstRow = totalRows === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+  const lastRow = Math.min(currentPage * rowsPerPage, totalRows);
 
   return (
-    <div
+    <nav
+      aria-label={t("pagination")}
       className={cn(
-        "flex flex-col sm:flex-row items-center justify-between w-full sticky bottom-0  py-2 px-1 gap-2",
+        "flex w-full flex-col items-center justify-between gap-3 px-4 py-3 sm:flex-row",
         className,
       )}
     >
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="relative shrink-0">
-          <select
-            data-testid={`select_${pageName}_rows_per_page`}
-            value={rowsPerPage}
-            onChange={(e) => onRowsPerPageChange?.(Number(e.target.value))}
-            className="h-8 rounded-xs border border-brand-500  pl-3 pr-8 py-1 text-sm text-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent appearance-none"
-          >
-            {rowsPerPageOptions.map((option) => (
-              <option
-                key={option}
-                value={option}
-                data-testid={`option_${pageName}_rows_per_page_${option}`}
-              >
-                {option}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="h-4 w-4 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-brand-500" />
-        </div>
-        <span className="text-sm text-gray-400 whitespace-nowrap">
-          {t("paginationRowsInfo", { count: totalRows })}
+      <div className="flex shrink-0 items-center gap-3">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="whitespace-nowrap">{t("rowsPerPage")}</span>
+          <span className="relative shrink-0">
+            <select
+              data-testid={`select_${pageName}_rows_per_page`}
+              value={rowsPerPage}
+              onChange={(e) => onRowsPerPageChange?.(Number(e.target.value))}
+              className="h-8 appearance-none rounded-md border border-input bg-card py-1 pr-8 pl-3 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] outline-none hover:border-ring/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+            >
+              {rowsPerPageOptions.map((option) => (
+                <option
+                  key={option}
+                  value={option}
+                  data-testid={`option_${pageName}_rows_per_page_${option}`}
+                >
+                  {option}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+          </span>
+        </label>
+        <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">
+          {t("paginationRange", {
+            from: firstRow,
+            to: lastRow,
+            count: totalRows,
+          })}
         </span>
       </div>
 
-      <div className="flex items-center gap-1.5 max-w-full overflow-x-auto">
+      <div className="flex max-w-full items-center gap-1 overflow-x-auto">
         <button
+          type="button"
           onClick={() => handlePageClick(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-brand-500  text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className={buttonVariants({ variant: "outline", size: "icon-sm" })}
           aria-label={t("previousPage")}
           data-testid={pageName ? `btn_${pageName}_previous_page` : undefined}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft aria-hidden />
         </button>
 
         {pageNumbers.map((page, index) => {
           if (typeof page === "string") {
             return (
-              <div
+              <span
                 key={`${page}-${index}`}
-                className="h-8 w-8 shrink-0 flex items-center justify-center text-gray-500"
+                aria-hidden
+                className="flex size-8 shrink-0 items-center justify-center text-muted-foreground"
               >
-                <MoreHorizontal className="h-4 w-4" />
-              </div>
+                <MoreHorizontal className="size-4" />
+              </span>
             );
           }
 
+          const isCurrent = currentPage === page;
           return (
             <button
+              type="button"
               key={page}
               onClick={() => handlePageClick(page)}
-              className={`h-8 min-w-2 px-3 shrink-0 rounded-xs flex items-center justify-center text-sm font-medium transition-colors ${
-                currentPage === page
-                  ? "bg-brand-500 text-white hover:bg-brand"
-                  : " text-gray-700 hover:bg-gray-50"
-              }`}
+              className={cn(
+                buttonVariants({
+                  variant: isCurrent ? "default" : "ghost",
+                  size: "icon-sm",
+                }),
+                "min-w-8 w-auto px-2 tabular-nums",
+                !isCurrent && "text-muted-foreground",
+              )}
               aria-label={t("pageNumber", { page })}
-              aria-current={currentPage === page ? "page" : undefined}
+              aria-current={isCurrent ? "page" : undefined}
               data-testid={
                 pageName ? `btn_${pageName}_page_${page}` : undefined
               }
@@ -151,16 +172,17 @@ const Pagination: React.FC<PaginationProps> = ({
         })}
 
         <button
+          type="button"
           onClick={() => handlePageClick(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-8 w-8 shrink-0 rounded-xs flex items-center justify-center border border-brand-500  text-brand-500 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className={buttonVariants({ variant: "outline", size: "icon-sm" })}
           aria-label={t("nextPage")}
           data-testid={pageName ? `btn_${pageName}_next_page` : undefined}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight aria-hidden />
         </button>
       </div>
-    </div>
+    </nav>
   );
 };
 
