@@ -42,7 +42,7 @@
   "noEntriesTitle": "No entries yet",
   "noEntriesDescription": "Transactions for this account will appear here.",
   "entryColumn": "Entry",
-  "transactionType": "Treansaction Type",
+  "transactionType": "Transaction type",
   "amountColumn": "Amount",
   "mainAccount": "Main account",
   "deposit": "Deposit",
@@ -52,5 +52,14 @@
   "toAccountNumber": "To account {{number}}",
   "fromAccountNumber": "From account {{number}}",
   "namePlaceholder": "Enter the account name",
-  "descriptionPlaceholder": "Enter the account description"
+  "descriptionPlaceholder": "Enter the account description",
+  "toast": {
+    "created": "Account \"{{name}}\" created",
+    "updated": "Account updated",
+    "deleted": "Account deleted",
+    "searchError": "Unable to search accounts"
+  },
+  "newAccount": "New account",
+  "accountNumber": "Account number",
+  "openedOn": "Opened on"
 }

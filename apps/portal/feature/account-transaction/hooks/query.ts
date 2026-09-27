@@ -44,6 +44,7 @@ export function useAccountEntries(
     queryKey: queryKeys.entries(accountId, params),
     queryFn: () =>
       getAccountEntriesAction(accountId, params).then(unpackActionResult),
+    meta: { errorMessage: { key: "deposit:toast.loadEntriesError" } },
     select: (response) => ({
       ...response,
       data: response.data.map((entry) => toDisplayLedgerEntry(entry)),
@@ -59,6 +60,7 @@ export function useRecentTransactions(
     queryKey: queryKeys.recentTransactions(accountId, params),
     queryFn: () =>
       getRecentTransactionsAction(accountId, params).then(unpackActionResult),
+    meta: { errorMessage: { key: "deposit:toast.loadEntriesError" } },
   });
 }
 
@@ -67,6 +69,10 @@ export function useDeposit(accountId: number) {
   return useMutation({
     mutationFn: (body: DepositRequestBody) =>
       depositAction(accountId, body).then(unpackActionResult),
+    meta: {
+      successMessage: { key: "deposit:toast.success" },
+      errorMessage: { key: "deposit:depositError" },
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.entries(accountId, {

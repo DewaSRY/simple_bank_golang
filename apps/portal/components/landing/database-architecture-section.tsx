@@ -15,7 +15,7 @@ function EntityCard({ entity, delay }: { entity: Entity; delay: number }) {
     <ScrollReveal delay={delay} className="h-full">
       <div className="flex h-full flex-col rounded-2xl bg-card p-5 ring-1 ring-foreground/10">
         <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-xs bg-primary/10 text-primary">
+          <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
             <Table2 className="size-4" aria-hidden />
           </span>
           <p className="font-mono text-sm font-semibold">{entity.name}</p>

@@ -22,7 +22,7 @@ import { TechStackSection } from "@/components/landing/tech-stack-section";
 import { FinalCtaSection } from "@/components/landing/final-cta-section";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { AUTHOR } from "@/components/landing/author";
-import { AuthBackdrop } from "@/components/auth/auth-backdrop";
+import { AuthBackdrop } from "@/feature/auth/components/auth-backdrop";
 
 export async function generateMetadata({
   params,

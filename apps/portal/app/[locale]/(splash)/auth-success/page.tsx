@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AuthSuccessFlow } from "@/components/auth/auth-success-flow";
+import { AuthSuccessFlow } from "@/feature/auth/components/auth-success-flow";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

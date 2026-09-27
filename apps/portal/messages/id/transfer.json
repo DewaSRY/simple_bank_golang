@@ -25,5 +25,9 @@
   "transferring": "Mentransfer...",
   "amountRequired": "Jumlah wajib diisi",
   "amountInvalid": "Masukkan jumlah yang valid",
-  "descriptionRequired": "Deskripsi wajib diisi"
+  "descriptionRequired": "Deskripsi wajib diisi",
+  "toast": {
+    "success": "Transfer berhasil"
+  },
+  "noRecentTransactionsHint": "Cari berdasarkan nomor rekening untuk menemukan penerima."
 }

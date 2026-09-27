@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
-import { CompletionSummary } from "@/components/onboarding/completion-summary";
+import { CompletionSummary } from "@/feature/onboarding/components/completion-summary";
 
 export async function generateMetadata({
   params,

@@ -12,3 +12,6 @@ export type {
   AccountPublicResponse,
   DisplayLedgerEntry,
 } from "./type";
+export { DepositeDialog } from "./components/deposite-dialog";
+export { useDepositeStore } from "./components/store";
+export type { AccountList as DepositAccount } from "./components/type";

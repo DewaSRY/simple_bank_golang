@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LogoutBanner } from "@/components/auth/logout-banner";
+import { LogoutBanner } from "@/feature/auth/components/logout-banner";
 
 // Transient redirect-through page — never worth indexing.
 export const metadata: Metadata = {

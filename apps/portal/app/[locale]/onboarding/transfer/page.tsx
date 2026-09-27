@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
-import { TransferFlow } from "@/components/onboarding/transfer-flow";
+import { TransferFlow } from "@/feature/onboarding/components/transfer-flow";
 
 export async function generateMetadata({
   params,
@@ -40,9 +40,15 @@ export default async function OnboardingTransferPage({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-primary">{t("transfer.eyebrow")}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t("transfer.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("transfer.description")}</p>
+        <p className="text-sm font-medium text-primary">
+          {t("transfer.eyebrow")}
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          {t("transfer.title")}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t("transfer.description")}
+        </p>
       </div>
 
       <TransferFlow />

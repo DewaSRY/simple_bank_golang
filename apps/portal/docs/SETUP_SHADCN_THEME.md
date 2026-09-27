@@ -233,34 +233,28 @@ directly once a real landing page and dashboard shell were built).
 <ThemeToggle />
 ```
 
-## Brand color tokens
+## Color tokens
 
-Since this doc was written, `app/globals.css` gained a **brand** token set,
-deliberately separate from the shadcn theme tokens above:
-`--brand`/`--brand-hover`/`--brand-active`/`--brand-soft`/`--brand-foreground`
-and numbered steps `--brand-100`...`--brand-900`, on a golden-yellow
-spectrum (`oklch(... ~94)` hue) anchored on the brand hex `#FFD51E`.
-Each token is redefined under `.dark`, and `--brand-500` — the primary
-brand color — resolves to the **same** `oklch(0.883 0.176 93.958)`
-(`#FFD51E`) in both `:root` and `.dark`, so the brand identity doesn't
-shift with the theme; only the supporting steps (used for
-hover/active/soft/foreground) adjust for contrast. (An earlier
-yellow→lime→green version of this block had `--brand-500` diverge between
-themes — `#3BC914` in `:root` vs. `oklch(0.962 0.116 104)` in `.dark`, two
-unrelated colors — despite this doc's claim; a since-reverted orange
-rewrite fixed that, and the current `#FFD51E` scale keeps `--brand-500`
-constant across themes too.) `--primary`/`--ring`/`--accent`/the
-`sidebar-*` equivalents/`--chart-1`/`--chart-2` share the same yellow hue
-so the rendered UI (buttons, focus rings, sidebar highlights) matches the
-brand tokens — see e.g. `components/tagline.tsx`, which renders the brand
-word via `text-primary`. Because `#FFD51E` is a light, high-luma yellow,
-every `*-foreground` paired with it uses dark text (white text on this
-scale fails WCAG contrast at every step) — this is why `--primary` and
-`--brand-500` are the same value in `.dark` too, rather than the lighter
-"bump up a step for dark backgrounds" trick used for a darker brand color.
-Use `bg-brand`/`text-brand-foreground`/etc. (mapped via `@theme inline`,
-same mechanism as `--color-background` → `bg-background`) rather than
-introducing a new ad-hoc brand color.
+All colors live as CSS variables in `app/globals.css` (`:root` + `.dark`),
+mapped to Tailwind utilities via `@theme inline`. Components must use these
+utilities — no raw Tailwind palette classes (`text-gray-500`, `bg-blue-600`)
+and no hex/oklch literals in `className`. The only hex literal outside
+`globals.css` is `app/manifest.ts`'s `theme_color`/`background_color`,
+because a web manifest can't read CSS variables.
+
+| Role | Tokens | Notes |
+| --- | --- | --- |
+| Surfaces | `background` < `card`/`popover` (light); `background` < `sidebar` < `card` < `popover` < `muted` (dark) | Light page bg is off-white so white cards read as raised. Dark mode uses layered slate, never pure black. |
+| Text | `foreground`, `muted-foreground` | `muted-foreground` is ≥4.5:1 on every surface in both themes. |
+| Interactive | `primary`, `primary-hover`, `primary-foreground`, `ring` | Deep emerald in light (white text 4.8:1); brighter emerald with **dark** text in dark mode (7.9:1). Reserve for primary actions, links, active/selected states. |
+| Neutral UI | `secondary`, `accent`, `border`, `input`, `overlay` | `accent` is neutral (menu hover), not green. `input` is a step darker than `border` so fields read as fields. `overlay` backs dialogs/sheets. |
+| Status | `destructive`, `success`, `warning`, `info` (+ `-foreground`) | All ≥4.5:1 as text on cards. Use as `text-x` or a `bg-x/10` tint. |
+| Brand identity | `brand`, `brand-50`…`brand-900` | Anchored on the wallet-icon green `#12AE52` (`--brand-500`, identical in both themes). Decorative only — auth backdrop glows, logo accents. Too light for white text, so never use it for buttons; use `primary`. |
+| Hero surface | `bg-brand-surface` utility + `text-brand-surface-foreground` | A restrained deep-emerald gradient for balance cards and the landing final CTA. White text ≥6.2:1. Use `text-brand-surface-foreground/75` for secondary text on it. |
+
+When adding a new color need, add a token pair to both `:root` and `.dark`
+(and an `@theme inline` mapping), check its contrast in both themes, and
+only then use it from a component.
 
 ## Adding a new shadcn component
 

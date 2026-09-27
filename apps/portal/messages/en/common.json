@@ -41,5 +41,30 @@
     "title": "Something went wrong",
     "description": "An unexpected error occurred. Please try again.",
     "dashboardDescription": "Failed to load your accounts."
-  }
+  },
+  "toast": {
+    "loadFailed": "Failed to load data",
+    "requestFailed": "Request failed"
+  },
+  "noAccountsFound": "No accounts found",
+  "noAccountsFoundDescription": "Try adjusting your search or create a new account.",
+  "dashboardDescription": "An overview of your balances and accounts.",
+  "noAccountsDescription": "Create your first account to start depositing and transferring money.",
+  "quickActions": "Quick actions",
+  "viewSource": "View source on GitHub",
+  "totalBalance": "Total balance",
+  "acrossAccounts_one": "Across {{count}} account",
+  "acrossAccounts_other": "Across {{count}} accounts",
+  "accountsCount_one": "{{count}} account",
+  "accountsCount_other": "{{count}} accounts",
+  "breadcrumb": "Breadcrumb",
+  "moreActions": "More actions",
+  "copied": "Copied to clipboard",
+  "copyFailed": "Couldn't copy to clipboard",
+  "copyAccountNumber": "Copy account number",
+  "clearSearch": "Clear search",
+  "stepOf": "Step {{current}} of {{total}}",
+  "pagination": "Pagination",
+  "rowsPerPage": "Rows per page",
+  "paginationRange": "{{from}}–{{to}} of {{count}}"
 }

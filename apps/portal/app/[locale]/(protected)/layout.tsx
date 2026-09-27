@@ -12,6 +12,7 @@ import { SessionGuard } from "@/feature/auth";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
 import { SiteHeader } from "@/components/navigation/site-header";
+import { QuickActionDialogs } from "@/components/navigation/quick-actions";
 
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
 
@@ -35,9 +36,11 @@ export default async function ProtectedLayout({
 
   const queryClient = new QueryClient();
 
+  // Must match NavAccountList's useAccounts() params exactly (its nuqs
+  // defaults), or the sidebar misses this cache entry and flashes a skeleton.
   const query = {
     page: 1,
-    limit: 10,
+    limit: 25,
     name: "",
   };
   await queryClient.query({
@@ -62,6 +65,7 @@ export default async function ProtectedLayout({
 
           {children}
         </SidebarInset>
+        <QuickActionDialogs />
       </HydrationBoundary>
     </SidebarProvider>
   );

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
-import { RegisterFormScreen } from "@/components/auth/register-form-screen";
+import { RegisterFormScreen } from "@/feature/auth/components/register-form-screen";
 
 export async function generateMetadata({
   params,

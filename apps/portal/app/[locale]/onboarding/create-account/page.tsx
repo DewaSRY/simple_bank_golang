@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
 import { canonicalFor, buildLanguageAlternates } from "@/lib/seo/metadata";
-import { CreateAccountFlow } from "@/components/onboarding/create-account-flow";
+import { CreateAccountFlow } from "@/feature/onboarding/components/create-account-flow";
 
 export async function generateMetadata({
   params,
@@ -40,7 +40,9 @@ export default async function OnboardingCreateAccountPage({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-primary">{t("createAccount.eyebrow")}</p>
+        <p className="text-sm font-medium text-primary">
+          {t("createAccount.eyebrow")}
+        </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           {t("createAccount.title")}
         </h1>

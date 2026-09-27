@@ -20,24 +20,24 @@ services:
       timeout: 5s
       retries: 5
 
-  # core-services:
-  #   image: ${CORE_SERVICE_IMAGE}
-  #   restart: unless-stopped
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
+  core-services:
+    image: ${CORE_SERVICE_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # nginx:
-  #   image: nginx:1.27-alpine
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ./apps/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-  #   depends_on:
-  #     - core-services
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./apps/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - core-services
 
 volumes:
   simple_bank_postgres_data:

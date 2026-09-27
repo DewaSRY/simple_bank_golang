@@ -13,3 +13,5 @@ export type {
   SearchMeAccountsParams,
   SearchAccountsParams,
 } from "./type";
+export { CreateAccountDialog } from "./components/create-account-dialog";
+export { useCreateAccountStore } from "./components/store";
