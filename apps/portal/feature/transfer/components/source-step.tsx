@@ -9,6 +9,7 @@ import { useAccounts } from "@/feature/account";
 import { AccountCard } from "./account-card";
 import { useTransferStore } from "./store";
 import type { SourceAccount } from "./type";
+import EmptyState from "@/components/ui/empty-state";
 
 export function SourceStep() {
   const { t } = useTranslation("transfer");
@@ -23,18 +24,20 @@ export function SourceStep() {
     setStep("destination");
   }
 
+  const accountsList = accounts?.data ?? [];
   return (
-    <div>
-      <SearchInput
-        search={name}
-        onSearch={setName}
-        placeholder={t("searchAccountsPlaceholder")}
-      />
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="sticky top-0 bg-muted z-10 ">
+        <SearchInput
+          search={name}
+          onSearch={setName}
+          placeholder={t("searchAccountsPlaceholder")}
+        />
+      </div>
 
       <div className="max-h-80 space-y-2 overflow-y-auto py-2">
-        {accounts?.data &&
-          accounts.data.length > 0 &&
-          accounts.data.map((account, idx) => (
+        {accountsList.length > 0 ? (
+          accountsList.map((account, idx) => (
             <AccountCard
               key={`source-${account.id}-${idx}`}
               name={account.name}
@@ -42,7 +45,13 @@ export function SourceStep() {
               selected={sourceAccount?.id === account.id}
               onClick={() => handleSelect(account)}
             />
-          ))}
+          ))
+        ) : (
+          <EmptyState
+            title={tCommon("noAccountsFound")}
+            description={tCommon("noAccountsFoundDescription")}
+          />
+        )}
       </div>
 
       <DialogFooter>

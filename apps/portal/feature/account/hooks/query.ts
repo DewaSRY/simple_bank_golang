@@ -79,6 +79,5 @@ export function useSearchAccountByNumber(
     enabled:
       (options.enabled ?? true) &&
       (debouncedParams === "" || debouncedParams.length >= 2),
-    meta: { errorMessage: { key: "account:toast.searchError" } },
   });
 }

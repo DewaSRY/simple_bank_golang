@@ -91,8 +91,11 @@ function toastMutationSuccess(
 export function createQueryClient(): QueryClient {
   return new QueryClient({
     queryCache: new QueryCache({
-      onError: (error, query) =>
-        toastError(error, query.meta?.errorMessage, DEFAULT_QUERY_ERROR),
+      onError: (error, query) => {
+        if (query.meta) {
+          toastError(error, query.meta.errorMessage, DEFAULT_QUERY_ERROR);
+        }
+      },
     }),
     mutationCache: new MutationCache({
       onSuccess: (data, variables, _context, mutation) =>

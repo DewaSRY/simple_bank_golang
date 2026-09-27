@@ -7,6 +7,7 @@ import { AccountCard } from "./account-card";
 import { useDepositeStore } from "./store";
 import { useState } from "react";
 import { DepositeForm } from "./deposite-dialog";
+import EmptyState from "@/components/ui/empty-state";
 
 interface Props {
   form: DepositeForm;
@@ -33,18 +34,22 @@ export function AccountList({ form }: Props) {
     form.setValue("accountId", account.id, { shouldDirty: true });
   }
 
+  const accountsList = accounts?.data ?? [];
   return (
-    <div>
-      <SearchInput
-        search={name}
-        onSearch={handleSearch}
-        placeholder={t("searchPlaceholder")}
-      />
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Sticky Search */}
+      <div className="sticky top-0 bg-muted z-10 ">
+        <SearchInput
+          search={name}
+          onSearch={handleSearch}
+          placeholder={t("searchPlaceholder")}
+        />
+      </div>
 
-      <div className="space-y-2 py-2">
-        {accounts?.data &&
-          accounts?.data.length > 0 &&
-          accounts.data.map((account, idx) => (
+      {/* Scrollable Account List */}
+      <div className="min-h-0 flex-1 overflow-y-auto space-y-2 py-2">
+        {accountsList.length > 0 ? (
+          accountsList.map((account, idx) => (
             <AccountCard
               key={`account-${account.id}-${idx}`}
               name={account.name}
@@ -52,7 +57,13 @@ export function AccountList({ form }: Props) {
               selected={selectedAccount?.id === account.id}
               onClick={() => handleSelectAccount(account)}
             />
-          ))}
+          ))
+        ) : (
+          <EmptyState
+            title={t("noAccountsFound")}
+            description={t("noAccountsFoundDescription")}
+          />
+        )}
       </div>
     </div>
   );

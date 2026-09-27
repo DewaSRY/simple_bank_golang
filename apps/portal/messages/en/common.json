@@ -45,5 +45,7 @@
   "toast": {
     "loadFailed": "Failed to load data",
     "requestFailed": "Request failed"
-  }
+  },
+  "noAccountsFound": "No accounts found",
+  "noAccountsFoundDescription": "Try adjusting your search or create a new account."
 }

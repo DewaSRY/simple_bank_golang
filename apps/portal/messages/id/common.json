@@ -45,5 +45,7 @@
   "toast": {
     "loadFailed": "Gagal memuat data",
     "requestFailed": "Permintaan gagal"
-  }
+  },
+  "noAccountsFound": "Tidak ada akun ditemukan",
+  "noAccountsFoundDescription": "Coba sesuaikan pencarian Anda atau buat akun baru."
 }
