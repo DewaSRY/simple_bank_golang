@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { AccountListMessage } from "@/components/dashboard/account-list-message";
+import { AccountListMessage } from "@/feature/account/components/account-list-message";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardError({

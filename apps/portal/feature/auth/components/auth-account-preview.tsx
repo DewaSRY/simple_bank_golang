@@ -9,9 +9,11 @@ import { useProfileQuery } from "@/feature/auth";
 import { useAccounts } from "@/feature/account";
 import { getApiErrorMessage } from "@/lib/api/error";
 import { AuthBackdrop } from "./auth-backdrop";
-import { AccountListItem } from "@/components/dashboard/account-card";
-import { AccountCardSkeleton } from "@/components/dashboard/account-card-skeleton";
-import { AccountListMessage } from "@/components/dashboard/account-list-message";
+
+import { AccountListItem } from "@/feature/account/components/account-card";
+import { AccountCardSkeleton } from "@/feature/account/components/account-card-skeleton";
+import { AccountListMessage } from "@/feature/account/components//account-list-message";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";

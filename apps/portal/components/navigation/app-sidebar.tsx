@@ -17,7 +17,7 @@ import {
 import { NavAccountList } from "./nav-account-list";
 import { Separator } from "@base-ui/react";
 
-import { CreateNewAccount } from "../create-account-model/create-new-account";
+import { CreateNewAccount } from "@/feature/account/components/create-new-account";
 import { DepositeSideModel } from "@/feature/account-transaction/components/deposite-side-model";
 import { TransferSideModel } from "@/feature/transfer/components/transfer-side-model";
 

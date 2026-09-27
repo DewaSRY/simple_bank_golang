@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { AccountCardSkeleton } from "@/components/dashboard/account-card-skeleton";
+import { AccountCardSkeleton } from "@/feature/account/components/account-card-skeleton";
 
 export default function DashboardLoading() {
   return (

@@ -2,7 +2,7 @@
 
 import { Star } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { Card } from "../ui/card";
+import { Card } from "@/components/ui/card";
 import type { AccountWithUserName } from "@/feature/account";
 
 function formatBalance(balance: string) {

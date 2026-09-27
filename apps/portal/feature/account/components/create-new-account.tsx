@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { IconButton } from "@/components/common/icon-button";
-import { CreateAccountDialog } from "@/components/create-account-model/create-account-dialog";
+import { CreateAccountDialog } from "./create-account-dialog";
 import { Plus } from "lucide-react";
 
 export function CreateNewAccount() {

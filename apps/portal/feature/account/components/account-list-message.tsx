@@ -2,7 +2,7 @@
 
 import { Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card } from "../ui/card";
+import { Card } from "@/components/ui/card";
 
 export function AccountListMessage({
   icon: Icon,

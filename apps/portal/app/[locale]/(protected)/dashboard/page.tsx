@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { isAppLocale } from "@/i18n/settings";
 import { getTranslation } from "@/i18n/server";
-import { AccountList } from "@/components/dashboard/account-list";
+import { AccountList } from "@/feature/account/components/account-list";
 import { queryKeys, listMeAccountsAction } from "@/feature/account";
 import { unpackActionResult } from "@/lib/api/unpack-server-result";
 
