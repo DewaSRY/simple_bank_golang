@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
-import { AuthBackdrop } from "@/components/auth/auth-backdrop";
+import { AuthBackdrop } from "./auth-backdrop";
 
 const SUCCESS_DISPLAY_MS = 1000;
 

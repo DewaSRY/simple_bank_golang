@@ -1,7 +1,7 @@
 import { Wallet } from "lucide-react";
 
 import { useTranslation } from "react-i18next";
-import { GuardedLink } from "../common/navigation-guard/guarded-link";
+import { GuardedLink } from "@/components/common/navigation-guard/guarded-link";
 import {
   Tooltip,
   TooltipContent,

@@ -5,7 +5,7 @@ import { LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLogoutMutation } from "@/feature/auth";
 import type { AppLocale } from "@/i18n/settings";
-import { AuthBackdrop } from "@/components/auth/auth-backdrop";
+import { AuthBackdrop } from "./auth-backdrop";
 
 const MIN_SPINNER_MS = 600;
 

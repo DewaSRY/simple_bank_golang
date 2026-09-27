@@ -2,7 +2,7 @@ import type { AppLocale } from "@/i18n/settings";
 
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { LogoutButton } from "@/components/auth/logout-button";
+import { LogoutButton } from "@/feature/auth/components/logout-button";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";

@@ -1,4 +1,4 @@
-import { AuthBackdrop } from "@/components/auth/auth-backdrop";
+import { AuthBackdrop } from "@/feature/auth/components/auth-backdrop";
 
 export default async function ProtectedLayout({
   children,

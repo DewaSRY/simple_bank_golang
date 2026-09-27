@@ -8,7 +8,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useProfileQuery } from "@/feature/auth";
 import { useAccounts } from "@/feature/account";
 import { getApiErrorMessage } from "@/lib/api/error";
-import { AuthBackdrop } from "@/components/auth/auth-backdrop";
+import { AuthBackdrop } from "./auth-backdrop";
 import { AccountListItem } from "@/components/dashboard/account-card";
 import { AccountCardSkeleton } from "@/components/dashboard/account-card-skeleton";
 import { AccountListMessage } from "@/components/dashboard/account-list-message";
