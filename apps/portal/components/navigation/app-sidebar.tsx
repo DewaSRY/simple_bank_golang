@@ -18,7 +18,7 @@ import { NavAccountList } from "./nav-account-list";
 import { Separator } from "@base-ui/react";
 
 import { CreateNewAccount } from "../create-account-model/create-new-account";
-import { DepositeSideModel } from "@/components/deposite-model/deposite-side-model";
+import { DepositeSideModel } from "@/feature/account-transaction/components/deposite-side-model";
 import { TransferSideModel } from "@/feature/transfer/components/transfer-side-model";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
